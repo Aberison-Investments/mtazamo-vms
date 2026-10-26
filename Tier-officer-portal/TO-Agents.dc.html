@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; }
+  input, button, select, textarea { font-family: inherit; }
+  ::placeholder { color: #8590A2; }
+  a { color: #386271; }
+  a:hover { color: #1A2E36; }
+  @keyframes riseIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes popIn { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+<script src="./image-slot.js"></script>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:#FFFFFF;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#172B4D;font-size:14px;line-height:20px;">
+
+  <div style="height:56px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 16px;border-bottom:1px solid #DCDFE4;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="width:24px;height:24px;border-radius:5px;background:#599BAE;display:inline-flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:12px;font-weight:700;">M</span>
+      <span style="font-size:14px;font-weight:600;">Mtazamo Votes</span>
+    </div>
+    <input placeholder="Search stations, agents, wards in Dagoretti North" style="flex:1;max-width:460px;height:32px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 12px;font-size:14px;background:#F7F8F9;color:#172B4D;" style-focus="background:#FFFFFF;border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:#EEF6F8;color:#386271;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Constituency officer</span>
+      <span style="width:32px;height:32px;border-radius:50%;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">BO</span>
+    </div>
+  </div>
+
+  <div style="flex:1;display:flex;align-items:stretch;min-height:0;">
+    <div style="width:256px;flex-shrink:0;background:#F7F8F9;border-right:1px solid #DCDFE4;padding:16px 12px;">
+      <div style="display:flex;align-items:center;gap:10px;padding:8px;margin-bottom:16px;">
+        <span style="width:32px;height:32px;border-radius:5px;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">27</span>
+        <div style="min-width:0;">
+          <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">2027 Nairobi General</div>
+          <div style="font-size:12px;color:#626F86;">Dagoretti North only</div>
+        </div>
+      </div>
+      <a href="TO-Home.dc.html" style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;"><span>Overview</span></a>
+      <a href="TO-Agents.dc.html" style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;font-weight:600;color:#386271;background:#EEF6F8;"><span>Agents</span><span style="font-size:12px;color:#386271;">8</span></a>
+      <a href="TO-Geography.html" style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;"><span>Geography</span><span style="font-size:12px;color:#626F86;">5 wards</span></a>
+      <a href="TO-Settings.dc.html" style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;"><span>Settings</span></a>
+      <div style="height:1px;background:#DCDFE4;margin:12px 8px;"></div>
+      <div style="padding:0 8px;font-size:12px;color:#8590A2;line-height:17px;">You see Dagoretti North only. The rest of Nairobi stays with Daniel Mwangi.</div>
+    </div>
+
+    <div style="flex:1;min-width:0;padding:28px 40px 56px;">
+      <div style="font-size:12px;color:#626F86;margin-bottom:6px;"><a href="TO-Home.dc.html" style="text-decoration:none;color:#626F86;">Dagoretti North</a> / Agents</div>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
+        <div>
+          <div style="font-size:24px;line-height:28px;font-weight:700;margin-bottom:4px;">Review pending agents</div>
+          <div style="font-size:14px;color:#626F86;">{{subtitle}}</div>
+        </div>
+        <a href="#" style="display:flex;align-items:center;height:32px;padding:0 12px;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:14px;font-weight:500;text-decoration:none;flex-shrink:0;" style-hover="background:#DCDFE4;">Send invites</a>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px;">
+        <sc-for list="{{metrics}}" as="m" hint-placeholder-count="4">
+          <div style="border:1px solid #DCDFE4;border-radius:8px;padding:14px 16px;background:#FFFFFF;animation:riseIn 300ms ease-out both;">
+            <div style="font-size:12px;color:#626F86;margin-bottom:6px;">{{m.label}}</div>
+            <div style="font-size:22px;line-height:26px;font-weight:700;color:{{m.color}};">{{m.value}}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+        <input value="{{search}}" onChange="{{onSearch}}" placeholder="Search by name" style="height:32px;width:200px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;font-size:13px;color:#172B4D;background:#FFFFFF;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+        <sc-for list="{{roleFilters}}" as="f" hint-placeholder-count="3">
+          <div onClick="{{f.onClick}}" style="{{f.style}}">{{f.label}}</div>
+        </sc-for>
+        <span style="width:1px;height:20px;background:#DCDFE4;margin:0 4px;"></span>
+        <sc-for list="{{wardFilters}}" as="w" hint-placeholder-count="1">
+          <select value="{{w.value}}" onChange="{{w.onChange}}" style="height:32px;border:1px solid #DCDFE4;border-radius:8px;padding:0 8px;font-size:13px;color:#44546F;background:#FFFFFF;">
+            <sc-for list="{{w.options}}" as="o" hint-placeholder-count="4">
+              <option value="{{o}}">{{o}}</option>
+            </sc-for>
+          </select>
+        </sc-for>
+        <div style="flex:1;"></div>
+        <sc-if value="{{showBulk}}" hint-placeholder-val="{{false}}">
+          <div onClick="{{bulkApprove}}" style="display:flex;align-items:center;height:32px;padding:0 14px;border-radius:8px;background:#599BAE;color:#FFFFFF;font-size:13px;font-weight:600;cursor:pointer;" style-hover="background:#487E8C;">{{bulkApproveLabel}}</div>
+        </sc-if>
+      </div>
+
+      <div style="border:1px solid #DCDFE4;border-radius:8px;overflow:hidden;">
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 20px;background:#F7F8F9;border-bottom:1px solid #DCDFE4;">
+          <span onClick="{{onSelectAllPage}}" style="{{selectAllStyle}}">{{selectAllMark}}</span>
+          <span style="flex:1;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:#8590A2;">Applicant</span>
+          <span style="width:130px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:#8590A2;">Source</span>
+          <span style="width:90px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:#8590A2;text-align:right;">Waiting</span>
+          <span style="width:96px;"></span>
+        </div>
+        <sc-for list="{{apps}}" as="a" hint-placeholder-count="6">
+          <div style="{{a.rowStyle}}">
+            <span onClick="{{a.onCheck}}" style="{{a.checkStyle}}">{{a.checkMark}}</span>
+            <div style="width:32px;height:32px;flex-shrink:0;">
+              <image-slot id="{{a.photoId}}" shape="circle" placeholder="Photo"></image-slot>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <span style="font-size:14px;font-weight:600;">{{a.name}}</span>
+                <span style="{{a.roleTagStyle}}">{{a.roleTag}}</span>
+                <sc-if value="{{a.showDup}}" hint-placeholder-val="{{false}}">
+                  <span style="display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:3px;background:#FFECEB;color:#AE2A19;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;">Duplicate</span>
+                </sc-if>
+                <sc-if value="{{a.showOtpWarn}}" hint-placeholder-val="{{false}}">
+                  <span style="display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:3px;background:#FFF7D6;color:#974F0C;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;">Phone unverified</span>
+                </sc-if>
+              </div>
+              <div style="font-size:12px;color:#626F86;margin-top:2px;">{{a.meta}}</div>
+            </div>
+            <span style="width:130px;font-size:12px;color:#626F86;">{{a.source}}</span>
+            <span style="width:90px;font-size:12px;font-weight:600;color:{{a.waitColor}};text-align:right;">{{a.waitLabel}}</span>
+            <div style="width:96px;flex-shrink:0;text-align:right;">
+              <div onClick="{{a.onDecide}}" style="display:inline-flex;align-items:center;height:30px;padding:0 12px;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:12px;font-weight:600;cursor:pointer;" style-hover="background:#DCDFE4;">{{decideLabel}}</div>
+            </div>
+          </div>
+        </sc-for>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;">
+          <span style="font-size:12px;color:#626F86;">{{listFooter}}</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div onClick="{{onPrevPage}}" style="{{prevStyle}}">Prev</div>
+            <span style="font-size:12px;color:#44546F;padding:0 4px;">{{pageLabel}}</span>
+            <div onClick="{{onNextPage}}" style="{{nextStyle}}">Next</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <sc-if value="{{showDetailModal}}" hint-placeholder-val="{{false}}">
+    <div style="position:fixed;inset:0;background:rgba(9,30,66,0.44);display:flex;align-items:center;justify-content:center;padding:24px;z-index:50;animation:fadeIn 160ms ease-out both;">
+      <div style="width:100%;max-width:440px;background:#FFFFFF;border-radius:10px;box-shadow:0 8px 24px rgba(9,30,66,0.3);animation:popIn 180ms ease-out both;">
+        <div style="padding:20px 24px 16px;border-bottom:1px solid #F1F2F4;display:flex;gap:14px;align-items:flex-start;">
+          <div style="width:64px;height:64px;flex-shrink:0;">
+            <image-slot id="{{detail.photoId}}" shape="circle" placeholder="ID photo"></image-slot>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+              <span style="font-size:17px;font-weight:700;">{{detail.name}}</span>
+              <span style="{{detail.roleTagStyle}}">{{detail.roleTag}}</span>
+            </div>
+            <div style="font-size:12px;color:#626F86;">{{detail.scope}}</div>
+          </div>
+        </div>
+        <div style="padding:16px 24px;">
+          <sc-for list="{{detail.fields}}" as="f" hint-placeholder-count="5">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #F1F2F4;">
+              <span style="font-size:12px;color:#626F86;">{{f.label}}</span>
+              <span style="font-size:13px;font-weight:500;text-align:right;color:{{f.color}};">{{f.value}}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{detail.dup}}" hint-placeholder-val="{{false}}">
+            <div style="display:flex;align-items:flex-start;gap:10px;padding:12px;border-radius:8px;background:#FFECEB;color:#AE2A19;font-size:12px;line-height:18px;margin-top:14px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#C9372C;margin-top:5px;flex-shrink:0;"></span>
+              <span>{{detail.dupText}} Approval is blocked until this is resolved.</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{detail.noApprove}}" hint-placeholder-val="{{false}}">
+            <div style="display:flex;align-items:flex-start;gap:10px;padding:12px;border-radius:8px;background:#EEF6F8;color:#386271;font-size:12px;line-height:18px;margin-top:14px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#599BAE;margin-top:5px;flex-shrink:0;"></span>
+              <span>Daniel Mwangi approves applications for Dagoretti North. Flag it and he'll see your note.</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{detail.otpWarn}}" hint-placeholder-val="{{false}}">
+            <div style="display:flex;align-items:flex-start;gap:10px;padding:12px;border-radius:8px;background:#FFF7D6;color:#974F0C;font-size:12px;line-height:18px;margin-top:14px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#E2B203;margin-top:5px;flex-shrink:0;"></span>
+              <span>Phone number not yet verified by OTP. Approval is blocked until they complete it.</span>
+            </div>
+          </sc-if>
+        </div>
+        <div style="display:flex;gap:8px;padding:16px 24px 22px;">
+          <div onClick="{{detail.onClose}}" style="display:flex;align-items:center;justify-content:center;height:36px;padding:0 14px;border-radius:8px;background:#FFFFFF;border:1px solid #DCDFE4;color:#44546F;font-size:13px;font-weight:500;cursor:pointer;" style-hover="background:#F1F2F4;">Close</div>
+          <div style="flex:1;"></div>
+          <div onClick="{{detail.onReject}}" style="display:flex;align-items:center;justify-content:center;height:36px;padding:0 16px;border-radius:8px;background:#FFFFFF;border:1px solid #DCDFE4;color:#AE2A19;font-size:13px;font-weight:600;cursor:pointer;" style-hover="background:#FFECEB;">Reject</div>
+          <button onClick="{{detail.onApprove}}" disabled="{{detail.approveDisabled}}" style="{{detail.approveStyle}}">{{detail.approveLabel}}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{showAssignModal}}" hint-placeholder-val="{{false}}">
+    <div style="position:fixed;inset:0;background:rgba(9,30,66,0.44);display:flex;align-items:center;justify-content:center;padding:24px;z-index:50;animation:fadeIn 160ms ease-out both;">
+      <div style="width:100%;max-width:440px;background:#FFFFFF;border-radius:10px;box-shadow:0 8px 24px rgba(9,30,66,0.3);animation:popIn 180ms ease-out both;">
+        <div style="padding:20px 24px 4px;">
+          <div style="font-size:17px;font-weight:700;margin-bottom:4px;">{{assign.title}}</div>
+          <div style="font-size:13px;color:#626F86;line-height:19px;">{{assign.subtitle}}</div>
+        </div>
+        <div style="padding:16px 24px;">
+          <sc-if value="{{assign.showStations}}" hint-placeholder-val="{{true}}">
+            <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:8px;">Assign to a station</div>
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+              <sc-for list="{{assign.stationStats}}" as="st" hint-placeholder-count="3">
+                <div style="flex:1;border:1px solid #DCDFE4;border-radius:8px;padding:8px 10px;background:#F7F8F9;">
+                  <div style="font-size:15px;font-weight:700;color:{{st.color}};">{{st.value}}</div>
+                  <div style="font-size:11px;color:#626F86;margin-top:1px;">{{st.label}}</div>
+                </div>
+              </sc-for>
+            </div>
+            <input value="{{assign.stationSearch}}" onChange="{{assign.onStationSearch}}" placeholder="Search stations" style="width:100%;height:34px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;font-size:13px;color:#172B4D;background:#FFFFFF;margin-bottom:10px;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+            <div style="border:1px solid #DCDFE4;border-radius:8px;overflow:hidden;max-height:220px;overflow-y:auto;">
+              <sc-for list="{{assign.stations}}" as="st" hint-placeholder-count="4">
+                <div onClick="{{st.onClick}}" style="{{st.rowStyle}}">
+                  <span style="{{st.markStyle}}">{{st.mark}}</span>
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-size:13px;font-weight:500;">{{st.name}}</div>
+                    <div style="font-size:11px;color:#626F86;">{{st.meta}}</div>
+                  </div>
+                  <span style="{{st.tagStyle}}">{{st.tag}}</span>
+                </div>
+              </sc-for>
+              <div onClick="{{assign.onPickBench}}" style="{{assign.benchRowStyle}}">
+                <span style="{{assign.benchMarkStyle}}">{{assign.benchMark}}</span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:13px;font-weight:500;">Add to the ward bench instead</div>
+                  <div style="font-size:11px;color:#626F86;">Reserve pool — swappable into any station in {{assign.ward}} later.</div>
+                </div>
+              </div>
+            </div>
+            <div style="font-size:12px;color:#626F86;margin-top:10px;">Their preferred station is preselected. Covered stations can't be picked — a second agent there goes to the ward bench.</div>
+          </sc-if>
+          <sc-if value="{{assign.showVolunteer}}" hint-placeholder-val="{{false}}">
+            <div style="display:flex;align-items:flex-start;gap:10px;padding:12px;border-radius:8px;background:#EEF6F8;color:#386271;font-size:12px;line-height:18px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#599BAE;margin-top:5px;flex-shrink:0;"></span>
+              <span>Volunteers aren't tied to a station. They're added to the {{assign.ward}} ward volunteer group.</span>
+            </div>
+          </sc-if>
+        </div>
+        <div style="display:flex;gap:8px;padding:16px 24px 22px;">
+          <div onClick="{{assign.onBack}}" style="display:flex;align-items:center;justify-content:center;height:36px;padding:0 14px;border-radius:8px;background:#FFFFFF;border:1px solid #DCDFE4;color:#44546F;font-size:13px;font-weight:500;cursor:pointer;" style-hover="background:#F1F2F4;">Back</div>
+          <div style="flex:1;"></div>
+          <button onClick="{{assign.onConfirm}}" style="{{assign.confirmStyle}}">{{assign.confirmLabel}}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{showRejectModal}}" hint-placeholder-val="{{false}}">
+    <div style="position:fixed;inset:0;background:rgba(9,30,66,0.44);display:flex;align-items:center;justify-content:center;padding:24px;z-index:50;animation:fadeIn 160ms ease-out both;">
+      <div style="width:100%;max-width:440px;background:#FFFFFF;border-radius:10px;box-shadow:0 8px 24px rgba(9,30,66,0.3);animation:popIn 180ms ease-out both;">
+        <div style="padding:20px 24px 4px;">
+          <div style="font-size:17px;font-weight:700;margin-bottom:4px;">Reject {{reject.name}}'s application</div>
+          <div style="font-size:13px;color:#626F86;">Recorded on the application and visible to the applicant.</div>
+        </div>
+        <div style="padding:16px 24px;">
+          <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:6px;">Reason for rejection <span style="color:#BF2600;">*</span></div>
+          <textarea value="{{reject.reason}}" onChange="{{reject.onReason}}" placeholder="e.g. National ID does not match the photo submitted" style="width:100%;min-height:80px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:8px 10px;font-size:13px;color:#172B4D;resize:vertical;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;"></textarea>
+        </div>
+        <div style="display:flex;gap:8px;padding:16px 24px 22px;">
+          <div onClick="{{reject.onBack}}" style="display:flex;align-items:center;justify-content:center;height:36px;padding:0 14px;border-radius:8px;background:#FFFFFF;border:1px solid #DCDFE4;color:#44546F;font-size:13px;font-weight:500;cursor:pointer;" style-hover="background:#F1F2F4;">Back</div>
+          <div style="flex:1;"></div>
+          <button onClick="{{reject.onConfirm}}" disabled="{{reject.confirmDisabled}}" style="{{reject.confirmStyle}}">Confirm rejection</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"canApprove":{"editor":"boolean","default":true,"tsType":"boolean","section":"Delegation from campaign manager"}}'>
+class Component extends DCLogic {
+  apps = [
+    { id: 'a1', name: 'Peter Wafula', nationalId: '2301 xxxx 41', phone: '+254 712 xxx 384', role: 'agent', ward: 'Kawangware', constituency: 'Dagoretti North', station: 'Kawangware Chief Camp — Stream 1', source: 'Public link', waitDays: 7, otpVerified: true, dup: null },
+    { id: 'a2', name: 'Mary Atieno', nationalId: '2894 xxxx 02', phone: '+254 733 xxx 119', role: 'agent', ward: 'Kileleshwa', constituency: 'Dagoretti North', station: 'Kileleshwa Primary — Stream 2', source: 'Public link', waitDays: 6, otpVerified: true, dup: { type: 'id', with: 'an existing agent at Kileleshwa Primary — Stream 1' } },
+    { id: 'a3', name: 'Joseph Kariuki', nationalId: '3011 xxxx 87', phone: '+254 799 xxx 220', role: 'agent', ward: 'Gatina', constituency: 'Dagoretti North', station: 'Gatina Primary — Stream 1', source: 'Ward officer invite', waitDays: 6, otpVerified: false, dup: null },
+    { id: 'a4', name: 'Grace Njeri', nationalId: '2657 xxxx 55', phone: '+254 720 xxx 903', role: 'volunteer', ward: 'Kilimani', constituency: 'Dagoretti North', station: null, source: 'Public link', waitDays: 4, otpVerified: true, dup: null },
+    { id: 'a5', name: 'Samuel Mutua', nationalId: '3122 xxxx 09', phone: '+254 701 xxx 447', role: 'agent', ward: 'Mountain View', constituency: 'Dagoretti North', station: 'Mountain View Primary — Stream 1', source: 'Your invite', waitDays: 3, otpVerified: true, dup: null },
+    { id: 'a6', name: 'Esther Wanjiku', nationalId: '2745 xxxx 63', phone: '+254 733 xxx 384', role: 'volunteer', ward: 'Gatina', constituency: 'Dagoretti North', station: null, source: 'Public link', waitDays: 3, otpVerified: true, dup: { type: 'phone', with: 'Peter Wafula\u2019s application, submitted 4 days earlier' } },
+    { id: 'a7', name: 'Kevin Omondi', nationalId: '2988 xxxx 30', phone: '+254 711 xxx 062', role: 'agent', ward: 'Kilimani', constituency: 'Dagoretti North', station: 'Toi Primary — Stream 2', source: 'Ward officer invite', waitDays: 2, otpVerified: true, dup: null },
+    { id: 'a8', name: 'Faith Chebet', nationalId: '3255 xxxx 74', phone: '+254 745 xxx 511', role: 'volunteer', ward: 'Kileleshwa', constituency: 'Dagoretti North', station: null, source: 'Public link', waitDays: 1, otpVerified: true, dup: null }
+  ];
+  stationDefs = [
+    { id: 's047', name: 'Kawangware Chief Camp — Stream 1', meta: 'Station 047 · 1,142 voters', state: 'gap' },
+    { id: 's048', name: 'Kawangware Chief Camp — Stream 2', meta: 'Station 048 · 1,098 voters', state: 'gap' },
+    { id: 's051', name: 'Gatina Primary — Stream 1', meta: 'Station 051 · 967 voters', state: 'partial' },
+    { id: 's052', name: 'Kabiro Social Hall — Stream 1', meta: 'Station 052 · 884 voters', state: 'full' }
+  ];
+  state = { filter: 'all', ward: 'All wards', search: '', page: 0, pageSize: 5, checked: {}, decided: {}, modalId: null, stage: null, reason: '', stationId: null, stationSearch: '' };
+  roleTag(role) { return role === 'agent' ? { label: 'Polling agent', style: 'background:#EEF6F8;color:#386271;' } : { label: 'Volunteer', style: 'background:#F1F2F4;color:#44546F;' }; }
+  tagStyle(t) { return `display:inline-flex;align-items:center;height:18px;padding:0 8px;border-radius:3px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap;${t.style}`; }
+  waitColor(d) { return d > 5 ? '#AE2A19' : d > 2 ? '#974F0C' : '#626F86'; }
+
+  renderVals() {
+    const s = this.state;
+    const canApprove = this.props.canApprove ?? true;
+    const live = this.apps.filter(a => !s.decided[a.id]);
+    const wards = ['All wards', 'Kilimani', 'Kawangware', 'Gatina', 'Kileleshwa', 'Mountain View'];
+    let filtered = s.filter === 'all' ? live : live.filter(a => a.role === s.filter);
+    if (s.ward !== 'All wards') filtered = filtered.filter(a => a.ward === s.ward);
+    if (s.search.trim()) filtered = filtered.filter(a => a.name.toLowerCase().includes(s.search.trim().toLowerCase()));
+    const totalPages = Math.max(1, Math.ceil(filtered.length / s.pageSize));
+    const page = Math.min(s.page, totalPages - 1);
+    const pageItems = filtered.slice(page * s.pageSize, page * s.pageSize + s.pageSize);
+    const modalApp = s.modalId ? this.apps.find(a => a.id === s.modalId) : null;
+
+    const apps = pageItems.map(a => {
+      const rt = this.roleTag(a.role);
+      return {
+        name: a.name,
+        photoId: `photo-${a.id}`,
+        meta: a.role === 'agent' ? `${a.station} · ${a.ward} Ward` : `${a.ward} Ward volunteer`,
+        roleTag: rt.label,
+        roleTagStyle: this.tagStyle(rt),
+        showDup: !!a.dup,
+        showOtpWarn: !a.otpVerified,
+        waitLabel: `${a.waitDays}d`,
+        waitColor: this.waitColor(a.waitDays),
+        source: a.source,
+        checkMark: s.checked[a.id] ? '✓' : '',
+        checkStyle: `width:16px;height:16px;border-radius:4px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;cursor:pointer;color:#FFFFFF;background:${s.checked[a.id] ? '#599BAE' : '#FFFFFF'};border:1px solid ${s.checked[a.id] ? '#599BAE' : '#8590A2'};`,
+        onCheck: () => this.setState(st => ({ checked: { ...st.checked, [a.id]: !st.checked[a.id] } })),
+        onDecide: () => this.setState({ modalId: a.id, stage: 'detail', reason: '', stationId: a.role === 'agent' ? this.stationDefs[0].id : null }),
+        rowStyle: `display:flex;align-items:flex-start;gap:12px;padding:13px 20px;border-bottom:1px solid #F1F2F4;`
+      };
+    });
+
+    let detail = null, assign = null, reject = null;
+    if (modalApp) {
+      const rt = this.roleTag(modalApp.role);
+      const blocked = !!modalApp.dup || !modalApp.otpVerified || !canApprove;
+      const close = () => this.setState({ modalId: null, stage: null });
+      detail = {
+        name: modalApp.name, photoId: `photo-${modalApp.id}`, roleTag: rt.label, roleTagStyle: this.tagStyle(rt),
+        scope: modalApp.role === 'agent' ? `${modalApp.station} · ${modalApp.ward} Ward · ${modalApp.constituency}` : `${modalApp.ward} Ward · ${modalApp.constituency}`,
+        fields: [
+          { label: 'National ID', value: modalApp.nationalId, color: '#172B4D' },
+          { label: 'Phone', value: modalApp.phone, color: '#172B4D' },
+          { label: 'Phone verified (OTP)', value: modalApp.otpVerified ? 'Yes' : 'Not yet', color: modalApp.otpVerified ? '#216E4E' : '#974F0C' },
+          { label: 'Source', value: modalApp.source, color: '#44546F' },
+          { label: 'Waiting', value: `${modalApp.waitDays} day${modalApp.waitDays === 1 ? '' : 's'}`, color: this.waitColor(modalApp.waitDays) }
+        ],
+        dup: !!modalApp.dup,
+        dupText: modalApp.dup ? (modalApp.dup.type === 'id' ? `This national ID is already registered to ${modalApp.dup.with}.` : `This phone number matches ${modalApp.dup.with}.`) : '',
+        otpWarn: !modalApp.otpVerified,
+        noApprove: !canApprove,
+        approveLabel: canApprove ? 'Approve' : 'Approve',
+        onClose: close,
+        onReject: () => this.setState({ stage: 'reject' }),
+        approveDisabled: blocked,
+        approveStyle: `display:flex;align-items:center;justify-content:center;height:36px;padding:0 18px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:${blocked ? 'not-allowed' : 'pointer'};background:${blocked ? '#F1F2F4' : '#599BAE'};color:${blocked ? '#8590A2' : '#FFFFFF'};`,
+        onApprove: () => { if (!blocked) this.setState({ stage: 'assign', stationSearch: '' }); }
+      };
+
+      if (s.stage === 'assign') {
+        const stationList = this.stationDefs.filter(st => st.name.toLowerCase().includes(s.stationSearch.trim().toLowerCase()));
+        const wardTotals = { total: 38, covered: 21, gap: 17, bench: 4 };
+        const stations = stationList.map(st => {
+          const selected = st.id === s.stationId;
+          const disabled = st.state === 'full';
+          const tags = { gap: ['No agent', 'background:#FFECEB;color:#AE2A19;'], partial: ['1 of 2', 'background:#FFF7D6;color:#974F0C;'], full: ['Covered', 'background:#F1F2F4;color:#626F86;'] };
+          return {
+            name: st.name, meta: st.meta, tag: tags[st.state][0],
+            tagStyle: `display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap;flex-shrink:0;${tags[st.state][1]}`,
+            onClick: () => { if (!disabled) this.setState({ stationId: st.id }); },
+            rowStyle: `display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #F1F2F4;cursor:${disabled ? 'not-allowed' : 'pointer'};opacity:${disabled ? 0.55 : 1};background:${selected ? '#EEF6F8' : '#FFFFFF'};`,
+            mark: selected ? '●' : '',
+            markStyle: `width:16px;height:16px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#FFFFFF;background:${selected ? '#599BAE' : '#FFFFFF'};border:1px solid ${selected ? '#599BAE' : '#8590A2'};`
+          };
+        });
+        const benchSelected = s.stationId === 'bench';
+        assign = {
+          title: modalApp.role === 'agent' ? `Assign ${modalApp.name}` : `Add ${modalApp.name} as a volunteer`,
+          subtitle: modalApp.role === 'agent' ? 'Approving places them once you confirm a station, or holds them on the bench.' : 'Approving adds them to the ward volunteer roster.',
+          showStations: modalApp.role === 'agent',
+          showVolunteer: modalApp.role === 'volunteer',
+          ward: modalApp.ward,
+          stationStats: [
+            { label: `Stations in ${modalApp.ward}`, value: String(wardTotals.total), color: '#172B4D' },
+            { label: 'Already covered', value: String(wardTotals.covered), color: '#216E4E' },
+            { label: 'Still uncovered', value: String(wardTotals.gap), color: '#AE2A19' }
+          ],
+          stations,
+          stationSearch: s.stationSearch,
+          onStationSearch: (e) => this.setState({ stationSearch: e.target.value }),
+          onPickBench: () => this.setState({ stationId: 'bench' }),
+          benchMark: benchSelected ? '●' : '',
+          benchMarkStyle: `width:16px;height:16px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#FFFFFF;background:${benchSelected ? '#599BAE' : '#FFFFFF'};border:1px solid ${benchSelected ? '#599BAE' : '#8590A2'};`,
+          benchRowStyle: `display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;background:${benchSelected ? '#EEF6F8' : '#F7F8F9'};`,
+          onBack: () => this.setState({ stage: 'detail' }),
+          confirmLabel: modalApp.role === 'agent' ? (benchSelected ? 'Confirm approval to the bench' : 'Confirm approval and assignment') : 'Confirm approval',
+          confirmStyle: `display:flex;align-items:center;justify-content:center;height:36px;padding:0 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:#599BAE;color:#FFFFFF;`,
+          onConfirm: () => this.setState(st => ({ decided: { ...st.decided, [modalApp.id]: 'approved' }, modalId: null, stage: null }))
+        };
+      }
+      if (s.stage === 'reject') {
+        reject = {
+          name: modalApp.name, reason: s.reason,
+          onReason: (e) => this.setState({ reason: e.target.value }),
+          onBack: () => this.setState({ stage: 'detail' }),
+          confirmDisabled: s.reason.trim().length === 0,
+          confirmStyle: `display:flex;align-items:center;justify-content:center;height:36px;padding:0 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:${s.reason.trim() ? 'pointer' : 'not-allowed'};background:${s.reason.trim() ? '#C9372C' : '#F1F2F4'};color:${s.reason.trim() ? '#FFFFFF' : '#8590A2'};`,
+          onConfirm: () => { if (s.reason.trim()) this.setState(st => ({ decided: { ...st.decided, [modalApp.id]: 'rejected' }, modalId: null, stage: null, reason: '' })); }
+        };
+      }
+    }
+
+    const checkedIds = Object.keys(s.checked).filter(id => s.checked[id] && !s.decided[id]);
+    const checkedEligible = checkedIds.filter(id => { const a = this.apps.find(x => x.id === id); return a && !a.dup && a.otpVerified; });
+    const pageAllChecked = pageItems.length > 0 && pageItems.every(a => s.checked[a.id]);
+
+    return {
+      metrics: [
+        { label: canApprove ? 'Awaiting your review' : 'Awaiting Daniel\u2019s review', value: String(live.length), color: '#974F0C' },
+        { label: 'Waiting over 5 days', value: String(live.filter(a => a.waitDays > 5).length), color: '#AE2A19' },
+        { label: 'Duplicates flagged', value: String(this.apps.filter(a => a.dup && !s.decided[a.id]).length), color: '#AE2A19' },
+        { label: 'Approved today', value: String(Object.values(s.decided).filter(v => v === 'approved').length), color: '#216E4E' }
+      ],
+      subtitle: canApprove ? 'Applications for the 5 wards in Dagoretti North. Nothing is placed until you approve it.' : 'Applications for the 5 wards in Dagoretti North. Daniel Mwangi approves — you can review and flag.',
+      decideLabel: canApprove ? 'Decide' : 'Review',
+      showBulk: canApprove && checkedIds.length > 0,
+      search: s.search,
+      onSearch: (e) => this.setState({ search: e.target.value, page: 0 }),
+      roleFilters: [['all', 'All'], ['agent', 'Polling agent'], ['volunteer', 'Volunteer']].map(([id, label]) => ({
+        label,
+        onClick: () => this.setState({ filter: id, page: 0 }),
+        style: `display:flex;align-items:center;height:30px;padding:0 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid ${s.filter === id ? '#599BAE' : '#DCDFE4'};background:${s.filter === id ? '#EEF6F8' : '#FFFFFF'};color:${s.filter === id ? '#386271' : '#44546F'};`
+      })),
+      wardFilters: [{ value: s.ward, options: wards, onChange: (e) => this.setState({ ward: e.target.value, page: 0 }) }],
+      hasSelection: checkedIds.length > 0,
+      bulkApproveLabel: `Approve ${checkedEligible.length} selected${checkedIds.length > checkedEligible.length ? ` (${checkedIds.length - checkedEligible.length} blocked)` : ''}`,
+      bulkApprove: () => this.setState(st => {
+        const decided = { ...st.decided };
+        checkedEligible.forEach(id => { decided[id] = 'approved'; });
+        return { decided, checked: {} };
+      }),
+      selectAllMark: pageAllChecked ? '✓' : '',
+      selectAllStyle: `width:16px;height:16px;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;cursor:pointer;color:#FFFFFF;background:${pageAllChecked ? '#599BAE' : '#FFFFFF'};border:1px solid ${pageAllChecked ? '#599BAE' : '#8590A2'};`,
+      onSelectAllPage: () => this.setState(st => {
+        const checked = { ...st.checked };
+        pageItems.forEach(a => { checked[a.id] = !pageAllChecked; });
+        return { checked };
+      }),
+      apps,
+      listFooter: `Page ${page + 1} of ${totalPages} · ${filtered.length} matching · ${live.length} in the Dagoretti North queue`,
+      pageLabel: `${page + 1} / ${totalPages}`,
+      onPrevPage: () => this.setState({ page: Math.max(0, page - 1) }),
+      onNextPage: () => this.setState({ page: Math.min(totalPages - 1, page + 1) }),
+      prevStyle: `display:flex;align-items:center;height:28px;padding:0 10px;border-radius:6px;font-size:12px;font-weight:500;cursor:${page === 0 ? 'default' : 'pointer'};background:#FFFFFF;border:1px solid #DCDFE4;color:${page === 0 ? '#B3BAC5' : '#44546F'};`,
+      nextStyle: `display:flex;align-items:center;height:28px;padding:0 10px;border-radius:6px;font-size:12px;font-weight:500;cursor:${page >= totalPages - 1 ? 'default' : 'pointer'};background:#FFFFFF;border:1px solid #DCDFE4;color:${page >= totalPages - 1 ? '#B3BAC5' : '#44546F'};`,
+      showDetailModal: !!modalApp && s.stage === 'detail',
+      showAssignModal: !!modalApp && s.stage === 'assign',
+      showRejectModal: !!modalApp && s.stage === 'reject',
+      detail: detail || {}, assign: assign || {}, reject: reject || {}
+    };
+  }
+}
+
+</script>
+</body>
+</html>

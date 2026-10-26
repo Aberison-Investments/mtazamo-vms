@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; }
+  input, button { font-family: inherit; }
+  ::placeholder { color: #8590A2; }
+  a { color: #386271; }
+  a:hover { color: #1A2E36; }
+  @keyframes riseIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:#FFFFFF;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#172B4D;font-size:14px;line-height:20px;">
+
+  <div style="height:56px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 16px;border-bottom:1px solid #DCDFE4;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="width:24px;height:24px;border-radius:5px;background:#599BAE;display:inline-flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:12px;font-weight:700;">M</span>
+      <span style="font-size:14px;font-weight:600;">Mtazamo Votes</span>
+    </div>
+    <input placeholder="Search stations, agents, wards" style="flex:1;max-width:460px;height:32px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 12px;font-size:14px;background:#F7F8F9;color:#172B4D;" style-focus="background:#FFFFFF;border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:#EEF6F8;color:#386271;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Campaign manager</span>
+      <span style="width:32px;height:32px;border-radius:50%;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">DM</span>
+    </div>
+  </div>
+
+  <div style="flex:1;display:flex;align-items:stretch;min-height:0;">
+    <div style="width:256px;flex-shrink:0;background:#F7F8F9;border-right:1px solid #DCDFE4;padding:16px 12px;">
+      <div style="display:flex;align-items:center;gap:10px;padding:8px;margin-bottom:16px;">
+        <span style="width:32px;height:32px;border-radius:5px;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">27</span>
+        <div style="min-width:0;">
+          <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">2027 Nairobi General</div>
+          <div style="font-size:12px;color:#626F86;">Governor · Nairobi</div>
+        </div>
+      </div>
+      <a href="CM-Home.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;">Overview</a>
+      <a href="CM-Candidates.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;font-weight:600;color:#386271;background:#EEF6F8;">Candidates</a>
+      <div style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;color:#44546F;cursor:pointer;" style-hover="background:#F1F2F4;color:#172B4D;"><span>Agents</span><span style="font-size:12px;color:#626F86;">48</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;color:#44546F;cursor:pointer;" style-hover="background:#F1F2F4;color:#172B4D;"><span>Volunteers</span><span style="font-size:12px;color:#626F86;">23</span></div>
+      <a href="Geography.html" style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;"><span>Geography</span><span style="font-size:12px;color:#626F86;">17</span></a>
+      <div style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;color:#44546F;cursor:pointer;" style-hover="background:#F1F2F4;color:#172B4D;"><span>War room</span><span style="width:8px;height:8px;border-radius:50%;background:#1F845A;"></span></div>
+    </div>
+
+    <div style="flex:1;min-width:0;padding:24px 40px 56px;">
+      
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
+        <div style="max-width:620px;">
+          <div style="font-size:24px;line-height:28px;font-weight:700;margin-bottom:6px;">Candidates on the ballot</div>
+        </div>
+        <span style="{{statusStyle}}">{{statusLabel}}</span>
+      </div>
+
+      <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;">
+        <div style="flex:2 1 480px;min-width:0;display:flex;flex-direction:column;gap:16px;">
+
+          <div style="border:1px solid #DCDFE4;border-radius:8px;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);overflow:hidden;animation:riseIn 240ms ease-out both;">
+            <div style="display:grid;grid-template-columns:40px minmax(0,1.3fr) minmax(0,1fr) 96px;gap:12px;padding:10px 16px;background:#F7F8F9;border-bottom:1px solid #DCDFE4;font-size:11px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;color:#626F86;">
+              <span>Order</span><span>Full name</span><span>Party</span><span style="text-align:right;">Actions</span>
+            </div>
+            <sc-for list="{{rows}}" as="r" hint-placeholder-count="4">
+              <div style="{{r.rowStyle}}">
+                <span style="{{r.numStyle}}">{{r.n}}</span>
+                <div style="min-width:0;">
+                  <sc-if value="{{r.ours}}" hint-placeholder-val="{{false}}">
+                    <div style="display:flex;align-items:center;gap:4px 8px;flex-wrap:wrap;min-height:36px;padding:4px 0;box-sizing:border-box;">
+                      <span style="font-size:14px;font-weight:600;">{{r.name}}</span>
+                      <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:#EEF6F8;color:#386271;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Your aspirant</span>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{r.other}}" hint-placeholder-val="{{true}}">
+                    <input value="{{r.name}}" onChange="{{r.onName}}" placeholder="As on the ballot paper" style="{{r.nameInputStyle}}" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+                  </sc-if>
+                </div>
+                <div style="min-width:0;">
+                  <sc-if value="{{r.ours}}" hint-placeholder-val="{{false}}">
+                    <div style="display:flex;align-items:center;height:36px;font-size:14px;color:#44546F;">{{r.party}}</div>
+                  </sc-if>
+                  <sc-if value="{{r.other}}" hint-placeholder-val="{{true}}">
+                    <input value="{{r.party}}" onChange="{{r.onParty}}" placeholder="Party or Independent" style="{{r.partyInputStyle}}" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+                  </sc-if>
+                </div>
+                <div style="display:flex;justify-content:flex-end;gap:4px;">
+                  <button onClick="{{r.up}}" title="Move up" style="{{r.upStyle}}">↑</button>
+                  <button onClick="{{r.down}}" title="Move down" style="{{r.downStyle}}">↓</button>
+                  <button onClick="{{r.remove}}" title="Remove" style="{{r.removeStyle}}">✕</button>
+                </div>
+              </div>
+            </sc-for>
+            <div style="padding:12px 16px;border-top:1px solid #F1F2F4;">
+              <button onClick="{{addRow}}" style="display:flex;align-items:center;gap:8px;height:32px;padding:0 12px;border:1px dashed #B3B9C4;border-radius:8px;background:#FFFFFF;color:#386271;font-size:13px;font-weight:600;cursor:pointer;" style-hover="background:#F7F8F9;border-color:#599BAE;">+ Add candidate</button>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div style="{{hintStyle}}">{{hint}}</div>
+            <div style="display:flex;gap:8px;">
+              <a href="CM-Home.dc.html" style="display:flex;align-items:center;height:36px;padding:0 14px;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:14px;font-weight:500;text-decoration:none;" style-hover="background:#DCDFE4;color:#172B4D;">Save draft</a>
+              <button onClick="{{publish}}" style="{{publishStyle}}">{{publishLabel}}</button>
+            </div>
+          </div>
+        </div>
+
+              </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;startEmpty&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;State&quot;}}">
+class Component extends DCLogic {
+  state = { rows: null, published: false, dirty: false };
+  initialRows() {
+    if (this.props.startEmpty) return [{ id: 'wk', name: 'Wanjiru Kamau', party: 'Democratic Alliance', ours: true }];
+    return [
+      { id: 'po', name: 'Peter Odhiambo', party: 'Independent' },
+      { id: 'sk', name: 'Samuel Kiprono', party: 'United Progress Party' },
+      { id: 'wk', name: 'Wanjiru Kamau', party: 'Democratic Alliance', ours: true },
+      { id: 'fa', name: 'Faith Achieng', party: '' }
+    ];
+  }
+  renderVals() {
+    const s = this.state;
+    const rows = s.rows ?? this.initialRows();
+    const set = (next) => this.setState({ rows: next, dirty: true });
+    const iconBtn = (on, danger) => `width:28px;height:28px;border:none;border-radius:6px;background:transparent;font-size:13px;font-weight:600;cursor:${on ? 'pointer' : 'default'};color:${on ? (danger ? '#AE2E24' : '#44546F') : '#C1C7D0'};`;
+    const field = (bad) => `width:100%;height:36px;box-sizing:border-box;border:1px solid ${bad ? '#E2B203' : '#DCDFE4'};border-radius:8px;padding:0 10px;font-size:14px;color:#172B4D;background:#FFFFFF;`;
+    const others = rows.filter(r => !r.ours);
+    const incomplete = others.filter(r => !r.name.trim() || !r.party.trim()).length;
+    const ready = others.length >= 1 && incomplete === 0;
+    const isLive = s.published && !s.dirty;
+    const move = (i, d) => { const j = i + d; if (j < 0 || j >= rows.length) return; const next = rows.slice(); [next[i], next[j]] = [next[j], next[i]]; set(next); };
+    const edit = (id, k) => e => set(rows.map(r => r.id === id ? { ...r, [k]: e.target.value } : r));
+
+    let hint = `${rows.length} candidates · drag order must match the ballot paper`;
+    let hintColor = '#626F86';
+    if (others.length === 0) { hint = 'Add every other candidate in this race.'; }
+    else if (incomplete) { hint = `${incomplete} ${incomplete === 1 ? 'candidate needs' : 'candidates need'} a name and party.`; hintColor = '#974F0C'; }
+    else hint = `${rows.length} candidates · order matches the ballot paper`;
+
+    const status = isLive ? ['Published to agents', '#E3FCEF', '#164B35'] : s.published ? ['Unpublished changes', '#FFF7D6', '#7F5F01'] : ['Draft', '#F1F2F4', '#44546F'];
+
+    return {
+      rows: rows.map((r, i) => {
+        const nameBad = !r.ours && !r.name.trim(), partyBad = !r.ours && !r.party.trim();
+        return {
+          ...r, n: String(i + 1), other: !r.ours,
+          onName: edit(r.id, 'name'), onParty: edit(r.id, 'party'),
+          nameInputStyle: field(nameBad), partyInputStyle: field(partyBad),
+          up: () => move(i, -1), down: () => move(i, 1),
+          remove: () => !r.ours && set(rows.filter(x => x.id !== r.id)),
+          upStyle: iconBtn(i > 0), downStyle: iconBtn(i < rows.length - 1),
+          removeStyle: iconBtn(!r.ours, true) + (r.ours ? 'visibility:hidden;' : ''),
+          rowStyle: `display:grid;grid-template-columns:40px minmax(0,1.3fr) minmax(0,1fr) 96px;gap:12px;align-items:center;padding:10px 16px;border-top:${i ? '1px solid #F1F2F4' : 'none'};background:${r.ours ? '#F5FAFB' : '#FFFFFF'};`,
+          numStyle: `width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:${r.ours ? '#599BAE' : '#F1F2F4'};color:${r.ours ? '#FFFFFF' : '#44546F'};`
+        };
+      }),
+      addRow: () => set([...rows, { id: 'c' + Date.now(), name: '', party: '' }]),
+      hint, hintStyle: `font-size:12px;color:${hintColor};`,
+      statusLabel: status[0],
+      statusStyle: `display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:3px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;background:${status[1]};color:${status[2]};`,
+      publishLabel: isLive ? 'Published' : s.published ? 'Publish changes' : 'Publish to agents',
+      publish: () => ready && !isLive && this.setState({ published: true, dirty: false }),
+      publishStyle: `height:36px;padding:0 16px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:${ready && !isLive ? 'pointer' : 'default'};background:${ready && !isLive ? '#599BAE' : '#DCDFE4'};color:${ready && !isLive ? '#FFFFFF' : '#626F86'};`,
+      preview: rows.map((r, i) => ({
+        name: r.name.trim() || 'Unnamed candidate', party: r.party.trim() || '—',
+        rowStyle: `display:flex;align-items:center;gap:10px;padding:8px 10px;border-top:${i ? '1px solid #F1F2F4' : 'none'};background:${r.ours ? '#F5FAFB' : '#FFFFFF'};`,
+        dotStyle: `width:7px;height:7px;border-radius:50%;flex-shrink:0;background:${r.ours ? '#599BAE' : '#DCDFE4'};`
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

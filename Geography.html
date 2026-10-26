@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Geography — Mtazamo Votes</title>
+<script src="https://unpkg.com/d3@7.9.0/dist/d3.min.js" integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i" crossorigin="anonymous"></script>
+<style>
+  body { margin: 0; font-family: -apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif; color: #172B4D; font-size: 14px; line-height: 20px; }
+  a { color: #386271; text-decoration: none; }
+  a:hover { color: #1A2E36; }
+  input { font-family: inherit; }
+  ::placeholder { color: #8590A2; }
+  .row:hover { background: #F7F8F9; }
+  .cell { cursor: pointer; transition: opacity 120ms ease, stroke-width 120ms ease; }
+  .cell:hover { opacity: 0.85; }
+  .zoombtn:hover { background: #F1F2F4; }
+</style>
+</head>
+<body>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:#FFFFFF;">
+
+  <div style="height:56px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 16px;border-bottom:1px solid #DCDFE4;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="width:24px;height:24px;border-radius:5px;background:#599BAE;display:inline-flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:12px;font-weight:700;">M</span>
+      <span style="font-size:14px;font-weight:600;">Mtazamo Votes</span>
+    </div>
+    <input placeholder="Search stations, agents, wards" style="flex:1;max-width:460px;height:32px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 12px;font-size:14px;background:#F7F8F9;color:#172B4D;" />
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:#EEF6F8;color:#386271;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Campaign manager</span>
+      <span style="width:32px;height:32px;border-radius:50%;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">DM</span>
+    </div>
+  </div>
+
+  <div style="flex:1;display:flex;align-items:stretch;min-height:0;">
+    <div style="width:256px;flex-shrink:0;background:#F7F8F9;border-right:1px solid #DCDFE4;padding:16px 12px;">
+      <div style="display:flex;align-items:center;gap:10px;padding:8px;margin-bottom:16px;">
+        <span style="width:32px;height:32px;border-radius:5px;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">27</span>
+        <div style="min-width:0;">
+          <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">2027 Nairobi General</div>
+          <div style="font-size:12px;color:#626F86;">Governor · Nairobi</div>
+        </div>
+      </div>
+      <a href="CM-Home.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;color:#44546F;">Overview</a>
+      <a href="Review-pending-agents.dc.html" style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;color:#44546F;"><span>Agents</span><span style="font-size:12px;color:#626F86;">48</span></a>
+      <div style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;color:#44546F;"><span>Volunteers</span><span style="font-size:12px;color:#626F86;">23</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;font-weight:600;color:#386271;background:#EEF6F8;"><span>Geography</span><span style="font-size:12px;color:#386271;">17</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;color:#44546F;"><span>War room</span><span style="width:8px;height:8px;border-radius:50%;background:#1F845A;"></span></div>
+    </div>
+
+    <div style="flex:1;min-width:0;padding:28px 40px 56px;">
+      <div style="font-size:12px;color:#626F86;margin-bottom:6px;"><a href="CM-Home.dc.html" style="color:#626F86;">Overview</a> / Geography</div>
+      <div style="margin-bottom:20px;">
+        <div style="font-size:24px;line-height:28px;font-weight:700;margin-bottom:4px;">Geography</div>
+        <div style="font-size:14px;color:#626F86;">Agent, volunteer and bench coverage across Nairobi County — the workspace's single scope. Constituency and ward layouts below are illustrative, not surveyed boundaries.</div>
+      </div>
+
+      <div id="breadcrumb" style="display:flex;align-items:center;gap:6px;font-size:13px;color:#626F86;margin-bottom:14px;"></div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;">
+
+        <div style="order:1;flex:2 1 300px;min-width:280px;border:1px solid #DCDFE4;border-radius:8px;padding:12px;position:relative;background:#FAFBFC;">
+          <svg id="map" viewBox="0 0 560 560" style="width:100%;height:auto;display:block;"></svg>
+          <div style="position:absolute;bottom:16px;right:16px;display:flex;flex-direction:column;gap:4px;">
+            <div class="zoombtn" onclick="zoomBy(1.2)" style="width:28px;height:28px;border:1px solid #DCDFE4;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:16px;color:#44546F;cursor:pointer;">+</div>
+            <div class="zoombtn" onclick="zoomBy(0.833)" style="width:28px;height:28px;border:1px solid #DCDFE4;border-radius:6px;background:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:16px;color:#44546F;cursor:pointer;">–</div>
+          </div>
+          <div style="position:absolute;bottom:16px;left:16px;display:flex;align-items:center;gap:10px;font-size:11px;color:#626F86;background:rgba(255,255,255,0.9);padding:4px 8px;border-radius:6px;">
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:#AE2A19;"></span>Low coverage</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:#E2B203;"></span>Partial</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:#1F845A;"></span>Covered</span>
+          </div>
+        </div>
+
+        <div style="order:2;flex:1 1 200px;min-width:180px;max-width:260px;border:1px solid #DCDFE4;border-radius:8px;overflow:hidden;">
+          <div style="padding:10px 14px;border-bottom:1px solid #DCDFE4;background:#F7F8F9;">
+            <input id="listSearch" placeholder="Filter this list…" style="width:100%;height:30px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:6px;padding:0 8px;font-size:13px;background:#FFFFFF;color:#172B4D;" />
+          </div>
+          <div id="listHeader" style="padding:8px 14px;font-size:11px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;color:#8590A2;border-bottom:1px solid #F1F2F4;"></div>
+          <div id="listBody" style="max-height:520px;overflow-y:auto;"></div>
+        </div>
+
+        <div id="statsPanel" style="order:3;flex:1 1 220px;min-width:200px;max-width:280px;"></div>
+      </div>
+
+      <div id="stationsPanel" style="margin-top:20px;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- data ----------
+const CONSTITUENCIES = ['Westlands','Dagoretti North','Dagoretti South','Langata','Kibra','Roysambu','Kasarani','Ruaraka',
+  'Embakasi South','Embakasi North','Embakasi Central','Embakasi East','Embakasi West','Makadara','Kamukunji','Starehe','Mathare'];
+
+const WARD_OVERRIDES = {
+  'Dagoretti North': ['Kilimani','Kawangware','Gatina','Kileleshwa','Mountain View'],
+  'Westlands': ['Kitisuru','Parklands/Highridge','Karura','Kangemi','Mountain View West'],
+  'Embakasi South': ['Imara Daima','Kwa Njenga','Kwa Reuben','Pipeline','Kware'],
+  'Langata': ['Karen','Nairobi West','Mugumu-ini','South C','Nyayo Highrise'],
+  'Kasarani': ['Claycity','Mwiki','Kasarani','Njiru','Ruai']
+};
+
+function mulberry32(seed) {
+  return function() {
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function hashStr(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0; return h; }
+function rngFor(name) { return mulberry32(hashStr(name)); }
+
+function wardNames(cName) {
+  if (WARD_OVERRIDES[cName]) return WARD_OVERRIDES[cName];
+  const dirs = ['North', 'South', 'Central', 'East', 'West'];
+  return dirs.map(d => `${cName} ${d}`);
+}
+
+// deterministic station generation per ward
+function wardData(cName, wName) {
+  const r = rngFor(cName + '/' + wName);
+  const stationCount = 32 + Math.floor(r() * 14); // ~32-45, avg ~38
+  const baseCoverage = 0.30 + r() * 0.55; // 30%-85%
+  let confirmed = 0;
+  const stations = [];
+  for (let i = 0; i < stationCount; i++) {
+    const roll = r();
+    let state;
+    if (roll < baseCoverage) { state = 'full'; confirmed++; }
+    else if (roll < baseCoverage + 0.12) { state = 'partial'; confirmed++; }
+    else { state = 'gap'; }
+    stations.push({ id: `S${String(i + 1).padStart(3, '0')}`, name: `${wName} Station ${i + 1}`, state });
+  }
+  const volunteers = r() < 0.5 ? Math.floor(r() * 2) : Math.floor(r() * 4);
+  const bench = Math.round(confirmed * (0.08 + r() * 0.12));
+  return { stationCount, confirmed, stations, volunteers, bench };
+}
+
+function constituencyData(cName) {
+  const wards = wardNames(cName).map(w => ({ name: w, ...wardData(cName, w) }));
+  const stationCount = wards.reduce((s, w) => s + w.stationCount, 0);
+  const confirmed = wards.reduce((s, w) => s + w.confirmed, 0);
+  const volunteers = wards.reduce((s, w) => s + w.volunteers, 0);
+  const bench = wards.reduce((s, w) => s + w.bench, 0);
+  return { wards, stationCount, confirmed, volunteers, bench, pct: Math.round(confirmed / stationCount * 100) };
+}
+
+const COUNTY_TOTALS = { stationCount: 3247, confirmed: 1418, volunteers: 23, bench: 186 };
+
+// ---------- geometry (illustrative — not surveyed) ----------
+const W = 560, H = 560, CX = 280, CY = 280;
+
+function blobPoints(cx, cy, r, n, seed) {
+  const rnd = mulberry32(seed);
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2;
+    const jr = r * (0.86 + rnd() * 0.22);
+    pts.push([cx + Math.cos(a) * jr, cy + Math.sin(a) * jr]);
+  }
+  return pts;
+}
+function smoothPath(pts) {
+  return d3.line().curve(d3.curveCatmullRomClosed.alpha(0.6))(pts);
+}
+function pointInPoly(pt, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+    if (((yi > pt[1]) !== (yj > pt[1])) && (pt[0] < (xj - xi) * (pt[1] - yi) / (yj - yi) + xi)) inside = !inside;
+  }
+  return inside;
+}
+function signedArea(poly) {
+  let s = 0;
+  for (let i = 0; i < poly.length; i++) {
+    const [x1, y1] = poly[i], [x2, y2] = poly[(i + 1) % poly.length];
+    s += x1 * y2 - x2 * y1;
+  }
+  return s / 2;
+}
+function clipPolygon(subject, clip) {
+  let output = subject;
+  const clipCentroid = polyCentroid(clip);
+  for (let i = 0; i < clip.length; i++) {
+    if (output.length === 0) break;
+    const a = clip[i], b = clip[(i + 1) % clip.length];
+    const input = output; output = [];
+    const edge = [b[0] - a[0], b[1] - a[1]];
+    const cross = p => edge[0] * (p[1] - a[1]) - edge[1] * (p[0] - a[0]);
+    const sign = cross(clipCentroid) >= 0 ? 1 : -1;
+    const inside = p => sign * cross(p) >= 0;
+    for (let k = 0; k < input.length; k++) {
+      const cur = input[k], prev = input[(k - 1 + input.length) % input.length];
+      const curIn = inside(cur), prevIn = inside(prev);
+      if (curIn) {
+        if (!prevIn) output.push(intersect(prev, cur, a, b));
+        output.push(cur);
+      } else if (prevIn) {
+        output.push(intersect(prev, cur, a, b));
+      }
+    }
+  }
+  return output;
+}
+function intersect(p1, p2, a, b) {
+  const d1 = [p2[0] - p1[0], p2[1] - p1[1]], d2 = [b[0] - a[0], b[1] - a[1]];
+  const denom = d1[0] * d2[1] - d1[1] * d2[0];
+  if (Math.abs(denom) < 1e-9) return p1;
+  const t = ((a[0] - p1[0]) * d2[1] - (a[1] - p1[1]) * d2[0]) / denom;
+  return [p1[0] + t * d1[0], p1[1] + t * d1[1]];
+}
+function polyCentroid(poly) {
+  let x = 0, y = 0; poly.forEach(p => { x += p[0]; y += p[1]; });
+  return [x / poly.length, y / poly.length];
+}
+function boundsOf(poly) {
+  const xs = poly.map(p => p[0]), ys = poly.map(p => p[1]);
+  return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+}
+
+const countyOutline = blobPoints(CX, CY, 240, 14, 99);
+const countySeeds = CONSTITUENCIES.map((name, i) => {
+  const a = (i / CONSTITUENCIES.length) * Math.PI * 2 - Math.PI / 2;
+  const rnd = mulberry32(hashStr(name));
+  const rad = 60 + rnd() * 150;
+  return { name, x: CX + Math.cos(a) * rad, y: CY + Math.sin(a) * rad };
+});
+function countyCells() {
+  const delaunay = d3.Delaunay.from(countySeeds, d => d.x, d => d.y);
+  const voronoi = delaunay.voronoi([0, 0, W, H]);
+  return countySeeds.map((s, i) => {
+    const cell = voronoi.cellPolygon(i);
+    const clipped = cell ? clipPolygon(cell.slice(0, -1), countyOutline) : [];
+    return { name: s.name, poly: clipped };
+  });
+}
+function wardCells(parentPoly, names) {
+  const [x0, y0, x1, y1] = boundsOf(parentPoly);
+  const seeds = names.map((name, i) => {
+    const rnd = mulberry32(hashStr(name + i));
+    let x, y, tries = 0;
+    do { x = x0 + rnd() * (x1 - x0); y = y0 + rnd() * (y1 - y0); tries++; }
+    while (!pointInPoly([x, y], parentPoly) && tries < 40);
+    return { name, x, y };
+  });
+  const delaunay = d3.Delaunay.from(seeds, d => d.x, d => d.y);
+  const voronoi = delaunay.voronoi([x0 - 20, y0 - 20, x1 + 20, y1 + 20]);
+  return seeds.map((s, i) => {
+    const cell = voronoi.cellPolygon(i);
+    const clipped = cell ? clipPolygon(cell.slice(0, -1), parentPoly) : [];
+    return { name: s.name, poly: clipped };
+  });
+}
+
+// ---------- coverage colour ----------
+function coverageColor(pct) {
+  if (pct >= 65) return '#1F845A';
+  if (pct >= 40) return '#E2B203';
+  return '#AE2A19';
+}
+function fmt(n) { return n.toLocaleString('en-US'); }
+
+// ---------- state ----------
+let state = { level: 'county', constituency: null, ward: null, search: '' };
+const countyCellCache = countyCells();
+const wardCellCache = {};
+function getWardCells(cName, parentPoly) {
+  if (!wardCellCache[cName]) wardCellCache[cName] = wardCells(parentPoly, wardNames(cName));
+  return wardCellCache[cName];
+}
+
+let zoom = 1;
+function zoomBy(f) { zoom = Math.max(0.6, Math.min(2.5, zoom * f)); render(); }
+
+function selectConstituency(name) { state = { level: 'constituency', constituency: name, ward: null, search: '' }; render(); }
+function selectWard(name) { state.ward = name; render(); }
+function resetCounty() { state = { level: 'county', constituency: null, ward: null, search: '' }; render(); }
+function backToWards() { state.ward = null; render(); }
+
+document.getElementById('listSearch').addEventListener('input', e => { state.search = e.target.value.toLowerCase(); render(); });
+
+function render() {
+  renderBreadcrumb();
+  renderMap();
+  renderList();
+  renderStats();
+  renderStations();
+}
+
+function renderBreadcrumb() {
+  const el = document.getElementById('breadcrumb');
+  const parts = [{ label: 'Nairobi County', onClick: resetCounty }];
+  if (state.constituency) parts.push({ label: state.constituency, onClick: backToWards });
+  if (state.ward) parts.push({ label: state.ward, onClick: null });
+  el.innerHTML = '';
+  parts.forEach((p, i) => {
+    if (i > 0) { const sep = document.createElement('span'); sep.textContent = '/'; sep.style.color = '#B3BAC5'; el.appendChild(sep); }
+    const span = document.createElement('span');
+    span.textContent = p.label;
+    if (p.onClick) { span.style.cursor = 'pointer'; span.style.color = '#386271'; span.style.fontWeight = '600'; span.onclick = p.onClick; }
+    else { span.style.color = '#172B4D'; span.style.fontWeight = '600'; }
+    el.appendChild(span);
+  });
+}
+
+function renderMap() {
+  const svg = d3.select('#map');
+  svg.selectAll('*').remove();
+  const g = svg.append('g').attr('transform', `translate(${W/2},${H/2}) scale(${zoom}) translate(${-W/2},${-H/2})`);
+
+  let cells, onClickCell, activeName;
+  if (state.level === 'county') {
+    cells = countyCellCache.map(c => ({ ...c, pct: constituencyData(c.name).pct }));
+    onClickCell = selectConstituency;
+    activeName = state.constituency;
+  } else {
+    const parentPoly = countyCellCache.find(c => c.name === state.constituency).poly;
+    const wCells = getWardCells(state.constituency, parentPoly);
+    cells = wCells.map(c => ({ ...c, pct: wardDataPct(state.constituency, c.name) }));
+    onClickCell = selectWard;
+    activeName = state.ward;
+  }
+
+  cells.forEach(c => {
+    if (!c.poly || c.poly.length < 3) return;
+    const d = 'M' + c.poly.map(p => p.join(',')).join('L') + 'Z';
+    const isActive = c.name === activeName;
+    g.append('path')
+      .attr('d', d)
+      .attr('class', 'cell')
+      .attr('fill', coverageColor(c.pct))
+      .attr('fill-opacity', isActive ? 0.85 : 0.55)
+      .attr('stroke', '#FFFFFF')
+      .attr('stroke-width', isActive ? 2.5 : 1.2)
+      .on('click', () => onClickCell(c.name))
+      .append('title').text(`${c.name} · ${c.pct}% covered`);
+    const [cx, cy] = polyCentroid(c.poly);
+    g.append('text')
+      .attr('x', cx).attr('y', cy)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', state.level === 'county' ? 11 : 12)
+      .attr('font-weight', 600)
+      .attr('fill', '#172B4D')
+      .attr('pointer-events', 'none')
+      .text(c.name.length > 14 ? c.name.slice(0, 13) + '…' : c.name);
+  });
+}
+
+function wardDataPct(cName, wName) {
+  const d = wardData(cName, wName);
+  return Math.round(d.confirmed / d.stationCount * 100);
+}
+
+function renderList() {
+  const header = document.getElementById('listHeader');
+  const body = document.getElementById('listBody');
+  header.textContent = state.level === 'county' ? 'Constituencies · 17' : `Wards in ${state.constituency} · ${wardNames(state.constituency).length}`;
+  let items;
+  if (state.level === 'county') {
+    items = CONSTITUENCIES.map(name => ({ name, pct: constituencyData(name).pct, onClick: () => selectConstituency(name) }));
+  } else {
+    items = wardNames(state.constituency).map(name => ({ name, pct: wardDataPct(state.constituency, name), onClick: () => selectWard(name) }));
+  }
+  items = items.filter(i => i.name.toLowerCase().includes(state.search));
+  items.sort((a, b) => b.pct - a.pct);
+  body.innerHTML = '';
+  const activeName = state.level === 'county' ? state.constituency : state.ward;
+  items.forEach(i => {
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.style.cssText = `display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #F1F2F4;cursor:pointer;background:${i.name === activeName ? '#EEF6F8' : 'transparent'};`;
+    row.onclick = i.onClick;
+    row.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:${coverageColor(i.pct)};flex-shrink:0;"></span>
+      <span style="flex:1;min-width:0;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${i.name}</span>
+      <span style="font-size:12px;font-weight:600;color:${coverageColor(i.pct)};">${i.pct}%</span>`;
+    body.appendChild(row);
+  });
+}
+
+function statCard(label, value, sub, color) {
+  return `<div style="padding:10px 0;border-bottom:1px solid #F1F2F4;">
+    <div style="font-size:12px;color:#626F86;margin-bottom:2px;">${label}</div>
+    <div style="font-size:18px;font-weight:700;color:${color || '#172B4D'};">${value}</div>
+    ${sub ? `<div style="font-size:11px;color:#8590A2;margin-top:1px;">${sub}</div>` : ''}
+  </div>`;
+}
+
+function renderStats() {
+  const el = document.getElementById('statsPanel');
+  let title, levelTag, pct, stationCount, confirmed, volunteers, bench;
+  if (state.level === 'county' && !state.constituency) {
+    title = 'Nairobi County'; levelTag = 'County · all 17 constituencies';
+    ({ stationCount, confirmed, volunteers, bench } = COUNTY_TOTALS);
+    pct = Math.round(confirmed / stationCount * 100);
+  } else if (state.constituency && !state.ward) {
+    const d = constituencyData(state.constituency);
+    title = state.constituency; levelTag = `Constituency · ${d.wards.length} wards`;
+    stationCount = d.stationCount; confirmed = d.confirmed; volunteers = d.volunteers; bench = d.bench; pct = d.pct;
+  } else {
+    const d = wardData(state.constituency, state.ward);
+    title = state.ward; levelTag = `Ward · ${state.constituency}`;
+    stationCount = d.stationCount; confirmed = d.confirmed; volunteers = d.volunteers; bench = d.bench;
+    pct = Math.round(confirmed / stationCount * 100);
+  }
+  const gap = stationCount - confirmed;
+  el.innerHTML = `
+    <div style="border:1px solid #DCDFE4;border-radius:8px;padding:16px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:#8590A2;margin-bottom:2px;">${levelTag}</div>
+      <div style="font-size:18px;font-weight:700;margin-bottom:12px;">${title}</div>
+      <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:2px;">
+        <span style="font-size:32px;font-weight:700;color:${coverageColor(pct)};">${pct}%</span>
+        <span style="font-size:12px;color:#626F86;">agent coverage</span>
+      </div>
+      <div style="height:6px;border-radius:3px;background:#F1F2F4;overflow:hidden;margin-bottom:14px;">
+        <div style="height:100%;width:${pct}%;background:${coverageColor(pct)};"></div>
+      </div>
+      ${statCard('Polling stations', fmt(stationCount))}
+      ${statCard('Confirmed agents', fmt(confirmed), `${Math.round(confirmed/stationCount*100)}% of stations`, '#216E4E')}
+      ${statCard('Volunteers', fmt(volunteers))}
+      ${statCard('Bench (reserve agents)', fmt(bench), 'Swappable into any gap below')}
+      <div style="display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:8px;background:#FFECEB;color:#AE2A19;font-size:12px;line-height:17px;margin-top:6px;">
+        <span style="width:7px;height:7px;border-radius:50%;background:#C9372C;margin-top:5px;flex-shrink:0;"></span>
+        <span>${fmt(gap)} stations still uncovered here.</span>
+      </div>
+    </div>`;
+}
+
+function renderStations() {
+  const el = document.getElementById('stationsPanel');
+  if (!state.ward) { el.innerHTML = ''; return; }
+  const d = wardData(state.constituency, state.ward);
+  const tagStyle = { full: 'background:#F1F2F4;color:#626F86;', partial: 'background:#FFF7D6;color:#974F0C;', gap: 'background:#FFECEB;color:#AE2A19;' };
+  const tagText = { full: 'Covered', partial: 'Partial', gap: 'No agent' };
+  el.innerHTML = `
+    <div style="border:1px solid #DCDFE4;border-radius:8px;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #DCDFE4;background:#F7F8F9;">
+        <div style="font-size:16px;font-weight:600;">Polling stations in ${state.ward}</div>
+        <div style="font-size:12px;color:#626F86;">No mapped coordinates — listed only</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0;">
+        ${d.stations.map(s => `
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid #F1F2F4;border-right:1px solid #F1F2F4;">
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.name}</div>
+              <div style="font-size:11px;color:#8590A2;">${s.id}</div>
+            </div>
+            <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap;${tagStyle[s.state]}">${tagText[s.state]}</span>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+render();
+</script>
+</body>
+</html>

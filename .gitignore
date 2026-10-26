@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+build/
+**/dist/
+**/build/
+
+# Env
+.env
+.env.local
+*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+.DS_Store
+
+# Prisma / DB
+*.sqlite
+
+# Uploads (local dev)
+uploads/
+
+# Data files staged for import (keep the folder, ignore large drops)
+data/imports/*
+!data/imports/.gitkeep
+
+# Large geo SQL dumps — restored separately via docker/scripts
+exports/

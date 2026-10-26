@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; }
+  input, button, select { font-family: inherit; }
+  ::placeholder { color: #8590A2; }
+  a { color: #386271; }
+  a:hover { color: #1A2E36; }
+  @keyframes riseIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+<script src="./image-slot.js"></script>
+</helmet>
+<div style="min-height:100vh;background:#F7F8F9;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#172B4D;font-size:14px;line-height:20px;display:flex;flex-direction:column;align-items:center;padding:32px 16px 56px;">
+
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+    <span style="width:22px;height:22px;border-radius:5px;background:#599BAE;display:inline-flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:12px;font-weight:700;">M</span>
+    <span style="font-size:18px;font-weight:700;letter-spacing:-0.2px;">Mtazamo</span>
+    <span style="font-size:14px;color:#626F86;">Votes</span>
+  </div>
+
+  <div style="display:flex;gap:6px;background:#EEF6F8;border-radius:8px;padding:3px;margin-bottom:18px;">
+    <sc-for list="{{sourceTabs}}" as="t" hint-placeholder-count="2">
+      <div onClick="{{t.onClick}}" style="{{t.style}}">{{t.label}}</div>
+    </sc-for>
+  </div>
+
+  <div style="width:100%;max-width:460px;background:#FFFFFF;border-radius:8px;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);overflow:hidden;animation:riseIn 260ms ease-out both;">
+
+    <div style="display:flex;align-items:center;gap:12px;padding:18px 24px;border-bottom:1px solid #F1F2F4;">
+      <span style="width:32px;height:32px;border-radius:5px;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">27</span>
+      <div style="min-width:0;flex:1;">
+        <div style="font-size:13px;font-weight:600;">Wanjiru Kamau for Nairobi Governor</div>
+        <div style="font-size:12px;color:#626F86;">2027 General Election</div>
+      </div>
+    </div>
+
+    <sc-if value="{{step_landing}}" hint-placeholder-val="{{true}}">
+      <div style="padding:24px;">
+        <sc-if value="{{isPublic}}" hint-placeholder-val="{{true}}">
+          <div style="font-size:18px;font-weight:700;margin-bottom:6px;">Apply to be a polling agent</div>
+          <div style="font-size:13px;line-height:19px;color:#44546F;margin-bottom:18px;">Sit at one polling station on 10 August 2027, watch the count, and send the signed form through the app. Approval takes a day or two.</div>
+          <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:8px;">I'm applying as</div>
+          <div style="display:flex;gap:8px;margin-bottom:20px;">
+            <sc-for list="{{roleChoices}}" as="r" hint-placeholder-count="2">
+              <div onClick="{{r.onClick}}" style="{{r.style}}">{{r.label}}</div>
+            </sc-for>
+          </div>
+          <sc-if value="{{isAgentRole}}" hint-placeholder-val="{{true}}">
+            <div style="font-size:12px;color:#626F86;margin-bottom:14px;">Applying for <strong style="color:#172B4D;font-weight:600;">{{ward}} Ward</strong> — the campaign has opened this ward for applications.</div>
+            <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:6px;">Polling station you'd like to apply for <span style="color:#BF2600;">*</span></div>
+            <div style="border:1px solid #DCDFE4;border-radius:8px;overflow:hidden;margin-bottom:8px;">
+              <sc-for list="{{stationChoices}}" as="st" hint-placeholder-count="4">
+                <div onClick="{{st.onClick}}" style="{{st.rowStyle}}">
+                  <span style="{{st.markStyle}}">{{st.mark}}</span>
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-size:13px;font-weight:500;">{{st.name}}</div>
+                    <div style="font-size:11px;color:#626F86;">{{st.meta}}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font-size:12px;color:#626F86;margin-bottom:20px;">A wish, not a guarantee — the campaign confirms your station after approval.</div>
+          </sc-if>
+        </sc-if>
+        <sc-if value="{{isTargeted}}" hint-placeholder-val="{{false}}">
+          <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:#EEF6F8;color:#386271;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:12px;">Named invite</span>
+          <div style="font-size:18px;line-height:24px;font-weight:700;margin-bottom:6px;">Wanjiru Kamau named you {{invitedRoleLabel}} for {{invitedScope}}</div>
+          <div style="font-size:13px;line-height:19px;color:#44546F;margin-bottom:18px;">This link is tied to <strong style="color:#172B4D;">+254 712 xxx 384</strong>. Continuing confirms you're the person that number belongs to. This invite expires in 7 days.</div>
+        </sc-if>
+        <button onClick="{{toDetails}}" style="display:flex;align-items:center;justify-content:center;width:100%;height:40px;border:none;border-radius:8px;background:#599BAE;color:#FFFFFF;font-size:14px;font-weight:600;cursor:pointer;">Continue</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{step_details}}" hint-placeholder-val="{{false}}">
+      <div style="padding:24px;">
+        <div style="font-size:18px;font-weight:700;margin-bottom:4px;">Your details</div>
+        <div style="font-size:13px;color:#626F86;margin-bottom:18px;">As they appear on your national ID.</div>
+
+        <div style="display:flex;gap:16px;margin-bottom:18px;align-items:flex-start;">
+          <div style="width:76px;height:76px;flex-shrink:0;">
+            <image-slot id="applicant-photo" shape="circle" placeholder="Photo"></image-slot>
+          </div>
+          <div style="font-size:12px;line-height:17px;color:#626F86;padding-top:6px;">A clear photo of your face. Used on your agent badge and to confirm your identity at the station.</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:12px;">
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">First name <span style="color:#BF2600;">*</span></div>
+            <input value="{{firstName}}" onChange="{{onFirstName}}" placeholder="Grace" style="width:100%;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;font-size:14px;color:#172B4D;background:#FFFFFF;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">Last name <span style="color:#BF2600;">*</span></div>
+            <input value="{{lastName}}" onChange="{{onLastName}}" placeholder="Njeri" style="width:100%;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;font-size:14px;color:#172B4D;background:#FFFFFF;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:12px;">
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">Age <span style="color:#BF2600;">*</span></div>
+            <input value="{{age}}" onChange="{{onAge}}" inputmode="numeric" placeholder="29" style="width:100%;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;font-size:14px;color:#172B4D;background:#FFFFFF;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+            <div style="font-size:11px;color:#8590A2;margin-top:3px;">Must be 18 or older to serve as an agent.</div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">Email</div>
+            <input value="{{email}}" onChange="{{onEmail}}" type="email" placeholder="grace@example.com" style="width:100%;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;font-size:14px;color:#172B4D;background:#FFFFFF;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+            <div style="font-size:11px;color:#8590A2;margin-top:3px;">Optional — used only for status updates.</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">Phone number <span style="color:#BF2600;">*</span></div>
+          <div style="display:flex;gap:8px;">
+            <span style="display:flex;align-items:center;height:36px;padding:0 10px;border:1px solid #DCDFE4;border-radius:8px;background:#F7F8F9;color:#44546F;font-size:14px;flex-shrink:0;">+254</span>
+            <input value="{{phone}}" onChange="{{onPhone}}" inputmode="numeric" placeholder="7xx xxx xxx" style="flex:1;min-width:0;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;font-size:14px;color:#172B4D;background:#FFFFFF;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+          </div>
+          <div style="font-size:11px;color:#8590A2;margin-top:3px;">We'll send a one-time code to this number next.</div>
+        </div>
+
+        <div style="display:flex;gap:8px;">
+          <div onClick="{{toLanding}}" style="display:flex;align-items:center;justify-content:center;height:40px;padding:0 16px;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:14px;font-weight:500;cursor:pointer;">Back</div>
+          <button onClick="{{toOtp}}" disabled="{{detailsInvalid}}" style="{{continueStyle}}">Send verification code</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{step_otp}}" hint-placeholder-val="{{false}}">
+      <div style="padding:24px;">
+        <div style="font-size:18px;font-weight:700;margin-bottom:4px;">Verify your number</div>
+        <div style="font-size:13px;line-height:19px;color:#626F86;margin-bottom:18px;">We sent a 6-digit code by SMS to +254 {{phone}}.</div>
+        <input value="{{otp}}" onChange="{{onOtp}}" inputmode="numeric" placeholder="000000" style="width:100%;height:48px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 14px;font-size:22px;letter-spacing:6px;text-align:center;color:#172B4D;background:#FFFFFF;margin-bottom:14px;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+        <div style="font-size:12px;color:#626F86;margin-bottom:20px;">Didn't get it? <a href="#" onClick="{{resend}}" style="font-weight:500;">Resend code</a></div>
+        <div style="display:flex;gap:8px;">
+          <div onClick="{{toDetails}}" style="display:flex;align-items:center;justify-content:center;height:40px;padding:0 16px;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:14px;font-weight:500;cursor:pointer;">Back</div>
+          <button onClick="{{toDone}}" disabled="{{otpInvalid}}" style="{{continueStyle}}">Verify and submit</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{step_done}}" hint-placeholder-val="{{false}}">
+      <div style="padding:28px 24px;text-align:center;">
+        <div style="width:44px;height:44px;border-radius:50%;background:#E3FCEF;color:#164B35;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;margin:0 auto 14px;">✓</div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:8px;">{{doneTitle}}</div>
+        <div style="font-size:13px;line-height:19px;color:#626F86;">{{doneBody}}</div>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="width:100%;max-width:460px;margin-top:16px;font-size:12px;line-height:18px;color:#626F86;text-align:center;">
+    Mtazamo will never ask you for a voter's ID number or a result form by SMS.
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  openWards = ['Kilimani', 'Kawangware', 'Gatina', 'Mountain View', 'Karura'];
+  stationDefs = {
+    Kilimani: [
+      { id: 's031', name: 'Kilimani Primary School — Stream 1', meta: 'Station 031 · 1,204 voters', state: 'gap' },
+      { id: 's032', name: 'Kilimani Primary School — Stream 2', meta: 'Station 032 · 1,142 voters', state: 'gap' },
+      { id: 's035', name: 'Adams Arcade Social Hall', meta: 'Station 035 · 986 voters', state: 'partial' },
+      { id: 's038', name: 'Ngong Road Chief Camp', meta: 'Station 038 · 1,050 voters', state: 'full' }
+    ],
+    Kawangware: [
+      { id: 's047', name: 'Kawangware Chief Camp — Stream 1', meta: 'Station 047 · 1,142 voters', state: 'gap' },
+      { id: 's048', name: 'Kawangware Chief Camp — Stream 2', meta: 'Station 048 · 1,098 voters', state: 'gap' },
+      { id: 's051', name: 'Gatina Primary — Stream 1', meta: 'Station 051 · 967 voters', state: 'partial' },
+      { id: 's052', name: 'Kabiro Social Hall — Stream 1', meta: 'Station 052 · 884 voters', state: 'full' }
+    ],
+    Gatina: [
+      { id: 's060', name: 'Gatina Primary — Stream 2', meta: 'Station 060 · 902 voters', state: 'gap' },
+      { id: 's061', name: 'Riruta Social Hall', meta: 'Station 061 · 845 voters', state: 'partial' }
+    ],
+    'Mountain View': [
+      { id: 's070', name: 'Mountain View Primary — Stream 1', meta: 'Station 070 · 1,010 voters', state: 'gap' },
+      { id: 's071', name: 'Uthiru Chief Camp', meta: 'Station 071 · 933 voters', state: 'gap' }
+    ],
+    Karura: [
+      { id: 's080', name: 'Karura Forest Primary — Stream 1', meta: 'Station 080 · 1,088 voters', state: 'partial' },
+      { id: 's081', name: 'Karura Forest Primary — Stream 2', meta: 'Station 081 · 1,021 voters', state: 'gap' }
+    ]
+  };
+  state = {
+    source: 'public', step: 'landing', role: 'agent', ward: 'Kawangware', stationId: 's047',
+    firstName: '', lastName: '', age: '', email: '', phone: '', otp: ''
+  };
+  renderVals() {
+    const s = this.state;
+    const isPublic = s.source === 'public';
+    const chip = (active, label) => `display:flex;align-items:center;height:28px;padding:0 12px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;color:${active ? '#386271' : '#626F86'};background:${active ? '#FFFFFF' : 'transparent'};box-shadow:${active ? '0 1px 2px rgba(9,30,66,0.15)' : 'none'};`;
+    const roleChip = (active, label) => `flex:1;display:flex;align-items:center;justify-content:center;height:36px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid ${active ? '#599BAE' : '#DCDFE4'};background:${active ? '#EEF6F8' : '#FFFFFF'};color:${active ? '#386271' : '#44546F'};`;
+    const detailsInvalid = !s.firstName.trim() || !s.lastName.trim() || !s.age || !s.phone.trim();
+    const otpInvalid = s.otp.trim().length < 6;
+    const continueStyle = (invalid) => `flex:1;display:flex;align-items:center;justify-content:center;height:40px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:${invalid ? 'not-allowed' : 'pointer'};background:${invalid ? '#F1F2F4' : '#599BAE'};color:${invalid ? '#8590A2' : '#FFFFFF'};`;
+
+    return {
+      sourceTabs: [['public', 'Public application link'], ['targeted', 'Targeted invite']].map(([id, label]) => ({
+        label, onClick: () => this.setState({ source: id, step: 'landing' }), style: chip(s.source === id, label)
+      })),
+      isPublic, isTargeted: !isPublic,
+      isAgentRole: s.role === 'agent',
+      roleChoices: [['agent', 'Polling agent'], ['volunteer', 'Volunteer']].map(([id, label]) => ({
+        label, onClick: () => this.setState({ role: id }), style: roleChip(s.role === id, label)
+      })),
+      ward: s.ward,
+      stationChoices: (this.stationDefs[s.ward] || []).map(st => {
+        const selected = st.id === s.stationId;
+        return {
+          name: st.name, meta: st.meta,
+          onClick: () => this.setState({ stationId: st.id }),
+          rowStyle: `display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #F1F2F4;cursor:pointer;background:${selected ? '#EEF6F8' : '#FFFFFF'};`,
+          mark: selected ? '●' : '',
+          markStyle: `width:16px;height:16px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#FFFFFF;background:${selected ? '#599BAE' : '#FFFFFF'};border:1px solid ${selected ? '#599BAE' : '#8590A2'};`
+        };
+      }),
+      invitedRoleLabel: 'polling agent',
+      invitedScope: 'Kawangware Chief Camp — Stream 1 · Kawangware Ward',
+      step_landing: s.step === 'landing', step_details: s.step === 'details', step_otp: s.step === 'otp', step_done: s.step === 'done',
+      toLanding: () => this.setState({ step: 'landing' }),
+      toDetails: () => this.setState({ step: 'details' }),
+      toOtp: () => { if (!detailsInvalid) this.setState({ step: 'otp' }); },
+      toDone: () => { if (!otpInvalid) this.setState({ step: 'done' }); },
+      resend: (e) => { e.preventDefault(); },
+      firstName: s.firstName, onFirstName: (e) => this.setState({ firstName: e.target.value }),
+      lastName: s.lastName, onLastName: (e) => this.setState({ lastName: e.target.value }),
+      age: s.age, onAge: (e) => this.setState({ age: e.target.value.replace(/[^0-9]/g, '') }),
+      email: s.email, onEmail: (e) => this.setState({ email: e.target.value }),
+      phone: s.phone, onPhone: (e) => this.setState({ phone: e.target.value.replace(/[^0-9 ]/g, '') }),
+      otp: s.otp, onOtp: (e) => this.setState({ otp: e.target.value.replace(/[^0-9]/g, '').slice(0, 6) }),
+      detailsInvalid, otpInvalid,
+      continueStyle: continueStyle(s.step === 'details' ? detailsInvalid : otpInvalid),
+      doneTitle: isPublic ? 'Application received' : 'You\u2019re confirmed',
+      doneBody: isPublic
+        ? 'Wanjiru\u2019s campaign will review your application and let you know within a day or two. You\u2019ll get an SMS either way.'
+        : `Your role as ${'polling agent'} is active. You\u2019ll get an SMS with your station details and the training walkthrough before election day.`
+    };
+  }
+}
+
+</script>
+</body>
+</html>

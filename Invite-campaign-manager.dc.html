@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; }
+  input, button, select, textarea { font-family: inherit; }
+  ::placeholder { color: #8590A2; }
+  a { color: #386271; }
+  a:hover { color: #1A2E36; }
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:#FFFFFF;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#172B4D;font-size:14px;line-height:20px;">
+
+  <div style="height:56px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 16px;border-bottom:1px solid #DCDFE4;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="width:24px;height:24px;border-radius:5px;background:#599BAE;display:inline-flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:12px;font-weight:700;">M</span>
+      <span style="font-size:14px;font-weight:600;">Mtazamo Votes</span>
+    </div>
+    <input placeholder="Search stations, agents, wards" style="flex:1;max-width:460px;height:32px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 12px;font-size:14px;background:#F7F8F9;color:#172B4D;" style-focus="background:#FFFFFF;border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="width:32px;height:32px;border-radius:50%;background:#F1F2F4;display:flex;align-items:center;justify-content:center;font-size:13px;color:#44546F;">?</span>
+      <span style="width:32px;height:32px;border-radius:50%;background:#599BAE;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">WK</span>
+    </div>
+  </div>
+
+  <div style="flex:1;display:flex;align-items:stretch;min-height:0;">
+    <div style="width:256px;flex-shrink:0;background:#F7F8F9;border-right:1px solid #DCDFE4;padding:16px 12px;">
+      <a href="Workspaces.dc.html" style="display:block;font-size:12px;color:#626F86;text-decoration:none;padding:0 8px 8px;" style-hover="color:#172B4D;">← All workspaces</a>
+      <div style="display:flex;align-items:center;gap:10px;padding:8px;margin-bottom:16px;">
+        <span style="width:32px;height:32px;border-radius:5px;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">27</span>
+        <div style="min-width:0;">
+          <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">2027 Nairobi General</div>
+          <div style="font-size:12px;color:#626F86;">Governor · Nairobi</div>
+        </div>
+      </div>
+      <a href="Workspace-overview.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;">Overview</a>
+      <div style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;color:#44546F;"><span>Agents</span><span style="font-size:12px;color:#626F86;">48</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;color:#44546F;"><span>Volunteers</span><span style="font-size:12px;color:#626F86;">23</span></div>
+      <a href="Campaign-managers.dc.html" style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;font-weight:600;color:#386271;background:#EEF6F8;"><span>Campaign managers</span><span style="font-size:12px;color:#386271;">2</span></a>
+      <div style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;color:#44546F;"><span>War room</span><span style="width:8px;height:8px;border-radius:50%;background:#1F845A;"></span></div>
+    </div>
+
+    <div style="flex:1;min-width:0;padding:28px 40px 56px;">
+      <div style="font-size:12px;color:#626F86;margin-bottom:6px;"><a href="Campaign-managers.dc.html" style="text-decoration:none;color:#626F86;">Campaign managers</a> / Invite</div>
+      <div style="font-size:24px;line-height:28px;font-weight:700;margin-bottom:4px;">Invite a campaign manager</div>
+      <div style="font-size:14px;color:#626F86;margin-bottom:24px;">They join this workspace only, with everything except billing and account deletion.</div>
+
+      <div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:24px;align-items:start;">
+        <div style="border:1px solid #DCDFE4;border-radius:8px;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);padding:24px;">
+          <sc-if value="{{sent}}" hint-placeholder-val="{{false}}">
+            <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;background:#E3FCEF;color:#164B35;margin-bottom:20px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#1F845A;margin-top:6px;flex-shrink:0;"></span>
+              <span>{{sentMessage}}</span>
+            </div>
+          </sc-if>
+
+          <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">Full name <span style="color:#BF2600;">*</span></div>
+          <input value="{{name}}" onChange="{{onName}}" placeholder="Daniel Mutiso" style="width:100%;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;font-size:14px;color:#172B4D;background:#FFFFFF;margin-bottom:14px;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+
+          <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">Phone number <span style="color:#BF2600;">*</span></div>
+          <div style="display:flex;gap:8px;margin-bottom:4px;">
+            <span style="display:flex;align-items:center;height:36px;padding:0 10px;border:1px solid #DCDFE4;border-radius:8px;background:#F7F8F9;color:#44546F;font-size:14px;flex-shrink:0;">+254</span>
+            <input value="{{phone}}" onChange="{{onPhone}}" placeholder="7xx xxx xxx" style="flex:1;min-width:0;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;font-size:14px;color:#172B4D;background:#FFFFFF;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+          </div>
+          <div style="font-size:12px;color:#626F86;margin-bottom:14px;">The join link is sent here by SMS. A number already on this workspace is rejected.</div>
+
+          <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">Email <span style="font-weight:400;color:#626F86;">(optional)</span></div>
+          <input value="{{email}}" onChange="{{onEmail}}" placeholder="daniel@example.com" style="width:100%;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;font-size:14px;color:#172B4D;background:#FFFFFF;margin-bottom:14px;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+
+          <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:6px;">Message in the invite <span style="font-weight:400;color:#626F86;">(optional)</span></div>
+          <textarea value="{{note}}" onChange="{{onNote}}" rows="3" placeholder="You'll be running the Nairobi war room on election night." style="width:100%;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:8px 10px;font-size:14px;line-height:20px;color:#172B4D;background:#FFFFFF;resize:vertical;margin-bottom:18px;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;"></textarea>
+
+          <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:6px;">Invite link validity</div>
+          <div style="display:flex;gap:8px;margin-bottom:20px;">
+            <sc-for list="{{expiryOptions}}" as="o" hint-placeholder-count="3">
+              <div onClick="{{o.onClick}}" style="{{o.style}}">{{o.label}}</div>
+            </sc-for>
+          </div>
+
+          <div style="border-top:1px solid #F1F2F4;padding-top:16px;">
+            <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:8px;">SMS preview</div>
+            <div style="border:1px solid #DCDFE4;border-radius:8px;background:#F7F8F9;padding:12px 14px;font-size:13px;line-height:20px;color:#44546F;">{{smsPreview}}</div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px;">
+            <a href="Campaign-managers.dc.html" style="display:flex;align-items:center;height:32px;padding:0 12px;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:14px;font-weight:500;text-decoration:none;" style-hover="background:#DCDFE4;color:#172B4D;">Cancel</a>
+            <button onClick="{{send}}" disabled="{{disabled}}" style="{{sendBtnStyle}}">Send SMS invite</button>
+          </div>
+        </div>
+
+        <div>
+          <div style="border:1px solid #DCDFE4;border-radius:8px;margin-bottom:16px;">
+            <div style="padding:14px 18px;border-bottom:1px solid #F1F2F4;font-size:16px;font-weight:600;">Role and scope</div>
+            <div style="padding:14px 18px;border-bottom:1px solid #F1F2F4;">
+              <div style="font-size:12px;color:#626F86;margin-bottom:4px;">Role</div>
+              <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:#EEF6F8;color:#386271;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap;">Campaign manager</span>
+            </div>
+            <div style="padding:14px 18px;border-bottom:1px solid #F1F2F4;">
+              <div style="font-size:12px;color:#626F86;margin-bottom:4px;">Workspace</div>
+              <div style="font-size:13px;font-weight:500;">2027 Nairobi General Election</div>
+              <div style="font-size:12px;color:#626F86;margin-top:2px;">Governor · general election · Nairobi County</div>
+            </div>
+            <sc-for list="{{scopeRows}}" as="r" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid #F1F2F4;">
+                <span style="{{r.iconStyle}}">{{r.icon}}</span>
+                <span style="flex:1;min-width:0;font-size:13px;">{{r.label}}</span>
+              </div>
+            </sc-for>
+            <div style="padding:12px 18px;font-size:12px;color:#626F86;">Every invite, accept and removal is written to the workspace audit log.</div>
+          </div>
+
+          <div style="border:1px solid #DCDFE4;border-radius:8px;padding:14px 18px;font-size:12px;color:#626F86;line-height:18px;">
+            Only campaign managers are invited this way. Agents and volunteers apply through the public recruitment link and are vetted by national ID and phone OTP.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1280, &quot;height&quot;: 900}}">
+const EXPIRY = ['24 hours', '72 hours', '7 days'];
+const SCOPE = [
+  {label: 'Recruit, vet and assign agents and volunteers', ok: true},
+  {label: 'Verify submissions and sign off tiers', ok: true},
+  {label: 'Resolve and escalate discrepancies', ok: true},
+  {label: 'Export tally, evidence packs and payment schedules', ok: true},
+  {label: 'Billing, account deletion, inviting other managers', ok: false}
+];
+
+class Component extends DCLogic {
+  state = {name: '', phone: '', email: '', note: '', expiry: '72 hours', sent: false, sentMessage: ''};
+
+  send() {
+    const {name, phone, expiry} = this.state;
+    if (!name.trim() || !phone.trim()) return;
+    this.setState({
+      sent: true,
+      sentMessage: `Invite sent to ${name.trim()} on +254 ${phone.trim()} — the link expires in ${expiry}.`,
+      name: '', phone: '', email: '', note: ''
+    });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const disabled = !(s.name.trim() && s.phone.trim());
+    const who = s.name.trim() ? s.name.trim().split(' ')[0] : 'there';
+    return {
+      name: s.name, onName: (e) => this.setState({name: e.target.value, sent: false}),
+      phone: s.phone, onPhone: (e) => this.setState({phone: e.target.value, sent: false}),
+      email: s.email, onEmail: (e) => this.setState({email: e.target.value}),
+      note: s.note, onNote: (e) => this.setState({note: e.target.value}),
+      expiryOptions: EXPIRY.map(x => {
+        const on = s.expiry === x;
+        return {
+          label: x,
+          onClick: () => this.setState({expiry: x}),
+          style: `display:inline-flex;align-items:center;height:32px;padding:0 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;box-sizing:border-box;border:1px solid ${on ? '#599BAE' : '#DCDFE4'};background:${on ? '#EEF6F8' : '#FFFFFF'};color:${on ? '#386271' : '#44546F'};`
+        };
+      }),
+      smsPreview: `Hi ${who}, Wanjiru Kamau has invited you as campaign manager for the 2027 Nairobi General Election on Mtazamo Votes.${s.note.trim() ? ' "' + s.note.trim() + '"' : ''} Join: mtz.vote/j/8K4QP — expires in ${s.expiry}.`,
+      scopeRows: SCOPE.map(r => ({
+        label: r.label,
+        icon: r.ok ? '✓' : '—',
+        iconStyle: `width:18px;height:18px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#FFFFFF;background:${r.ok ? '#1F845A' : '#B3B9C4'};`
+      })),
+      sent: s.sent,
+      sentMessage: s.sentMessage,
+      send: () => this.send(),
+      disabled,
+      sendBtnStyle: `height:32px;padding:0 12px;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:${disabled ? 'not-allowed' : 'pointer'};background:${disabled ? '#F1F2F4' : '#599BAE'};color:${disabled ? '#8590A2' : '#FFFFFF'};`
+    };
+  }
+}
+</script>
+</body>
+</html>

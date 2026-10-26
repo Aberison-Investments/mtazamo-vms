@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; }
+  input, button, select { font-family: inherit; }
+  ::placeholder { color: #8590A2; }
+  a { color: #386271; }
+  a:hover { color: #1A2E36; }
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:#FFFFFF;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#172B4D;font-size:14px;line-height:20px;">
+
+  <div style="height:56px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 16px;border-bottom:1px solid #DCDFE4;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="width:24px;height:24px;border-radius:5px;background:#599BAE;display:inline-flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:12px;font-weight:700;">M</span>
+      <span style="font-size:14px;font-weight:600;">Mtazamo Votes</span>
+    </div>
+    <input placeholder="Search stations, agents, wards" style="flex:1;max-width:460px;height:32px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 12px;font-size:14px;background:#F7F8F9;color:#172B4D;" style-focus="background:#FFFFFF;border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="width:32px;height:32px;border-radius:50%;background:#F1F2F4;display:flex;align-items:center;justify-content:center;font-size:13px;color:#44546F;">?</span>
+      <span style="width:32px;height:32px;border-radius:50%;background:#599BAE;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">WK</span>
+    </div>
+  </div>
+
+  <div style="flex:1;display:flex;align-items:stretch;min-height:0;">
+    <div style="width:256px;flex-shrink:0;background:#F7F8F9;border-right:1px solid #DCDFE4;padding:16px 12px;">
+      <a href="Workspaces.dc.html" style="display:block;font-size:12px;color:#626F86;text-decoration:none;padding:0 8px 8px;" style-hover="color:#172B4D;">← All workspaces</a>
+      <div style="display:flex;align-items:center;gap:10px;padding:8px;margin-bottom:16px;">
+        <span style="width:32px;height:32px;border-radius:5px;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">27</span>
+        <div style="min-width:0;">
+          <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">2027 Nairobi General</div>
+          <div style="font-size:12px;color:#626F86;">Governor · Nairobi</div>
+        </div>
+      </div>
+      <a href="Workspace-overview.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;">Overview</a>
+      <div style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;color:#44546F;"><span>Agents</span><span style="font-size:12px;color:#626F86;">48</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;color:#44546F;"><span>Volunteers</span><span style="font-size:12px;color:#626F86;">23</span></div>
+      <a href="Campaign-managers.dc.html" style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;font-weight:600;color:#386271;background:#EEF6F8;"><span>Campaign managers</span><span style="font-size:12px;color:#386271;">{{managerCount}}</span></a>
+      <div style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;color:#44546F;"><span>War room</span><span style="width:8px;height:8px;border-radius:50%;background:#1F845A;"></span></div>
+    </div>
+
+    <div style="flex:1;min-width:0;padding:28px 40px 56px;">
+      <div style="font-size:12px;color:#626F86;margin-bottom:6px;">Workspaces / 2027 Nairobi General Election / Campaign managers</div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;">
+        <div>
+          <div style="font-size:24px;line-height:28px;font-weight:700;margin-bottom:4px;">Campaign managers</div>
+          <div style="font-size:14px;color:#626F86;">The only role you invite directly. Agents and volunteers join through the recruitment link instead.</div>
+        </div>
+        <a href="Invite-campaign-manager.dc.html" style="display:flex;align-items:center;height:32px;padding:0 12px;border-radius:8px;background:#599BAE;color:#FFFFFF;font-size:14px;font-weight:500;text-decoration:none;flex-shrink:0;" style-hover="background:#487E8C;color:#FFFFFF;">Invite campaign manager</a>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:8px;background:#EEF6F8;color:#386271;margin-bottom:24px;">
+        <span style="width:8px;height:8px;border-radius:50%;background:#599BAE;margin-top:6px;flex-shrink:0;"></span>
+        <span>A campaign manager can do everything in this workspace — recruit, verify, sign off tiers, export — except billing and deleting the account. Access is limited to this workspace only.</span>
+      </div>
+
+      <div style="border:1px solid #DCDFE4;border-radius:8px;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);margin-bottom:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-bottom:1px solid #DCDFE4;">
+          <div style="font-size:16px;font-weight:600;">People with access</div>
+          <div style="font-size:12px;color:#626F86;">{{accessSummary}}</div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid #F1F2F4;">
+          <span style="width:32px;height:32px;border-radius:50%;background:#599BAE;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;">WK</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:500;">Wanjiru Kamau <span style="font-size:12px;color:#626F86;font-weight:400;">(you)</span></div>
+            <div style="font-size:12px;color:#626F86;">wanjiru.kamau@example.com · full access including billing</div>
+          </div>
+          <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:#EEF6F8;color:#386271;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap;flex-shrink:0;">Aspirant</span>
+        </div>
+
+        <sc-for list="{{managers}}" as="m" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid #F1F2F4;">
+            <span style="{{m.avatarStyle}}">{{m.initials}}</span>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:14px;font-weight:500;">{{m.name}}</div>
+              <div style="font-size:12px;color:#626F86;">{{m.meta}}</div>
+            </div>
+            <span style="{{m.lozStyle}}">{{m.status}}</span>
+            <button onClick="{{m.onSecondary}}" style="height:32px;padding:0 12px;border:none;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:13px;font-weight:500;cursor:pointer;flex-shrink:0;" style-hover="background:#DCDFE4;">{{m.secondaryLabel}}</button>
+            <button onClick="{{m.onRemove}}" style="height:32px;padding:0 12px;border:none;border-radius:8px;background:#F1F2F4;color:#BF2600;font-size:13px;font-weight:500;cursor:pointer;flex-shrink:0;" style-hover="background:#FFEBE6;">Remove</button>
+          </div>
+        </sc-for>
+
+        <sc-if value="{{noManagers}}" hint-placeholder-val="{{false}}">
+          <div style="padding:28px 20px;text-align:center;">
+            <div style="font-size:14px;font-weight:600;margin-bottom:4px;">No campaign managers yet</div>
+            <div style="font-size:13px;color:#626F86;margin-bottom:16px;">Invite the person who runs the campaign day to day so you aren't the only one who can verify and sign off.</div>
+            <a href="Invite-campaign-manager.dc.html" style="display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:8px;background:#599BAE;color:#FFFFFF;font-size:14px;font-weight:500;text-decoration:none;" style-hover="background:#487E8C;color:#FFFFFF;">Invite campaign manager</a>
+          </div>
+        </sc-if>
+
+        <div style="padding:12px 20px;font-size:12px;color:#626F86;">Invite links expire after 72 hours. Every accept, resend and removal is written to the workspace audit log.</div>
+      </div>
+
+      <div style="border:1px solid #DCDFE4;border-radius:8px;">
+        <div style="padding:14px 20px;border-bottom:1px solid #F1F2F4;font-size:16px;font-weight:600;">What a campaign manager can do</div>
+        <sc-for list="{{permissions}}" as="p" hint-placeholder-count="6">
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid #F1F2F4;">
+            <span style="{{p.iconStyle}}">{{p.icon}}</span>
+            <span style="flex:1;min-width:0;font-size:14px;">{{p.label}}</span>
+            <span style="{{p.lozStyle}}">{{p.value}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <sc-if value="{{showInvite}}" hint-placeholder-val="{{false}}">
+    <div style="position:fixed;inset:0;background:rgba(9,30,66,0.54);display:flex;align-items:center;justify-content:center;padding:24px;z-index:50;">
+      <div style="width:100%;max-width:460px;background:#FFFFFF;border-radius:12px;box-shadow:0 20px 32px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);">
+        <div style="padding:24px 24px 0;">
+          <div style="font-size:20px;line-height:24px;font-weight:600;margin-bottom:6px;">Invite a campaign manager</div>
+          <div style="font-size:14px;color:#626F86;margin-bottom:20px;">They'll get an SMS with a join link for this workspace. They set their own password after verifying the same phone number.</div>
+
+          <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">Full name <span style="color:#BF2600;">*</span></div>
+          <input value="{{inviteName}}" onChange="{{onInviteName}}" placeholder="Daniel Mutiso" style="width:100%;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;font-size:14px;color:#172B4D;background:#FFFFFF;margin-bottom:14px;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+
+          <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">Phone number <span style="color:#BF2600;">*</span></div>
+          <input value="{{invitePhone}}" onChange="{{onInvitePhone}}" placeholder="+254 7xx xxx xxx" style="width:100%;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;font-size:14px;color:#172B4D;background:#FFFFFF;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+          <div style="font-size:12px;color:#626F86;margin:4px 0 14px;">The link goes to this number by SMS. Duplicate numbers are rejected.</div>
+
+          <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">Note in the invite <span style="font-weight:400;color:#626F86;">(optional)</span></div>
+          <input placeholder="e.g. You'll be running the Nairobi war room" style="width:100%;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;font-size:14px;color:#172B4D;background:#FFFFFF;margin-bottom:14px;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;background:#F7F8F9;color:#44546F;font-size:12px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:#B3B9C4;margin-top:5px;flex-shrink:0;"></span>
+            <span>Scope: 2027 Nairobi General Election only. Billing and account deletion stay with you.</span>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;padding:20px 24px 24px;">
+          <button onClick="{{closeInvite}}" style="height:32px;padding:0 12px;border:none;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:14px;font-weight:500;cursor:pointer;" style-hover="background:#DCDFE4;">Cancel</button>
+          <button onClick="{{sendInvite}}" disabled="{{inviteDisabled}}" style="{{inviteBtnStyle}}">Send SMS invite</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1280, &quot;height&quot;: 900}}">
+const PERMISSIONS = [
+  {label: 'Recruit, vet and assign agents and volunteers', value: 'Yes', ok: true},
+  {label: 'Verify submissions and sign off tiers', value: 'Yes', ok: true},
+  {label: 'Resolve and escalate discrepancies', value: 'Yes', ok: true},
+  {label: 'Export tally, evidence packs and payment schedules', value: 'Yes', ok: true},
+  {label: 'Invite further campaign managers', value: 'Aspirant only', ok: false},
+  {label: 'Billing and deleting the workspace', value: 'Aspirant only', ok: false}
+];
+
+class Component extends DCLogic {
+  state = {
+    showInvite: false,
+    inviteName: '',
+    invitePhone: '',
+    managers: [
+      {name: 'Daniel Mutiso', phone: '+254 7·· ··· 204', status: 'Active', meta: 'Accepted 4 Sep 2026 · +254 7·· ··· 204'},
+      {name: 'Faith Achieng', phone: '+254 7·· ··· 671', status: 'Pending', meta: 'Invite sent by SMS 18 Sep 2026 · expires in 41 hours'}
+    ]
+  };
+
+  initials(name) {
+    return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
+  }
+  sendInvite() {
+    const {inviteName, invitePhone} = this.state;
+    if (!inviteName.trim() || !invitePhone.trim()) return;
+    this.setState(s => ({
+      managers: [...s.managers, {
+        name: inviteName.trim(),
+        phone: invitePhone.trim(),
+        status: 'Pending',
+        meta: `Invite sent by SMS just now · expires in 72 hours · ${invitePhone.trim()}`
+      }],
+      inviteName: '', invitePhone: '', showInvite: false
+    }));
+  }
+  resend(i) {
+    this.setState(s => ({
+      managers: s.managers.map((m, idx) => idx === i ? {...m, meta: `Invite re-sent by SMS just now · expires in 72 hours · ${m.phone}`} : m)
+    }));
+  }
+  remove(i) {
+    this.setState(s => ({managers: s.managers.filter((m, idx) => idx !== i)}));
+  }
+
+  renderVals() {
+    const s = this.state;
+    const loz = (bg, fg) => `display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:${bg};color:${fg};font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap;flex-shrink:0;`;
+    const active = s.managers.filter(m => m.status === 'Active').length;
+    const pending = s.managers.filter(m => m.status === 'Pending').length;
+    const disabled = !(s.inviteName.trim() && s.invitePhone.trim());
+
+    return {
+      managerCount: `${s.managers.length}`,
+      accessSummary: `1 aspirant · ${active} active manager${active === 1 ? '' : 's'} · ${pending} pending`,
+      noManagers: s.managers.length === 0,
+      managers: s.managers.map((m, i) => {
+        const isActive = m.status === 'Active';
+        return {
+          name: m.name,
+          meta: m.meta,
+          initials: this.initials(m.name),
+          status: m.status,
+          avatarStyle: `width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;background:${isActive ? '#294854' : '#DCDFE4'};color:${isActive ? '#FFFFFF' : '#44546F'};`,
+          lozStyle: isActive ? loz('#E3FCEF', '#164B35') : loz('#FFF7D6', '#7F5F01'),
+          secondaryLabel: isActive ? 'Manage' : 'Resend',
+          onSecondary: isActive ? () => {} : () => this.resend(i),
+          onRemove: () => this.remove(i)
+        };
+      }),
+      permissions: PERMISSIONS.map(p => ({
+        label: p.label,
+        value: p.value,
+        icon: p.ok ? '✓' : '—',
+        iconStyle: `width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#FFFFFF;background:${p.ok ? '#1F845A' : '#B3B9C4'};`,
+        lozStyle: p.ok ? loz('#E3FCEF', '#164B35') : loz('#F1F2F4', '#626F86')
+      })),
+      showInvite: s.showInvite,
+      openInvite: () => this.setState({showInvite: true}),
+      closeInvite: () => this.setState({showInvite: false}),
+      inviteName: s.inviteName,
+      onInviteName: (e) => this.setState({inviteName: e.target.value}),
+      invitePhone: s.invitePhone,
+      onInvitePhone: (e) => this.setState({invitePhone: e.target.value}),
+      sendInvite: () => this.sendInvite(),
+      inviteDisabled: disabled,
+      inviteBtnStyle: `height:32px;padding:0 12px;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:${disabled ? 'not-allowed' : 'pointer'};background:${disabled ? '#F1F2F4' : '#599BAE'};color:${disabled ? '#8590A2' : '#FFFFFF'};`
+    };
+  }
+}
+</script>
+</body>
+</html>

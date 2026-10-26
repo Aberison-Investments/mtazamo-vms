@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; }
+  input, button, select { font-family: inherit; }
+  ::placeholder { color: #8590A2; }
+  a { color: #386271; }
+  a:hover { color: #1A2E36; }
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:#FFFFFF;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#172B4D;font-size:14px;line-height:20px;">
+
+  <div style="height:56px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 16px;border-bottom:1px solid #DCDFE4;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="width:24px;height:24px;border-radius:5px;background:#599BAE;display:inline-flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:12px;font-weight:700;">M</span>
+      <span style="font-size:14px;font-weight:600;">Mtazamo Votes</span>
+    </div>
+    <input placeholder="Search stations, agents, wards in Dagoretti North" style="flex:1;max-width:460px;height:32px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 12px;font-size:14px;background:#F7F8F9;color:#172B4D;" style-focus="background:#FFFFFF;border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:#EEF6F8;color:#386271;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Constituency officer</span>
+      <span style="width:32px;height:32px;border-radius:50%;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">BO</span>
+    </div>
+  </div>
+
+  <div style="flex:1;display:flex;align-items:stretch;min-height:0;">
+    <div style="width:256px;flex-shrink:0;background:#F7F8F9;border-right:1px solid #DCDFE4;padding:16px 12px;">
+      <div style="display:flex;align-items:center;gap:10px;padding:8px;margin-bottom:16px;">
+        <span style="width:32px;height:32px;border-radius:5px;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">27</span>
+        <div style="min-width:0;">
+          <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">2027 Nairobi General</div>
+          <div style="font-size:12px;color:#626F86;">Dagoretti North only</div>
+        </div>
+      </div>
+      <a href="TO-Home.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;">Overview</a>
+      <a href="TO-Assigned-agents.dc.html" style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;font-weight:600;color:#386271;background:#EEF6F8;"><span>Agents</span></a>
+      <a href="TO-Geography.html" style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;"><span>Geography</span></a>
+      <a href="TO-Settings.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;">Settings</a>
+      <div style="height:1px;background:#DCDFE4;margin:12px 8px;"></div>
+      <div style="padding:0 8px;font-size:12px;color:#8590A2;line-height:17px;">You see Dagoretti North only. The rest of Nairobi stays with Daniel Mwangi.</div>
+    </div>
+
+    <div style="flex:1;min-width:0;padding:24px 24px 48px;">
+      <div style="font-size:12px;color:#626F86;margin-bottom:6px;"><a href="TO-Home.dc.html" style="text-decoration:none;color:#626F86;">Dagoretti North</a> / Agents</div>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
+        <div>
+          <div style="font-size:24px;line-height:28px;font-weight:700;margin-bottom:4px;">Assigned agents</div>
+          <div style="font-size:14px;color:#626F86;">Who is placed at each polling station, and who's on the bench in each ward.</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0;">
+          <a href="#" style="display:flex;align-items:center;height:32px;padding:0 12px;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:14px;font-weight:500;text-decoration:none;" style-hover="background:#DCDFE4;">Export agent list</a>
+          <a href="TO-Agents.dc.html" style="display:flex;align-items:center;height:32px;padding:0 12px;border-radius:8px;background:#599BAE;color:#FFFFFF;font-size:14px;font-weight:500;text-decoration:none;" style-hover="background:#487E8C;">Review queue · 8 pending</a>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:20px;">
+      <div style="display:flex;gap:16px;align-items:stretch;height:540px;">
+
+        <div style="width:200px;flex-shrink:0;box-sizing:border-box;overflow-y:auto;border:1px solid #DCDFE4;border-radius:8px;padding:8px;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);">
+          <div style="padding:8px 10px 10px;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#626F86;">Dagoretti North</div>
+          <sc-for list="{{wardList}}" as="w" hint-placeholder-count="5">
+            <div onClick="{{w.onClick}}" style="{{w.style}}" style-hover="background:#F1F2F4;">
+              <div style="min-width:0;flex:1;">
+                <div style="font-size:14px;font-weight:{{w.weight}};color:{{w.color}};">{{w.name}}</div>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
+                  <span style="display:block;flex:1;height:4px;border-radius:2px;background:#DCDFE4;overflow:hidden;"><span style="{{w.barStyle}}"></span></span>
+                  <span style="font-size:11px;color:#626F86;white-space:nowrap;">{{w.cover}}</span>
+                </div>
+              </div>
+              <span style="font-size:11px;color:#626F86;white-space:nowrap;">{{w.bench}}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;border:1px solid #DCDFE4;border-radius:8px;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-bottom:1px solid #DCDFE4;flex-wrap:wrap;">
+              <div>
+                <div style="font-size:16px;font-weight:600;">Polling stations — {{wardName}} Ward</div>
+                <div style="font-size:12px;color:#626F86;margin-top:2px;">{{wardSummary}}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <input value="{{search}}" onChange="{{onSearch}}" placeholder="Station or agent" style="width:180px;height:32px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;font-size:13px;background:#F7F8F9;color:#172B4D;" style-focus="background:#FFFFFF;border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+                <div style="display:flex;background:#F1F2F4;border-radius:8px;padding:2px;gap:2px;">
+                  <sc-for list="{{filters}}" as="f" hint-placeholder-count="3">
+                    <div onClick="{{f.onClick}}" style="{{f.style}}">{{f.label}}</div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:44px minmax(0,1.4fr) minmax(0,1fr);gap:12px;padding:10px 14px;background:#F7F8F9;border-bottom:1px solid #DCDFE4;font-size:12px;font-weight:600;color:#44546F;">
+              <span>Code</span><span>Station</span><span>Agent</span>
+            </div>
+            <div style="flex:1;min-height:0;overflow-y:auto;">
+              <sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+                <div style="display:grid;grid-template-columns:44px minmax(0,1.4fr) minmax(0,1fr);gap:12px;align-items:start;padding:10px 14px;border-bottom:1px solid #F1F2F4;" style-hover="background:#F7F8F9;">
+                  <span style="font-size:13px;color:#626F86;font-variant-numeric:tabular-nums;">{{r.code}}</span>
+                  <span style="font-size:13px;min-width:0;">{{r.station}}</span>
+                  <div style="min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:3px;">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                      <span style="font-size:13px;font-weight:500;color:{{r.agentColor}};">{{r.agent}}</span>
+                      <span style="{{r.tagStyle}}">{{r.tag}}</span>
+                    </div>
+                    <div style="font-size:12px;color:#626F86;">{{r.phone}}</div>
+                  </div>
+                </div>
+              </sc-for>
+              <sc-if value="{{noRows}}" hint-placeholder-val="{{false}}">
+                <div style="padding:28px 20px;text-align:center;font-size:13px;color:#626F86;">No stations match.</div>
+              </sc-if>
+            </div>
+          </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:20px;">
+
+          <div style="border:1px solid #DCDFE4;border-radius:8px;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-bottom:1px solid #DCDFE4;flex-wrap:wrap;">
+              <div>
+                <div style="font-size:16px;font-weight:600;">{{wardName}} bench</div>
+                <div style="font-size:12px;color:#626F86;margin-top:2px;">Vetted reserve agents. Deploy one to cover a gap or replace a no-show on the day.</div>
+              </div>
+              <span style="{{benchTagStyle}}">{{benchTag}}</span>
+            </div>
+            <sc-for list="{{bench}}" as="b" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid #F1F2F4;flex-wrap:wrap;">
+                <span style="width:32px;height:32px;border-radius:50%;background:#EEF6F8;color:#386271;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;">{{b.initials}}</span>
+                <div style="flex:1;min-width:160px;">
+                  <div style="font-size:14px;font-weight:500;">{{b.name}}</div>
+                  <div style="font-size:12px;color:#626F86;">{{b.meta}}</div>
+                </div>
+                <sc-if value="{{b.canDeploy}}" hint-placeholder-val="{{true}}">
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <select value="{{b.pick}}" onChange="{{b.onPick}}" style="height:32px;max-width:240px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 8px;font-size:13px;color:#172B4D;background:#FFFFFF;">
+                      <option value="">Choose an uncovered station</option>
+                      <sc-for list="{{gapOptions}}" as="o" hint-placeholder-count="2">
+                        <option value="{{o.id}}">{{o.label}}</option>
+                      </sc-for>
+                    </select>
+                    <div onClick="{{b.onDeploy}}" style="{{b.deployStyle}}">Deploy</div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+            <sc-if value="{{benchEmpty}}" hint-placeholder-val="{{false}}">
+              <div style="padding:20px;font-size:13px;color:#626F86;">Nobody on the bench. Approve a reserve from the <a href="TO-Agents.dc.html" style="font-weight:500;">review queue</a> to add one.</div>
+            </sc-if>
+            <div style="padding:12px 20px;font-size:12px;color:#626F86;">Target: 10% of the ward's stations in reserve · {{benchTarget}}</div>
+          </div>
+
+          <sc-if value="{{readOnly}}" hint-placeholder-val="{{false}}">
+            <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-radius:8px;background:#EEF6F8;color:#386271;font-size:13px;line-height:19px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#599BAE;margin-top:6px;flex-shrink:0;"></span>
+              <span>Daniel Mwangi deploys bench agents for Dagoretti North. You see every assignment here as it's made.</span>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:8px;background:#E3FCEF;color:#164B35;font-size:13px;">
+              <span style="font-weight:700;">✓</span><span>{{toast}}</span>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;canAssign&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Delegation from campaign manager&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const wards = [
+      { name: 'Kilimani', count: 41, confirmed: 29, pending: 4, bench: 4, start: 101, centres: ['Toi Primary School', 'Olympic Primary School', 'Kilimani Primary School', 'Nairobi Primary School', 'Kibera DO Grounds', 'Ayany Social Hall'] },
+      { name: 'Kawangware', count: 38, confirmed: 17, pending: 5, bench: 2, start: 201, centres: ['Kawangware Primary School', 'Kawangware Chief Camp', 'Stage 2 Social Hall', 'Muslim Primary School', 'Congo Grounds'] },
+      { name: 'Gatina', count: 35, confirmed: 14, pending: 3, bench: 1, start: 301, centres: ['Gatina Primary School', 'Kabiro Primary School', 'Gatina Chief Camp', 'Riruta Satellite Grounds'] },
+      { name: 'Kileleshwa', count: 36, confirmed: 30, pending: 2, bench: 5, start: 401, centres: ['Kileleshwa Primary School', 'Lavington Primary School', 'Kileleshwa Social Hall', 'Hospital Hill Primary'] },
+      { name: 'Mountain View', count: 33, confirmed: 22, pending: 3, bench: 3, start: 501, centres: ['Mountain View Primary School', 'Kangemi Chief Camp', 'Mountain View Social Hall', 'Farasi Lane Grounds'] }
+    ];
+    const first = ['Peter', 'Mary', 'Joseph', 'Grace', 'Samuel', 'Esther', 'Kevin', 'Faith', 'John', 'Ann', 'David', 'Mercy', 'James', 'Lucy', 'Brian', 'Janet', 'Paul', 'Ruth', 'Dennis', 'Caroline', 'Moses', 'Sharon', 'Victor', 'Irene'];
+    const last = ['Wafula', 'Atieno', 'Kariuki', 'Njeri', 'Mutua', 'Wanjiku', 'Omondi', 'Chebet', 'Kamau', 'Achieng', 'Mwangi', 'Wambui', 'Otieno', 'Kiprop', 'Nyambura', 'Odhiambo', 'Kilonzo', 'Muthoni', 'Barasa', 'Jepkemboi'];
+    let seed = 7;
+    const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    const person = () => ({ name: `${first[Math.floor(rnd() * first.length)]} ${last[Math.floor(rnd() * last.length)]}`, phone: `+254 7${Math.floor(10 + rnd() * 89)} xxx ${String(Math.floor(rnd() * 1000)).padStart(3, '0')}` });
+    this.data = {};
+    wards.forEach(w => {
+      const streams = [];
+      let c = 0;
+      while (streams.length < w.count) {
+        const centre = w.centres[c % w.centres.length];
+        const n = Math.floor(c / w.centres.length) + 1;
+        streams.push(`${centre} — Stream ${n}`);
+        c++;
+      }
+      streams.sort();
+      const states = streams.map((_, i) => i < w.confirmed ? 'assigned' : i < w.confirmed + w.pending ? 'pending' : 'gap');
+      for (let i = states.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [states[i], states[j]] = [states[j], states[i]]; }
+      const stations = streams.map((s, i) => ({ id: `${w.name}-${i}`, code: String(w.start + i), station: s, state: states[i], agent: states[i] === 'gap' ? null : person() }));
+      const bench = Array.from({ length: w.bench }, (_, i) => ({ id: `${w.name}-b${i}`, ...person(), since: ['12 Sep', '15 Sep', '18 Sep', '20 Sep', '21 Sep'][i % 5] }));
+      this.data[w.name] = { ...w, stations, bench };
+    });
+    this.state = { ward: 'Kilimani', filter: 'all', search: '', picks: {}, tick: 0, toast: '' };
+  }
+  renderVals() {
+    const s = this.state;
+    const canAssign = this.props.canAssign ?? true;
+    const tones = { green: 'background:#E3FCEF;color:#164B35;', amber: 'background:#FFF7D6;color:#974F0C;', red: 'background:#FFECEB;color:#AE2A19;', grey: 'background:#F1F2F4;color:#44546F;' };
+    const tag = (t) => `display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap;${tones[t]}`;
+    const W = this.data[s.ward];
+    const stats = (w) => ({ a: w.stations.filter(x => x.state === 'assigned').length, p: w.stations.filter(x => x.state === 'pending').length, g: w.stations.filter(x => x.state === 'gap').length });
+    const st = stats(W);
+    const q = s.search.trim().toLowerCase();
+    const rows = W.stations.filter(x =>
+      (s.filter === 'all' || (s.filter === 'gap' ? x.state === 'gap' : x.state !== 'gap')) &&
+      (!q || x.station.toLowerCase().includes(q) || x.code.includes(q) || (x.agent && x.agent.name.toLowerCase().includes(q)))
+    ).map(x => ({
+      code: x.code, station: x.station,
+      agent: x.agent ? x.agent.name : 'Unassigned',
+      phone: x.agent ? x.agent.phone : '',
+      agentColor: x.agent ? '#172B4D' : '#974F0C',
+      tag: x.state === 'assigned' ? 'Confirmed' : x.state === 'pending' ? 'Invite sent' : 'Uncovered',
+      tagStyle: tag(x.state === 'assigned' ? 'green' : x.state === 'pending' ? 'amber' : 'red')
+    }));
+    const gaps = W.stations.filter(x => x.state === 'gap');
+    const target = Math.ceil(W.count * 0.1);
+    const deploy = (b) => {
+      const sid = s.picks[b.id];
+      if (!sid) return;
+      const stn = W.stations.find(x => x.id === sid);
+      stn.state = 'assigned';
+      stn.agent = { name: b.name, phone: b.phone };
+      W.bench = W.bench.filter(x => x.id !== b.id);
+      this.setState(p => ({ tick: p.tick + 1, picks: { ...p.picks, [b.id]: '' }, toast: `${b.name} deployed to ${stn.station} (${stn.code}).` }));
+    };
+    const totalAssigned = Object.values(this.data).reduce((n, w) => n + w.stations.filter(x => x.state !== 'gap').length, 0);
+    return {
+      totalAssigned,
+      wardList: Object.values(this.data).map(w => {
+        const on = w.name === s.ward, x = stats(w);
+        const pct = Math.round((x.a + x.p) / w.count * 100);
+        return {
+          name: w.name, weight: on ? 600 : 500, color: on ? '#386271' : '#172B4D',
+          cover: `${x.a + x.p}/${w.count}`, bench: `${w.bench.length} bench`,
+          barStyle: `display:block;height:100%;width:${pct}%;background:${pct >= 80 ? '#1F845A' : '#599BAE'};`,
+          style: `display:flex;align-items:center;gap:12px;padding:10px;border-radius:8px;cursor:pointer;margin-bottom:2px;${on ? 'background:#EEF6F8;' : ''}`,
+          onClick: () => this.setState({ ward: w.name, search: '', toast: '' })
+        };
+      }),
+      wardName: W.name,
+      wardSummary: `${W.count} stations · ${st.a} confirmed · ${st.p} invite sent · ${st.g} uncovered`,
+      search: s.search,
+      onSearch: (e) => this.setState({ search: e.target.value }),
+      filters: [['all', 'All'], ['assigned', 'Assigned'], ['gap', 'Uncovered']].map(([id, label]) => ({
+        label, onClick: () => this.setState({ filter: id }),
+        style: `height:28px;display:flex;align-items:center;padding:0 10px;border-radius:6px;font-size:13px;cursor:pointer;${s.filter === id ? 'background:#FFFFFF;color:#172B4D;font-weight:600;box-shadow:0 1px 1px rgba(9,30,66,0.25);' : 'color:#44546F;font-weight:500;'}`
+      })),
+      rows, noRows: rows.length === 0,
+      bench: W.bench.map(b => ({
+        name: b.name,
+        initials: b.name.split(' ').map(n => n[0]).join(''),
+        meta: `${b.phone} · Vetted ${b.since} · Form 34A trained`,
+        canDeploy: canAssign && gaps.length > 0,
+        pick: s.picks[b.id] || '',
+        onPick: (e) => this.setState(p => ({ picks: { ...p.picks, [b.id]: e.target.value } })),
+        onDeploy: () => deploy(b),
+        deployStyle: `display:flex;align-items:center;height:32px;padding:0 12px;border-radius:8px;font-size:14px;font-weight:500;${s.picks[b.id] ? 'background:#599BAE;color:#FFFFFF;cursor:pointer;' : 'background:#F1F2F4;color:#8590A2;cursor:not-allowed;'}`
+      })),
+      gapOptions: gaps.map(x => ({ id: x.id, label: `${x.code} · ${x.station}` })),
+      benchEmpty: W.bench.length === 0,
+      benchTag: `${W.bench.length} of ${target} reserve`,
+      benchTagStyle: tag(W.bench.length >= target ? 'green' : W.bench.length > 0 ? 'amber' : 'red'),
+      benchTarget: `${target} for ${W.name}`,
+      readOnly: !canAssign,
+      toast: s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>

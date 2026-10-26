@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; background: #F7F8F9; }
+  input, button { font-family: inherit; }
+  input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  a { color: #386271; }
+  a:hover { color: #1A2E36; }
+  @keyframes riseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+<script src="./image-slot.js"></script>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:#F7F8F9;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#172B4D;font-size:14px;line-height:20px;">
+
+  <div style="background:#294854;color:#FFFFFF;">
+    <div style="max-width:1120px;margin:0 auto;padding:16px 20px 24px;box-sizing:border-box;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:22px;height:22px;border-radius:5px;background:#599BAE;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;">M</span>
+          <span style="font-size:14px;font-weight:600;">Mtazamo Votes</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <sc-for list="{{tabs}}" as="tab" hint-placeholder-count="4">
+            <div onClick="{{tab.onClick}}" style="{{tab.style}}">{{tab.label}}</div>
+          </sc-for>
+          <span style="display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:14px;background:rgba(255,255,255,0.14);font-size:11px;font-weight:600;letter-spacing:0.3px;margin-left:4px;">Polling agent</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+        <div style="max-width:640px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:#F5CD47;"></span>
+            <span style="font-size:12px;font-weight:600;color:#C3D5DB;">Polls closed 5:00 PM · Counting</span>
+          </div>
+          <div style="font-size:clamp(22px,3.4vw,30px);line-height:1.2;font-weight:700;letter-spacing:-0.4px;margin-bottom:6px;">Submit station results</div>
+          <div style="font-size:14px;line-height:21px;color:#C3D5DB;">Governor, Nairobi City County · <strong style="color:#FFFFFF;font-weight:600;">Station 047, Kawangware Chief Camp — Stream 1</strong></div>
+        </div>
+        <sc-if value="{{offline}}" hint-placeholder-val="{{false}}">
+          <span style="display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:14px;background:#FFF7D6;color:#7F5F01;font-size:12px;font-weight:600;">No signal — saving on this phone</span>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+
+  <sc-if value="{{notSubmitted}}" hint-placeholder-val="{{true}}">
+    <div style="width:100%;max-width:1120px;margin:0 auto;box-sizing:border-box;padding:20px;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;">
+
+      <div style="flex:2 1 460px;display:flex;flex-direction:column;gap:16px;min-width:0;" data-screen-label="Results entry">
+        <div style="display:flex;gap:6px;background:#FFFFFF;border-radius:10px;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);padding:4px;">
+          <sc-for list="{{steps}}" as="s" hint-placeholder-count="3">
+            <div onClick="{{s.onClick}}" style="{{s.style}}">
+              <span style="{{s.markStyle}}">{{s.mark}}</span>
+              <span>{{s.label}}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{step1}}" hint-placeholder-val="{{true}}">
+          <div style="background:#FFFFFF;border-radius:12px;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);padding:20px;animation:riseIn 220ms ease-out both;">
+            <div style="font-size:16px;font-weight:700;margin-bottom:4px;">Copy the numbers from Form 37A</div>
+            <div style="font-size:12px;line-height:17px;color:#626F86;margin-bottom:16px;text-wrap:pretty;">Type exactly what the presiding officer wrote on the signed form — even if you think it's wrong. Flag disputes on the next step.</div>
+
+            <div style="margin-bottom:18px;">
+              <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">Registered voters at this station <span style="color:#BF2600;">*</span></div>
+              <input value="{{registered}}" onChange="{{onRegistered}}" inputmode="numeric" placeholder="0" style="width:100%;max-width:220px;height:40px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 12px;font-size:16px;font-weight:600;color:#172B4D;background:#FFFFFF;font-variant-numeric:tabular-nums;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+              <div style="font-size:11px;color:#8590A2;margin-top:3px;">As printed at the top of Form 37A.</div>
+            </div>
+
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:#626F86;margin-bottom:6px;">Votes per candidate</div>
+            <div style="border:1px solid #DCDFE4;border-radius:8px;overflow:hidden;margin-bottom:16px;">
+              <sc-for list="{{candidates}}" as="c" hint-placeholder-count="5">
+                <div style="{{c.rowStyle}}">
+                  <span style="{{c.dotStyle}}"></span>
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-size:14px;font-weight:600;">{{c.name}}</div>
+                    <div style="font-size:11px;color:#626F86;">{{c.party}}</div>
+                  </div>
+                  <input value="{{c.value}}" onChange="{{c.onChange}}" inputmode="numeric" placeholder="0" style="width:96px;height:40px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 12px;font-size:16px;font-weight:600;text-align:right;color:#172B4D;background:#FFFFFF;font-variant-numeric:tabular-nums;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+                </div>
+              </sc-for>
+            </div>
+
+            
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:#626F86;margin-bottom:6px;">Other ballots</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
+              <div>
+                <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">Rejected ballots</div>
+                <input value="{{rejected}}" onChange="{{onRejected}}" inputmode="numeric" placeholder="0" style="width:100%;height:40px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 12px;font-size:16px;font-weight:600;color:#172B4D;background:#FFFFFF;font-variant-numeric:tabular-nums;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+              </div>
+              <div>
+                <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">Disputed votes</div>
+                <input value="{{disputed}}" onChange="{{onDisputed}}" inputmode="numeric" placeholder="0" style="width:100%;height:40px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 12px;font-size:16px;font-weight:600;color:#172B4D;background:#FFFFFF;font-variant-numeric:tabular-nums;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+              </div>
+            </div>
+            <button onClick="{{toStep2}}" style="{{nextStyle1}}">Next: photograph the form</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{step2}}" hint-placeholder-val="{{false}}">
+          <div style="background:#FFFFFF;border-radius:12px;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);padding:20px;animation:riseIn 220ms ease-out both;">
+            <div style="font-size:16px;font-weight:700;margin-bottom:16px;">Photograph Form 37A</div>
+            <div style="width:100%;max-width:420px;aspect-ratio:1/1;border-radius:8px;overflow:hidden;margin-bottom:20px;">
+              <image-slot id="form-37a-photo" shape="rounded" fit="contain" placeholder="Tap to take a photo of the signed Form 37A"></image-slot>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <button onClick="{{toStep1}}" style="height:44px;padding:0 18px;border:none;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:14px;font-weight:600;cursor:pointer;">Back</button>
+              <button onClick="{{toStep3}}" style="{{nextStyle2}}">Next: review</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{step3}}" hint-placeholder-val="{{false}}">
+          <div style="background:#FFFFFF;border-radius:12px;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);padding:20px;animation:riseIn 220ms ease-out both;">
+            <div style="font-size:16px;font-weight:700;margin-bottom:4px;">Review and send</div>
+            <div style="font-size:12px;line-height:17px;color:#626F86;margin-bottom:16px;">Check each number against your photo of the form.</div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;margin-bottom:16px;">
+              <div style="flex:1 1 260px;min-width:0;">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:6px;">
+                  <span style="font-size:11px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:#626F86;">Your numbers</span>
+                  <span onClick="{{toStep1}}" style="font-size:12px;font-weight:600;color:#386271;cursor:pointer;">Edit</span>
+                </div>
+                <div style="border:1px solid #DCDFE4;border-radius:8px;overflow:hidden;">
+                  <sc-for list="{{reviewRows}}" as="r" hint-placeholder-count="8">
+                    <div style="{{r.rowStyle}}">
+                      <span style="flex:1;min-width:0;">{{r.label}}</span>
+                      <span style="font-variant-numeric:tabular-nums;font-weight:600;">{{r.value}}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="flex:1 1 220px;min-width:0;">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:6px;">
+                  <span style="font-size:11px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:#626F86;">Form 37A photo</span>
+                  <span onClick="{{toStep2}}" style="font-size:12px;font-weight:600;color:#386271;cursor:pointer;">Retake</span>
+                </div>
+                <div style="width:100%;aspect-ratio:1/1;border-radius:8px;overflow:hidden;">
+                  <image-slot id="form-37a-photo" shape="rounded" fit="contain" placeholder="No photo yet — go back to add one"></image-slot>
+                </div>
+              </div>
+            </div>
+                        <div style="display:flex;gap:10px;">
+              <button onClick="{{toStep2}}" style="height:44px;padding:0 18px;border:none;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:14px;font-weight:600;cursor:pointer;">Back</button>
+              <button onClick="{{submit}}" style="{{submitStyle}}">{{submitLabel}}</button>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="flex:1 1 280px;display:flex;flex-direction:column;gap:16px;min-width:0;position:sticky;top:16px;">
+        <div style="background:#FFFFFF;border-radius:12px;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);padding:20px;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:#626F86;margin-bottom:12px;">Station tally</div>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:2px;">
+            <span style="font-size:28px;line-height:34px;font-weight:700;letter-spacing:-0.4px;font-variant-numeric:tabular-nums;">{{totalCast}}</span>
+            <span style="font-size:13px;color:#626F86;">{{regLabel}}</span>
+          </div>
+          <div style="font-size:12px;color:#626F86;margin-bottom:12px;">{{turnoutLabel}}</div>
+          <div style="height:6px;border-radius:3px;background:#EBECF0;overflow:hidden;margin-bottom:16px;">
+            <div style="{{turnoutBarStyle}}"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <sc-for list="{{totals}}" as="t" hint-placeholder-count="3">
+              <div style="display:flex;justify-content:space-between;gap:10px;font-size:13px;">
+                <span style="color:#44546F;">{{t.label}}</span>
+                <span style="font-weight:600;font-variant-numeric:tabular-nums;">{{t.value}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:#FFFFFF;border-radius:12px;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);padding:16px 20px;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:#626F86;margin-bottom:8px;">Checks</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <sc-for list="{{validations}}" as="v" hint-placeholder-count="3">
+              <div style="display:flex;gap:9px;align-items:flex-start;">
+                <span style="{{v.dotStyle}}">{{v.mark}}</span>
+                <span style="font-size:12px;line-height:17px;color:#44546F;text-wrap:pretty;">{{v.text}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="font-size:11px;line-height:16px;color:#8590A2;padding:0 4px;">Keep the paper form safe until Joseph Mwangi confirms he has it. Never send result forms by SMS or WhatsApp.</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{submitted}}" hint-placeholder-val="{{false}}">
+    <div style="width:100%;max-width:560px;margin:0 auto;box-sizing:border-box;padding:28px 20px;" data-screen-label="Results submitted">
+      <div style="background:#FFFFFF;border-radius:14px;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);padding:26px 24px 24px;animation:riseIn 240ms ease-out both;">
+        <div style="{{doneIconStyle}}">{{doneIcon}}</div>
+        <div style="font-size:20px;line-height:26px;font-weight:700;letter-spacing:-0.2px;margin-bottom:8px;">{{doneTitle}}</div>
+        <div style="font-size:13px;line-height:19px;color:#44546F;margin-bottom:18px;text-wrap:pretty;">{{doneBody}}</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px;">
+          <div style="background:#F7F8F9;border-radius:8px;padding:11px 13px;">
+            <div style="font-size:11px;color:#626F86;margin-bottom:2px;">Wanjiru Kamau</div>
+            <div style="font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;">{{wkVotes}}</div>
+          </div>
+          <div style="background:#F7F8F9;border-radius:8px;padding:11px 13px;">
+            <div style="font-size:11px;color:#626F86;margin-bottom:2px;">Total cast</div>
+            <div style="font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;">{{totalCast}}</div>
+          </div>
+          <div style="background:#F7F8F9;border-radius:8px;padding:11px 13px;">
+            <div style="font-size:11px;color:#626F86;margin-bottom:2px;">Reference</div>
+            <div style="font-size:16px;font-weight:700;">047-G-2291</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button onClick="{{editAgain}}" style="height:44px;padding:0 18px;border:none;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:14px;font-weight:600;cursor:pointer;">Send a correction</button>
+          <a href="tel:+254700000000" style="display:flex;align-items:center;height:44px;padding:0 18px;border-radius:8px;background:#599BAE;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;">Call Joseph</a>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;offline&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;State&quot;},&quot;startStep&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;1&quot;,&quot;2&quot;,&quot;3&quot;],&quot;default&quot;:&quot;1&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;State&quot;},&quot;assumePhoto&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;State&quot;}}">
+class Component extends DCLogic {
+  state = {
+    tab: 'results', step: null, submitted: false, declare: false, note: '',
+    votes: { wk: '', po: '', sk: '', fa: '', ha: '' }, registered: '', confirmWk: '', rejected: '', disputed: '',
+    checks: { stamp: false, po: false, agents: false, legible: false },
+    photoFilled: false, photoCheck: 'none'
+  };
+  componentDidMount() {
+    this._t = setInterval(() => {
+      const el = document.getElementById('form-37a-photo');
+      const f = !!(el && el.hasAttribute('data-filled'));
+      if (f !== this.state.photoFilled) {
+        this.setState({ photoFilled: f, photoCheck: f ? 'checking' : 'none' });
+        clearTimeout(this._c);
+        if (f) this._c = setTimeout(() => this.setState({ photoCheck: 'done' }), 1400);
+      }
+    }, 700);
+  }
+  componentWillUnmount() { clearInterval(this._t); clearTimeout(this._c); }
+  renderVals() {
+    const s = this.state;
+    const step = s.step ?? Number(this.props.startStep ?? 1);
+        const offline = this.props.offline ?? false;
+    const doubleEntry = false;
+    const photoOk = s.photoFilled || (this.props.assumePhoto ?? false);
+    const pState = (this.props.assumePhoto ?? false) ? 'done' : s.photoCheck;
+    const n = v => (v === '' || isNaN(+v)) ? 0 : +v;
+    const fmt = v => v.toLocaleString('en-KE');
+    const clean = v => v.replace(/[^0-9]/g, '').slice(0, 5);
+    const cands = [
+      ['wk', 'Wanjiru Kamau', 'Our candidate', true],
+      ['po', 'Peter Odhiambo', 'Independent'],
+      ['sk', 'Samuel Kiprono', 'United Progress Party'],
+      ['fa', 'Faith Achieng', 'People\u2019s Movement'],
+      ['ha', 'Hassan Abdi', 'Independent']
+    ];
+    const valid = cands.reduce((a, [id]) => a + n(s.votes[id]), 0);
+    const totalCast = valid + n(s.rejected) + n(s.disputed);
+    const allFilled = cands.every(([id]) => s.votes[id] !== '');
+    const REG = n(s.registered);
+    const regOk = REG > 0;
+    const confirmMatch = !doubleEntry || (s.confirmWk !== '' && s.confirmWk === s.votes.wk);
+    const overReg = regOk && totalCast > REG;
+    const step1Ok = regOk && allFilled && confirmMatch && !overReg;
+    const checksOk = Object.values(s.checks).every(Boolean);
+    const step2Ok = photoOk;
+    const canSubmit = step1Ok && step2Ok;
+    const pct = regOk ? Math.min(100, Math.round(totalCast / REG * 100)) : 0;
+    const btn = (ok, grow) => `flex:${grow ? 1 : 'none'};width:${grow ? 'auto' : '100%'};height:44px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:${ok ? 'pointer' : 'not-allowed'};background:${ok ? '#599BAE' : '#DCDFE4'};color:${ok ? '#FFFFFF' : '#626F86'};`;
+    const box = on => `width:20px;height:20px;border-radius:4px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#FFFFFF;background:${on ? '#599BAE' : '#FFFFFF'};border:1px solid ${on ? '#599BAE' : '#8590A2'};`;
+    const go = st => () => this.setState({ step: st });
+    const stepDone = { 1: step1Ok, 2: step2Ok, 3: false };
+
+    const v = (ok, warn, text) => ({
+      text, mark: ok ? '✓' : (warn ? '!' : ''),
+      dotStyle: `width:16px;height:16px;border-radius:50%;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#FFFFFF;background:${ok ? '#22A06B' : warn ? '#C9372C' : '#FFFFFF'};border:1px solid ${ok ? '#22A06B' : warn ? '#C9372C' : '#B3B9C4'};`
+    });
+
+    let confirmNote = 'Catches typos on the number that matters most.';
+    let confirmColor = '#626F86';
+    if (doubleEntry && s.confirmWk !== '') {
+      if (s.confirmWk === s.votes.wk) { confirmNote = 'Matches.'; confirmColor = '#216E4E'; }
+      else { confirmNote = `Doesn\u2019t match ${s.votes.wk || 'the number above'} — check the form.`; confirmColor = '#AE2E24'; }
+    }
+
+    return {
+      offline, doubleEntry,
+      notSubmitted: !s.submitted, submitted: s.submitted,
+      step1: step === 1, step2: step === 2, step3: step === 3,
+      steps: [[1, 'Numbers'], [2, 'Form photo'], [3, 'Send']].map(([id, label]) => {
+        const active = step === id, done = stepDone[id] && !active;
+        return {
+          label, mark: done ? '✓' : String(id), onClick: go(id),
+          style: `flex:1;display:flex;align-items:center;justify-content:center;gap:8px;height:38px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;background:${active ? '#EEF6F8' : 'transparent'};color:${active ? '#294854' : '#626F86'};`,
+          markStyle: `width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:${done ? '#22A06B' : active ? '#599BAE' : '#EBECF0'};color:${done || active ? '#FFFFFF' : '#626F86'};`
+        };
+      }),
+      candidates: cands.map(([id, name, party, ours], i) => ({
+        name, party, value: s.votes[id],
+        onChange: e => { const val = clean(e.target.value); this.setState(st => ({ votes: { ...st.votes, [id]: val } })); },
+        rowStyle: `display:flex;align-items:center;gap:12px;padding:10px 12px;border-top:${i ? '1px solid #F1F2F4' : 'none'};background:${ours ? '#F5FAFB' : '#FFFFFF'};`,
+        dotStyle: `width:8px;height:8px;border-radius:50%;flex-shrink:0;background:${ours ? '#599BAE' : '#DCDFE4'};`
+      })),
+      confirmWk: s.confirmWk,
+      onConfirmWk: e => this.setState({ confirmWk: clean(e.target.value) }),
+      confirmNote, confirmNoteStyle: `font-size:11px;line-height:16px;color:${confirmColor};`,
+      rejected: s.rejected, disputed: s.disputed,
+      registered: s.registered,
+      onRegistered: e => this.setState({ registered: clean(e.target.value) }),
+      regLabel: regOk ? `of ${fmt(REG)} registered` : 'votes cast',
+      onRejected: e => this.setState({ rejected: clean(e.target.value) }),
+      onDisputed: e => this.setState({ disputed: clean(e.target.value) }),
+      toStep1: go(1),
+      toStep2: () => step1Ok && this.setState({ step: 2 }),
+      toStep3: () => step2Ok && this.setState({ step: 3 }),
+      nextStyle1: btn(step1Ok, false), nextStyle2: btn(step2Ok, true),
+      photoTag: photoOk ? 'Photo added' : 'Required',
+      photoFrameStyle: `aspect-ratio:3/4;border-radius:8px;overflow:hidden;box-shadow:0 0 0 ${photoOk ? '2px #22A06B' : '0 transparent'};`,
+      tips: [['1', 'Flat on a table'], ['2', 'All four corners in frame'], ['3', 'No flash glare']].map(([n, text]) => ({ n, text })),
+      photoChecked: pState === 'done',
+      photoCheckStatus: pState === 'done' ? 'Looks good' : pState === 'checking' ? 'Checking…' : 'Waiting for photo',
+      photoChecks: ['Sharp enough to read', 'All four corners visible', 'IEBC stamp visible', 'Station 047 printed on form'].map(text => ({
+        text, mark: pState === 'done' ? '✓' : '',
+        dotStyle: `width:16px;height:16px;border-radius:50%;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#FFFFFF;background:${pState === 'done' ? '#22A06B' : '#FFFFFF'};border:1px solid ${pState === 'done' ? '#22A06B' : pState === 'checking' ? '#599BAE' : '#B3B9C4'};`,
+        textStyle: `font-size:12px;line-height:17px;color:${pState === 'none' ? '#8590A2' : '#44546F'};`
+      })),
+      photoTagStyle: `display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;font-size:11px;font-weight:600;background:${photoOk ? '#E3FCEF' : '#FFF7D6'};color:${photoOk ? '#164B35' : '#7F5F01'};`,
+      checks: [
+        ['stamp', 'IEBC stamp is on the form', 'Round stamp, usually bottom right'],
+        ['po', 'Presiding officer signed', 'Name, signature and date filled in'],
+        ['agents', 'You and other agents signed', 'If an agent refused, note why below'],
+        ['legible', 'Every number is readable in the photo', 'Zoom in on the photo to check']
+      ].map(([id, title, meta], i) => ({
+        title, meta, mark: s.checks[id] ? '✓' : '',
+        onClick: () => this.setState(st => ({ checks: { ...st.checks, [id]: !st.checks[id] } })),
+        rowStyle: `display:flex;gap:11px;align-items:flex-start;padding:11px 0;cursor:pointer;border-top:${i ? '1px solid #F1F2F4' : 'none'};`,
+        boxStyle: box(s.checks[id])
+      })),
+      note: s.note, onNote: e => this.setState({ note: e.target.value }),
+      reviewRows: [
+        { label: 'Registered voters', value: fmt(REG) },
+        ...cands.map(([id, name, , ours]) => ({ label: name, value: fmt(n(s.votes[id])), ours })),
+        { label: 'Rejected ballots', value: fmt(n(s.rejected)) },
+        { label: 'Disputed votes', value: fmt(n(s.disputed)) },
+        { label: 'Total cast', value: fmt(totalCast), total: true }
+      ].map((r, i) => ({
+        ...r,
+        rowStyle: `display:flex;gap:12px;padding:10px 14px;font-size:14px;border-top:${i ? '1px solid #F1F2F4' : 'none'};background:${r.total ? '#F7F8F9' : r.ours ? '#F5FAFB' : '#FFFFFF'};font-weight:${r.total || r.ours ? 600 : 400};`
+      })),
+      declareMark: s.declare ? '✓' : '', declareBoxStyle: box(s.declare),
+      toggleDeclare: () => this.setState({ declare: !s.declare }),
+      submit: () => canSubmit && this.setState({ submitted: true }),
+      submitStyle: btn(canSubmit, true),
+      submitLabel: offline ? 'Save and send when online' : 'Send results',
+      totalCast: fmt(totalCast),
+      turnoutLabel: !regOk ? 'Enter registered voters to see turnout' : totalCast ? `${pct}% turnout` : 'Fills in as you type',
+      turnoutBarStyle: `height:100%;width:${pct}%;background:${overReg ? '#C9372C' : '#599BAE'};border-radius:3px;transition:width 200ms ease-out;`,
+      totals: [
+        { label: 'Valid votes', value: fmt(valid) },
+        { label: 'Rejected + disputed', value: fmt(n(s.rejected) + n(s.disputed)) },
+        { label: 'Wanjiru\u2019s share', value: valid ? `${Math.round(n(s.votes.wk) / valid * 100)}%` : '—' }
+      ],
+      validations: [
+        v(regOk, false, 'Registered voters entered'),
+        v(allFilled, false, allFilled ? 'All five candidates entered' : 'Enter a number for every candidate — use 0 if none'),
+        v(regOk && !overReg && totalCast > 0, overReg, overReg ? `Total cast is ${fmt(totalCast - REG)} more than registered voters. Recheck the form.` : 'Total is within registered voters'),
+        ...(doubleEntry ? [v(confirmMatch, s.confirmWk !== '' && !confirmMatch, 'Wanjiru\u2019s votes confirmed twice')] : []),
+        v(photoOk, false, 'Form 37A photo added')
+      ],
+      wkVotes: fmt(n(s.votes.wk)),
+      doneIcon: offline ? '↻' : '✓',
+      doneIconStyle: `width:44px;height:44px;border-radius:50%;background:${offline ? '#FFF7D6' : '#E3FCEF'};color:${offline ? '#7F5F01' : '#164B35'};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;margin-bottom:14px;`,
+      doneTitle: offline ? 'Saved — waiting for signal' : 'Results sent',
+      doneBody: offline ? 'Your numbers and photo are stored on this phone and will send automatically once you\u2019re back online. Keep the app open.' : 'Joseph Mwangi and the tally team received Station 047 at 7:42 PM. They\u2019ll compare your photo with the numbers and call if anything doesn\u2019t match.',
+      editAgain: () => this.setState({ submitted: false, step: 1, declare: false }),
+      tabs: [['home', 'Home'], ['station', 'Station'], ['results', 'Results'], ['me', 'Me']].map(([id, label]) => ({
+        label, onClick: () => this.setState({ tab: id }),
+        style: `display:flex;align-items:center;height:30px;padding:0 12px;border-radius:15px;cursor:pointer;font-size:13px;font-weight:600;color:${s.tab === id ? '#FFFFFF' : '#C3D5DB'};background:${s.tab === id ? 'rgba(255,255,255,0.18)' : 'transparent'};`
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

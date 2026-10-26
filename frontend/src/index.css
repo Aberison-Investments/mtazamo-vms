@@ -1,0 +1,12 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: "Segoe UI", "Selawik", system-ui, -apple-system, sans-serif;
+  color: #201f1e;
+  background: #faf9f8;
+}
+
+a { color: #006d6a; }
+a:hover { color: #00504e; }
+
+button { font-family: inherit; }

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; }
+  input, button, select { font-family: inherit; }
+  ::placeholder { color: #8590A2; }
+  a { color: #386271; }
+  a:hover { color: #1A2E36; }
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:#FFFFFF;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#172B4D;font-size:14px;line-height:20px;">
+
+  <div style="height:56px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 16px;border-bottom:1px solid #DCDFE4;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="width:24px;height:24px;border-radius:5px;background:#599BAE;display:inline-flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:12px;font-weight:700;">M</span>
+      <span style="font-size:14px;font-weight:600;">Mtazamo Votes</span>
+    </div>
+    <input placeholder="Search stations, agents, wards" style="flex:1;max-width:460px;height:32px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 12px;font-size:14px;background:#F7F8F9;color:#172B4D;" style-focus="background:#FFFFFF;border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="width:32px;height:32px;border-radius:50%;background:#F1F2F4;display:flex;align-items:center;justify-content:center;font-size:13px;color:#44546F;">?</span>
+      <span style="width:32px;height:32px;border-radius:50%;background:#599BAE;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">WK</span>
+    </div>
+  </div>
+
+  <div style="flex:1;display:flex;align-items:stretch;min-height:0;">
+    <div style="width:256px;flex-shrink:0;background:#F7F8F9;border-right:1px solid #DCDFE4;padding:16px 12px;">
+      <a href="Workspaces.dc.html" style="display:block;font-size:12px;color:#626F86;text-decoration:none;padding:0 8px 8px;" style-hover="color:#172B4D;">← All workspaces</a>
+      <div style="display:flex;align-items:center;gap:10px;padding:8px;margin-bottom:16px;">
+        <span style="width:32px;height:32px;border-radius:5px;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">27</span>
+        <div style="min-width:0;">
+          <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">2027 Nairobi General</div>
+          <div style="font-size:12px;color:#626F86;">Governor · Nairobi</div>
+        </div>
+      </div>
+      <a href="Workspace-overview.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;font-weight:600;color:#386271;background:#EEF6F8;">Overview</a>
+      <div style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;color:#44546F;"><span>Agents</span><span style="font-size:12px;color:#626F86;">48</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;color:#44546F;"><span>Volunteers</span><span style="font-size:12px;color:#626F86;">23</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;color:#44546F;"><span>Campaign managers</span><span style="font-size:12px;color:#626F86;">1</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;color:#44546F;"><span>War room</span><span style="width:8px;height:8px;border-radius:50%;background:#1F845A;"></span></div>
+    </div>
+
+    <div style="flex:1;min-width:0;padding:28px 40px 56px;">
+      <div style="font-size:12px;color:#626F86;margin-bottom:6px;">Workspaces / 2027 Nairobi General Election / Overview</div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px;">
+        <div>
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
+            <span style="font-size:24px;line-height:28px;font-weight:700;">2027 Nairobi General Election</span>
+            <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:#EEF6F8;color:#386271;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap;flex-shrink:0;">Governor</span>
+            <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:#F1F2F4;color:#626F86;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap;flex-shrink:0;">General election</span>
+          </div>
+          <div style="font-size:14px;color:#626F86;">Nairobi County · station → ward → constituency → county · Forms 37A / 37B / 37C</div>
+        </div>
+        <button style="height:32px;padding:0 12px;border:none;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:14px;font-weight:500;cursor:pointer;flex-shrink:0;" style-hover="background:#DCDFE4;">Open war room</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:24px;">
+        <div style="border:1px solid #DCDFE4;border-radius:8px;padding:14px 16px;">
+          <div style="font-size:12px;color:#626F86;margin-bottom:4px;">Polling stations</div>
+          <div style="font-size:20px;font-weight:700;">2,486</div>
+        </div>
+        <div style="border:1px solid #DCDFE4;border-radius:8px;padding:14px 16px;">
+          <div style="font-size:12px;color:#626F86;margin-bottom:4px;">Stations covered</div>
+          <div style="font-size:20px;font-weight:700;">48 <span style="font-size:12px;font-weight:400;color:#626F86;">/ 2,486</span></div>
+        </div>
+        <div style="border:1px solid #DCDFE4;border-radius:8px;padding:14px 16px;">
+          <div style="font-size:12px;color:#626F86;margin-bottom:4px;">Applications in review</div>
+          <div style="font-size:20px;font-weight:700;">12</div>
+        </div>
+        <div style="border:1px solid #599BAE;background:#EEF6F8;border-radius:8px;padding:14px 16px;">
+          <div style="font-size:12px;color:#386271;margin-bottom:4px;">Countdown to election</div>
+          <div style="display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px;min-width:0;">
+            <span style="font-size:20px;font-weight:700;color:#172B4D;">{{countdown.days}}</span>
+            <span style="font-size:12px;color:#44546F;">days</span>
+          </div>
+
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:start;">
+        <div style="border:1px solid #DCDFE4;border-radius:8px;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);">
+          <div style="padding:16px 20px;border-bottom:1px solid #F1F2F4;">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:8px;">
+              <div style="font-size:16px;font-weight:600;">Workspace setup guide</div>
+              <div style="font-size:12px;color:#626F86;">{{doneCount}} of 8 done</div>
+            </div>
+            <div style="height:4px;background:#F1F2F4;border-radius:3px;overflow:hidden;">
+              <div style="height:100%;border-radius:3px;background:#599BAE;width:{{progress}};"></div>
+            </div>
+          </div>
+          <sc-for list="{{steps}}" as="s" hint-placeholder-count="8">
+            <div style="{{s.rowStyle}}">
+              <span style="{{s.dotStyle}}">{{s.check}}</span>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:14px;font-weight:600;">{{s.title}}</div>
+                <div style="font-size:12px;color:#626F86;margin-top:2px;line-height:16px;">{{s.desc}}</div>
+              </div>
+              <sc-if value="{{s.done}}">
+                <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:#E3FCEF;color:#164B35;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;flex-shrink:0;margin-top:2px;">Done</span>
+              </sc-if>
+              <sc-if value="{{s.pending}}">
+                <button style="{{s.btnStyle}}">{{s.cta}}</button>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+
+        <div>
+          <div style="border:1px solid #DCDFE4;border-radius:8px;margin-bottom:20px;">
+            <div style="padding:14px 20px;border-bottom:1px solid #F1F2F4;font-size:16px;font-weight:600;">Readiness by ward</div>
+            <sc-for list="{{wards}}" as="w" hint-placeholder-count="5">
+              <div style="padding:12px 20px;border-bottom:1px solid #F1F2F4;">
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
+                  <span style="font-weight:500;">{{w.name}}</span>
+                  <span style="color:#626F86;">{{w.label}}</span>
+                </div>
+                <div style="height:4px;background:#F1F2F4;border-radius:3px;overflow:hidden;">
+                  <div style="height:100%;border-radius:3px;background:{{w.color}};width:{{w.width}};"></div>
+                </div>
+              </div>
+            </sc-for>
+            <div style="padding:12px 20px;font-size:12px;color:#626F86;">Coverage is confirmed per ward as agents are vetted and assigned.</div>
+          </div>
+
+          <div style="border:1px solid #DCDFE4;border-radius:8px;">
+            <div style="padding:14px 20px;border-bottom:1px solid #F1F2F4;font-size:16px;font-weight:600;">Segment</div>
+            <div style="padding:14px 20px;font-size:13px;color:#44546F;line-height:20px;">
+              This is the general-election segment. Your 2022 primary segment stays separate and read-only — nothing you do here changes it.
+            </div>
+            <div style="padding:0 20px 16px;">
+              <button style="height:32px;padding:0 12px;border:none;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:14px;font-weight:500;cursor:pointer;" style-hover="background:#DCDFE4;">Carry roster forward</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1280, &quot;height&quot;: 940}}">
+const STEPS = [
+  {key:'seat', title:'Seat and segment selected', desc:'Governor · general election · Forms 37A/B/C.', done:true},
+  {key:'geo', title:'Geography scope confirmed', desc:'Nairobi County snapshot taken: 17 constituencies, 85 wards, 2,486 stations.', done:true},
+  {key:'tiers', title:'Tier display names set', desc:'Ward, constituency and county tiers named for your campaign.', done:true},
+  {key:'managers', title:'Invite a campaign manager', desc:'Full access except billing and account deletion.', cta:'Invite', href:'Campaign-managers.dc.html', primary:true},
+  {key:'agents', title:'Recruit and assign agents', desc:'Share the application link, vet by ID and phone OTP, assign to stations.', cta:'Open agents', href:'Agents.dc.html'},
+  {key:'volunteers', title:'Build the volunteer roster', desc:'Group by ward, tag by activity, set turnout targets.', cta:'Open volunteers', href:'Volunteers.dc.html'},
+  {key:'alerts', title:'Set notification thresholds', desc:'Who is alerted on a query, an escalation or a station going silent.', cta:'Configure', href:'Account-settings.dc.html'},
+  {key:'drill', title:'Run a capture rehearsal', desc:'A test submission from every ward before election day.', cta:'Open war room', href:'War-room.dc.html'}
+];
+const WARDS = [
+  {name:'Kariobangi North', pct:82},
+  {name:'Kayole Central', pct:64},
+  {name:'Mathare North', pct:41},
+  {name:'Kilimani', pct:28},
+  {name:'Karen', pct:9}
+];
+
+const ELECTION_AT = new Date('2027-08-09T06:00:00+03:00');
+
+class Component extends DCLogic {
+  state = {now: Date.now()};
+
+  componentDidMount() {
+    this.timer = setInterval(() => this.setState({now: Date.now()}), 1000);
+  }
+  componentWillUnmount() {
+    if (this.timer) clearInterval(this.timer);
+  }
+  countdown() {
+    const ms = ELECTION_AT.getTime() - this.state.now;
+    if (ms <= 0) return {days: '0', clock: '00:00:00', dateLabel: 'Polls are open — 9 Aug 2027'};
+    const total = Math.floor(ms / 1000);
+    const days = Math.floor(total / 86400);
+    const pad = (n) => String(n).padStart(2, '0');
+    return {
+      days: String(days),
+      clock: `${pad(Math.floor((total % 86400) / 3600))}:${pad(Math.floor((total % 3600) / 60))}:${pad(total % 60)}`,
+      dateLabel: 'Polls open 6:00 EAT, 9 Aug 2027'
+    };
+  }
+
+  renderVals() {
+    const steps = STEPS.map((s, i) => ({
+      title: s.title, desc: s.desc, done: !!s.done, pending: !s.done,
+      check: s.done ? '✓' : '',
+      cta: s.cta, href: s.href,
+      rowStyle: `display:flex;align-items:flex-start;gap:12px;padding:14px 20px;${i === STEPS.length - 1 ? '' : 'border-bottom:1px solid #F1F2F4;'}${s.primary ? 'background:#EEF6F8;' : ''}`,
+      dotStyle: `width:20px;height:20px;border-radius:50%;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#FFFFFF;box-sizing:border-box;background:${s.done ? '#1F845A' : '#FFFFFF'};border:${s.done ? 'none' : (s.primary ? '1.5px solid #599BAE' : '1.5px solid #B3B9C4')};`,
+      btnStyle: `flex-shrink:0;margin-top:1px;height:32px;padding:0 12px;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500;background:${s.primary ? '#599BAE' : '#F1F2F4'};color:${s.primary ? '#FFFFFF' : '#172B4D'};`
+    }));
+    const doneCount = STEPS.filter(s => s.done).length;
+    return {
+      countdown: this.countdown(),
+      steps, doneCount,
+      progress: `${Math.round((doneCount / 8) * 100)}%`,
+      wards: WARDS.map(w => ({
+        name: w.name,
+        label: `${w.pct}% ready`,
+        width: `${w.pct}%`,
+        color: w.pct >= 70 ? '#1F845A' : (w.pct >= 40 ? '#FFAB00' : '#DE350B')
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

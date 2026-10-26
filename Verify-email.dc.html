@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; }
+  input, button, select { font-family: inherit; }
+  ::placeholder { color: #8590A2; }
+  a { color: #386271; }
+  a:hover { color: #1A2E36; }
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:#FFFFFF;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#172B4D;font-size:14px;line-height:20px;">
+
+  <div style="height:56px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 16px;border-bottom:1px solid #DCDFE4;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="width:24px;height:24px;border-radius:5px;background:#599BAE;display:inline-flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:12px;font-weight:700;">M</span>
+      <span style="font-size:14px;font-weight:600;">Mtazamo Votes</span>
+    </div>
+    <input placeholder="Search workspaces, wards, agents" style="flex:1;max-width:460px;height:32px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 12px;font-size:14px;background:#F7F8F9;color:#172B4D;" style-focus="background:#FFFFFF;border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="width:32px;height:32px;border-radius:50%;background:#F1F2F4;display:flex;align-items:center;justify-content:center;font-size:13px;color:#44546F;">?</span>
+      <span style="width:32px;height:32px;border-radius:50%;background:#599BAE;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">WK</span>
+    </div>
+  </div>
+
+  <div style="flex:1;display:flex;align-items:stretch;min-height:0;">
+    <div style="width:256px;flex-shrink:0;background:#F7F8F9;border-right:1px solid #DCDFE4;padding:16px 12px;">
+      <div style="display:flex;align-items:center;gap:10px;padding:8px;margin-bottom:16px;">
+        <span style="width:32px;height:32px;border-radius:50%;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">WK</span>
+        <div style="min-width:0;">
+          <div style="font-size:14px;font-weight:600;">Wanjiru Kamau</div>
+          <div style="font-size:12px;color:#626F86;">Aspirant account</div>
+        </div>
+      </div>
+      <a href="Account-home.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;font-weight:600;color:#386271;background:#EEF6F8;">Overview</a>
+      <a href="Workspaces.dc.html" style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;"><span>Workspaces</span><span style="font-size:12px;color:#626F86;">2</span></a>
+      <a href="Geography.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;">Geography</a>
+      <a href="Account-settings.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;">Settings</a>
+    </div>
+
+    <div style="flex:1;min-width:0;padding:28px 40px 56px;">
+      <div style="font-size:12px;color:#626F86;margin-bottom:6px;"><a href="Account-home.dc.html" style="text-decoration:none;color:#626F86;">Overview</a> / Verify email address</div>
+      <div style="font-size:24px;line-height:28px;font-weight:700;margin-bottom:4px;">Verify your email address</div>
+      <div style="font-size:14px;color:#626F86;margin-bottom:24px;">Your phone is already verified and handles log-in. Email is verified once, here.</div>
+
+      <div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:24px;align-items:start;">
+        <div style="border:1px solid #DCDFE4;border-radius:8px;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);padding:24px;">
+
+          <sc-if value="{{isVerified}}" hint-placeholder-val="{{false}}">
+            <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:8px;background:#E3FCEF;color:#164B35;margin-bottom:18px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#1F845A;margin-top:6px;flex-shrink:0;"></span>
+              <span><strong style="font-weight:600;">Email verified.</strong> {{email}} can now receive exports, evidence packs and recovery codes.</span>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <a href="Account-home.dc.html" style="display:flex;align-items:center;height:32px;padding:0 12px;border-radius:8px;background:#599BAE;color:#FFFFFF;font-size:14px;font-weight:500;text-decoration:none;" style-hover="background:#487E8C;color:#FFFFFF;">Back to overview</a>
+              <a href="Account-settings.dc.html" style="display:flex;align-items:center;height:32px;padding:0 12px;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:14px;font-weight:500;text-decoration:none;" style-hover="background:#DCDFE4;color:#172B4D;">Manage contacts</a>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{isPending}}" hint-placeholder-val="{{true}}">
+            <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:8px;background:#FFF7D6;color:#7F5F01;margin-bottom:20px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#FFAB00;margin-top:6px;flex-shrink:0;"></span>
+              <span>We sent a verification link to <strong style="font-weight:600;">{{email}}</strong>. Open it on any device — the link is valid for 24 hours.</span>
+            </div>
+
+            <div style="font-size:12px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;color:#758195;margin-bottom:10px;">How to finish</div>
+            <sc-for list="{{steps}}" as="s" hint-placeholder-count="3">
+              <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #F1F2F4;">
+                <span style="width:20px;height:20px;border-radius:50%;background:#EEF6F8;color:#386271;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;">{{s.n}}</span>
+                <div style="min-width:0;">
+                  <div style="font-size:14px;font-weight:500;">{{s.title}}</div>
+                  <div style="font-size:12px;color:#626F86;margin-top:2px;">{{s.desc}}</div>
+                </div>
+              </div>
+            </sc-for>
+
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 6px;">
+              <button onClick="{{confirm}}" style="height:32px;padding:0 12px;border:none;border-radius:8px;background:#599BAE;color:#FFFFFF;font-size:14px;font-weight:500;cursor:pointer;" style-hover="background:#487E8C;">I've opened the link</button>
+              <button onClick="{{resend}}" style="height:32px;padding:0 12px;border:none;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:14px;font-weight:500;cursor:pointer;" style-hover="background:#DCDFE4;">Resend link</button>
+              <button onClick="{{toggleChange}}" style="height:32px;padding:0 12px;border:none;border-radius:8px;background:#FFFFFF;color:#386271;font-size:14px;font-weight:500;cursor:pointer;" style-hover="background:#F1F2F4;">{{changeLabel}}</button>
+            </div>
+            <div style="font-size:12px;color:#626F86;">{{resendNote}}</div>
+
+            <sc-if value="{{showChange}}" hint-placeholder-val="{{false}}">
+              <div style="border-top:1px solid #F1F2F4;margin-top:18px;padding-top:18px;">
+                <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">New email address</div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                  <input value="{{draftEmail}}" onChange="{{onDraftEmail}}" placeholder="you@example.com" style="flex:1;min-width:220px;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;font-size:14px;color:#172B4D;background:#FFFFFF;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+                  <button onClick="{{saveEmail}}" disabled="{{saveDisabled}}" style="{{saveBtnStyle}}">Save and resend</button>
+                </div>
+                <div style="font-size:12px;color:#626F86;margin-top:6px;">Changing the address cancels the old link and sends a new one.</div>
+              </div>
+            </sc-if>
+          </sc-if>
+        </div>
+
+        <div>
+          <div style="border:1px solid #DCDFE4;border-radius:8px;margin-bottom:16px;">
+            <div style="padding:14px 18px;border-bottom:1px solid #F1F2F4;font-size:16px;font-weight:600;">Verification status</div>
+            <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #F1F2F4;">
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:13px;font-weight:500;">Phone</div>
+                <div style="font-size:12px;color:#626F86;">+254 7·· ··· 812 · second factor</div>
+              </div>
+              <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:#E3FCEF;color:#164B35;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap;">Verified</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;">
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:13px;font-weight:500;">Email</div>
+                <div style="font-size:12px;color:#626F86;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{email}}</div>
+              </div>
+              <span style="{{emailLozStyle}}">{{emailStatus}}</span>
+            </div>
+          </div>
+
+          <div style="border:1px solid #DCDFE4;border-radius:8px;">
+            <div style="padding:14px 18px;border-bottom:1px solid #F1F2F4;font-size:16px;font-weight:600;">What this unlocks</div>
+            <sc-for list="{{unlocks}}" as="u" hint-placeholder-count="4">
+              <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 18px;border-bottom:1px solid #F1F2F4;">
+                <span style="width:6px;height:6px;border-radius:50%;background:#599BAE;flex-shrink:0;margin-top:7px;"></span>
+                <span style="font-size:13px;color:#44546F;">{{u}}</span>
+              </div>
+            </sc-for>
+            <div style="padding:12px 18px;font-size:12px;color:#626F86;">Log-in codes always go to your phone — email is never used as a second factor.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1280, &quot;height&quot;: 860}}">
+const STEPS = [
+  {title: 'Open your inbox', desc: 'Look for "Verify your Mtazamo Votes email" from no-reply@mtazamo.vote.'},
+  {title: 'Tap the verification link', desc: 'It works on any device and expires 24 hours after sending.'},
+  {title: 'Come back here', desc: 'This page updates automatically once the link is opened.'}
+];
+const UNLOCKS = [
+  'Emailing tally exports, evidence packs and the audit log',
+  'Account recovery if your phone is lost on election night',
+  'Copies of discrepancy escalations raised to you',
+  'Weekly readiness digests across your workspaces'
+];
+
+class Component extends DCLogic {
+  state = {
+    email: 'wanjiru.kamau@example.com',
+    verified: false,
+    resendCount: 0,
+    showChange: false,
+    draftEmail: ''
+  };
+
+  saveEmail() {
+    const next = this.state.draftEmail.trim();
+    if (!next) return;
+    this.setState({email: next, draftEmail: '', showChange: false, resendCount: 1});
+  }
+
+  renderVals() {
+    const s = this.state;
+    const loz = (bg, fg) => `display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:${bg};color:${fg};font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap;flex-shrink:0;`;
+    const saveDisabled = !s.draftEmail.trim();
+    return {
+      email: s.email,
+      isVerified: s.verified,
+      isPending: !s.verified,
+      steps: STEPS.map((x, i) => ({n: `${i + 1}`, title: x.title, desc: x.desc})),
+      confirm: () => this.setState({verified: true}),
+      resend: () => this.setState(st => ({resendCount: st.resendCount + 1})),
+      resendNote: s.resendCount > 0
+        ? `Link re-sent ${s.resendCount} time${s.resendCount === 1 ? '' : 's'} — check the spam folder if it hasn't arrived.`
+        : 'Not in your inbox? Resend it, or change the address if it was mistyped.',
+      showChange: s.showChange,
+      toggleChange: () => this.setState(st => ({showChange: !st.showChange, draftEmail: ''})),
+      changeLabel: s.showChange ? 'Keep this address' : 'Change email address',
+      draftEmail: s.draftEmail,
+      onDraftEmail: (e) => this.setState({draftEmail: e.target.value}),
+      saveEmail: () => this.saveEmail(),
+      saveDisabled,
+      saveBtnStyle: `height:36px;padding:0 14px;border:none;border-radius:8px;font-size:14px;font-weight:500;flex-shrink:0;cursor:${saveDisabled ? 'not-allowed' : 'pointer'};background:${saveDisabled ? '#F1F2F4' : '#599BAE'};color:${saveDisabled ? '#8590A2' : '#FFFFFF'};`,
+      emailStatus: s.verified ? 'Verified' : 'Pending',
+      emailLozStyle: s.verified ? loz('#E3FCEF', '#164B35') : loz('#FFF7D6', '#7F5F01'),
+      unlocks: UNLOCKS
+    };
+  }
+}
+</script>
+</body>
+</html>

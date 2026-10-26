@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; }
+  input, button, select { font-family: inherit; }
+  ::placeholder { color: #8590A2; }
+  a { color: #386271; }
+  a:hover { color: #1A2E36; }
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:#FFFFFF;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#172B4D;font-size:14px;line-height:20px;">
+
+  <div style="height:56px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 16px;border-bottom:1px solid #DCDFE4;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="width:24px;height:24px;border-radius:5px;background:#599BAE;display:inline-flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:12px;font-weight:700;">M</span>
+      <span style="font-size:14px;font-weight:600;">Mtazamo Votes</span>
+    </div>
+    <input placeholder="Search stations, agents, wards in Dagoretti North" style="flex:1;max-width:460px;height:32px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 12px;font-size:14px;background:#F7F8F9;color:#172B4D;" style-focus="background:#FFFFFF;border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:#EEF6F8;color:#386271;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Constituency officer</span>
+      <span style="width:32px;height:32px;border-radius:50%;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">BO</span>
+    </div>
+  </div>
+
+  <div style="flex:1;display:flex;align-items:stretch;min-height:0;">
+    <div style="width:256px;flex-shrink:0;background:#F7F8F9;border-right:1px solid #DCDFE4;padding:16px 12px;">
+      <div style="display:flex;align-items:center;gap:10px;padding:8px;margin-bottom:16px;">
+        <span style="width:32px;height:32px;border-radius:5px;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">27</span>
+        <div style="min-width:0;">
+          <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">2027 Nairobi General</div>
+          <div style="font-size:12px;color:#626F86;">Dagoretti North only</div>
+        </div>
+      </div>
+      <a href="TO-Home.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;">Overview</a>
+      <a href="TO-Agents.dc.html" style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;"><span>Agents</span><span style="font-size:12px;color:#626F86;">8</span></a>
+      <a href="TO-Geography.html" style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;"><span>Geography</span><span style="font-size:12px;color:#626F86;">5 wards</span></a>
+      <a href="TO-Settings.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;font-weight:600;color:#386271;background:#EEF6F8;">Settings</a>
+      <div style="height:1px;background:#DCDFE4;margin:12px 8px;"></div>
+      <div style="padding:0 8px;font-size:12px;color:#8590A2;line-height:17px;">You see Dagoretti North only. The rest of Nairobi stays with Daniel Mwangi.</div>
+    </div>
+
+    <div style="flex:1;min-width:0;padding:28px 40px 56px;max-width:860px;">
+      <div style="font-size:12px;color:#626F86;margin-bottom:6px;"><a href="TO-Home.dc.html" style="text-decoration:none;color:#626F86;">Dagoretti North</a> / Settings</div>
+      <div style="font-size:24px;line-height:28px;font-weight:700;margin-bottom:16px;">Settings</div>
+
+      <div style="display:flex;gap:20px;border-bottom:1px solid #DCDFE4;margin-bottom:24px;flex-wrap:wrap;">
+        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+          <div onClick="{{t.onClick}}" style="{{t.style}}">{{t.label}}</div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{isAccess}}" hint-placeholder-val="{{true}}">
+        <div style="border:1px solid #DCDFE4;border-radius:8px;padding:16px 20px;margin-bottom:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;">
+          <div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#626F86;margin-bottom:4px;">Your post</div>
+            <div style="font-size:14px;font-weight:600;">Constituency officer</div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#626F86;margin-bottom:4px;">Area</div>
+            <div style="font-size:14px;font-weight:600;">Dagoretti North · 5 wards</div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#626F86;margin-bottom:4px;">Appointed by</div>
+            <div style="font-size:14px;font-weight:600;">Daniel Mwangi · 20 Sep</div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#626F86;margin-bottom:4px;">Collation duty</div>
+            <div style="font-size:14px;font-weight:600;color:#216E4E;">Confirmed</div>
+          </div>
+        </div>
+
+        <div style="font-size:18px;font-weight:700;margin-bottom:4px;">What you can do</div>
+        <div style="font-size:13px;line-height:19px;color:#44546F;margin-bottom:16px;max-width:600px;text-wrap:pretty;">Your campaign manager sets these in workspace settings. You can't change them here — ask Daniel if something needs to move.</div>
+
+        <div style="border:1px solid #DCDFE4;border-radius:8px;margin-bottom:20px;">
+          <sc-for list="{{perms}}" as="p" hint-placeholder-count="5">
+            <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 20px;border-bottom:1px solid #F1F2F4;">
+              <span style="{{p.iconStyle}}">{{p.icon}}</span>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:14px;font-weight:500;color:{{p.color}};">{{p.label}}</div>
+                <div style="font-size:12px;color:#626F86;margin-top:2px;">{{p.detail}}</div>
+              </div>
+              <span style="{{p.tagStyle}}">{{p.tag}}</span>
+            </div>
+          </sc-for>
+          <div style="padding:12px 20px;font-size:12px;color:#626F86;">Where: Dagoretti North only. Every action is logged under your name.</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isNotify}}" hint-placeholder-val="{{false}}">
+        <div style="font-size:18px;font-weight:700;margin-bottom:4px;">Notifications</div>
+        <div style="font-size:13px;line-height:19px;color:#44546F;margin-bottom:16px;">Only for activity in Dagoretti North.</div>
+        <div style="border:1px solid #DCDFE4;border-radius:8px;">
+          <sc-for list="{{notes}}" as="n" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid #F1F2F4;flex-wrap:wrap;">
+              <div style="flex:1;min-width:200px;">
+                <div style="font-size:14px;font-weight:500;">{{n.label}}</div>
+                <div style="font-size:12px;color:#626F86;margin-top:2px;">{{n.detail}}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:16px;">
+                <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;color:#44546F;">In app</span><div onClick="{{n.onApp}}" style="{{n.appTrack}}"><span style="{{n.appKnob}}"></span></div></div>
+                <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;color:#44546F;">SMS</span><div onClick="{{n.onSms}}" style="{{n.smsTrack}}"><span style="{{n.smsKnob}}"></span></div></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isProfile}}" hint-placeholder-val="{{false}}">
+        <div style="font-size:18px;font-weight:700;margin-bottom:16px;">Profile</div>
+        <div style="display:flex;flex-direction:column;gap:16px;max-width:420px;">
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">Full name</label>
+            <input value="{{name}}" onChange="{{onName}}" style="width:100%;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;font-size:14px;color:#172B4D;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">Phone</label>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <input value="+254 722 xxx 518" disabled="{{true}}" style="flex:1;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;font-size:14px;color:#626F86;background:#F7F8F9;" />
+              <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:#E3FCEF;color:#164B35;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Verified</span>
+            </div>
+            <div style="font-size:12px;color:#626F86;margin-top:4px;">Used for election-night SMS fallback. Changing it needs a new OTP.</div>
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">Language</label>
+            <select style="width:100%;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 8px;font-size:14px;color:#172B4D;background:#FFFFFF;">
+              <option>English</option>
+              <option>Kiswahili</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div onClick="{{onSave}}" style="display:flex;align-items:center;height:36px;padding:0 16px;border-radius:8px;background:#599BAE;color:#FFFFFF;font-size:14px;font-weight:600;cursor:pointer;" style-hover="background:#487E8C;">Save changes</div>
+            <span style="font-size:12px;color:#216E4E;">{{savedNote}}</span>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;canInvite&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Delegation from campaign manager&quot;},&quot;canApprove&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Delegation from campaign manager&quot;}}">
+class Component extends DCLogic {
+  state = { tab: 'access', name: 'Brian Otieno', saved: false, notes: { apps: [true, true], stale: [true, true], ward: [true, false], digest: [false, true] } };
+  track(on) { return `width:32px;height:18px;border-radius:9px;position:relative;cursor:pointer;flex-shrink:0;transition:background 140ms ease;background:${on ? '#599BAE' : '#DCDFE4'};`; }
+  knob(on) { return `position:absolute;top:2px;left:${on ? 16 : 2}px;width:14px;height:14px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 2px rgba(9,30,66,0.3);transition:left 140ms ease;`; }
+  renderVals() {
+    const s = this.state;
+    const canInvite = this.props.canInvite ?? true;
+    const canApprove = this.props.canApprove ?? true;
+    const tag = (on) => `display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap;flex-shrink:0;${on ? 'background:#E3FCEF;color:#164B35;' : 'background:#F1F2F4;color:#44546F;'}`;
+    const icon = (on) => `width:18px;height:18px;border-radius:50%;margin-top:1px;background:${on ? '#E3FCEF' : '#F1F2F4'};color:${on ? '#164B35' : '#8590A2'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;`;
+    const perm = (on, label, detail) => ({ label, detail, icon: on ? '✓' : '✕', iconStyle: icon(on), color: on ? '#172B4D' : '#626F86', tag: on ? 'Allowed' : 'Not allowed', tagStyle: tag(on) });
+    const noteDefs = [
+      ['apps', 'New application in my area', 'An agent or volunteer applies for a Dagoretti North station.'],
+      ['stale', 'Application waiting over 5 days', 'A reminder while it\u2019s still unreviewed.'],
+      ['ward', 'Ward officer accepts or declines', 'When someone you invited responds.'],
+      ['digest', 'Daily coverage digest', 'Stations covered per ward, 7am.']
+    ];
+    const flip = (k, i) => this.setState(st => { const v = [...st.notes[k]]; v[i] = !v[i]; return { notes: { ...st.notes, [k]: v } }; });
+    return {
+      tabs: [['access', 'Your access'], ['notify', 'Notifications'], ['profile', 'Profile']].map(([id, label]) => ({
+        label, onClick: () => this.setState({ tab: id }),
+        style: `padding:0 2px 10px;font-size:14px;cursor:pointer;margin-bottom:-1px;border-bottom:2px solid ${s.tab === id ? '#599BAE' : 'transparent'};color:${s.tab === id ? '#386271' : '#44546F'};font-weight:${s.tab === id ? 600 : 500};`
+      })),
+      isAccess: s.tab === 'access', isNotify: s.tab === 'notify', isProfile: s.tab === 'profile',
+      perms: [
+        perm(canInvite, 'Send invites', canInvite ? 'Ward officers, polling agents and volunteers — anyone beneath you.' : 'Daniel sends invites for your area. You can suggest names.'),
+        perm(canApprove, 'Approve applications', canApprove ? 'Approve or reject agents and volunteers, and assign them to stations.' : 'You can review and flag. Daniel makes the final call.'),
+        perm(false, 'See other constituencies', 'Your view is limited to Dagoretti North.'),
+        perm(false, 'War room', 'Election-night escalations run from the campaign manager\u2019s war room.'),
+        perm(false, 'Change who can invite and approve', 'Set by Daniel Mwangi for every tier.')
+      ],
+      notes: noteDefs.map(([k, label, detail]) => ({
+        label, detail,
+        appTrack: this.track(s.notes[k][0]), appKnob: this.knob(s.notes[k][0]), onApp: () => flip(k, 0),
+        smsTrack: this.track(s.notes[k][1]), smsKnob: this.knob(s.notes[k][1]), onSms: () => flip(k, 1)
+      })),
+      name: s.name,
+      onName: (e) => this.setState({ name: e.target.value, saved: false }),
+      onSave: () => this.setState({ saved: true }),
+      savedNote: s.saved ? 'Saved' : ''
+    };
+  }
+}
+</script>
+</body>
+</html>

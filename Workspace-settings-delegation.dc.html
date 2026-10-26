@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; }
+  input, button, select { font-family: inherit; }
+  ::placeholder { color: #8590A2; }
+  a { color: #386271; }
+  a:hover { color: #1A2E36; }
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:#FFFFFF;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#172B4D;font-size:14px;line-height:20px;">
+
+  <div style="height:56px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 16px;border-bottom:1px solid #DCDFE4;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="width:24px;height:24px;border-radius:5px;background:#599BAE;display:inline-flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:12px;font-weight:700;">M</span>
+      <span style="font-size:14px;font-weight:600;">Mtazamo Votes</span>
+    </div>
+    <input placeholder="Search managers, wards, agents" style="flex:1;max-width:460px;height:32px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 12px;font-size:14px;background:#F7F8F9;color:#172B4D;" style-focus="background:#FFFFFF;border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="width:32px;height:32px;border-radius:50%;background:#F1F2F4;display:flex;align-items:center;justify-content:center;font-size:13px;color:#44546F;">?</span>
+      <span style="width:32px;height:32px;border-radius:50%;background:#599BAE;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">WK</span>
+    </div>
+  </div>
+
+  <div style="flex:1;display:flex;align-items:stretch;min-height:0;flex-wrap:wrap;">
+    <div style="width:256px;flex-shrink:0;background:#F7F8F9;border-right:1px solid #DCDFE4;padding:16px 12px;">
+      <div style="display:flex;align-items:center;gap:10px;padding:8px;margin-bottom:16px;">
+        <span style="width:32px;height:32px;border-radius:5px;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">27</span>
+        <div style="min-width:0;">
+          <div style="font-size:14px;font-weight:600;">Nairobi Governor</div>
+          <div style="font-size:12px;color:#626F86;">2027 General Election</div>
+        </div>
+      </div>
+      <a href="Workspace-overview.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;">Overview</a>
+      <a href="Campaign-managers.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;">Campaign managers</a>
+      <a href="Review-pending-agents.dc.html" style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;"><span>Agents</span><span style="font-size:12px;color:#626F86;">12</span></a>
+      <a href="Workspace-readiness.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;">Readiness</a>
+      <a href="Workspace-settings-delegation.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;font-weight:600;color:#386271;background:#EEF6F8;">Settings</a>
+    </div>
+
+    <div style="flex:1;min-width:320px;padding:28px 40px 56px;max-width:1000px;">
+      <div style="font-size:12px;color:#626F86;margin-bottom:6px;">Workspace / Settings</div>
+      <div style="font-size:24px;line-height:28px;font-weight:700;margin-bottom:16px;">Settings</div>
+
+      <div style="display:flex;gap:20px;border-bottom:1px solid #DCDFE4;margin-bottom:24px;flex-wrap:wrap;">
+        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+          <div onClick="{{t.onClick}}" style="{{t.style}}">{{t.label}}</div>
+        </sc-for>
+      </div>
+
+      <div style="font-size:18px;font-weight:700;margin-bottom:4px;">Who can invite and approve whom</div>
+      <div style="font-size:13px;line-height:19px;color:#44546F;margin-bottom:20px;max-width:640px;text-wrap:pretty;">A tier officer can be allowed to invite everyone beneath them — not only the next level down — always within their own area. Approving applications is a separate permission. Turn a tier off and that work comes back to you.</div>
+
+      <div style="border:1px solid #DCDFE4;border-radius:8px;padding:16px 20px;margin-bottom:20px;display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
+        <div style="flex:1;min-width:220px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">Seat being vied for</label>
+          <select value="{{seat}}" onChange="{{onSeat}}" style="width:100%;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 8px;font-size:14px;color:#172B4D;background:#FFFFFF;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;">
+            <option value="governor">Governor — county-wide</option>
+            <option value="senator">Senator — county-wide</option>
+            <option value="mp">Member of Parliament — constituency</option>
+            <option value="mca">MCA — ward</option>
+          </select>
+        </div>
+        <div style="flex:2;min-width:240px;">
+          <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:6px;">Tiers in this workspace</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <sc-for list="{{ladder}}" as="l" hint-placeholder-count="4">
+              <span style="{{l.wrapStyle}}"><span style="{{l.arrowStyle}}">{{l.arrow}}</span><span style="{{l.chipStyle}}">{{l.label}}</span></span>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:24px;">
+        <sc-for list="{{rows}}" as="r" hint-placeholder-count="3">
+          <div style="{{r.cardStyle}}">
+            <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;padding:16px 20px;border-bottom:1px solid #F1F2F4;">
+              <div style="flex:1;min-width:200px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;flex-wrap:wrap;">
+                  <span style="font-size:15px;font-weight:600;">{{r.label}}</span>
+                  <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:#F1F2F4;color:#44546F;font-size:11px;font-weight:600;">{{r.people}}</span>
+                </div>
+                <div style="font-size:12px;color:#626F86;">{{r.scope}}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:12px;color:#44546F;">Can send invites</span>
+                <div onClick="{{r.onToggle}}" style="{{r.trackStyle}}"><span style="{{r.knobStyle}}"></span></div>
+              </div>
+            </div>
+
+            <sc-if value="{{r.open}}" hint-placeholder-val="{{true}}">
+              <div style="padding:16px 20px;">
+                <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;padding:12px 14px;border-radius:8px;background:#F7F8F9;margin-bottom:16px;">
+                  <div style="flex:1;min-width:200px;">
+                    <div style="font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#626F86;margin-bottom:6px;">Tiers they can invite</div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                      <sc-for list="{{r.targets}}" as="g" hint-placeholder-count="2">
+                        <span style="{{g.style}}">{{g.label}}</span>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <div style="min-width:160px;">
+                    <div style="font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#626F86;margin-bottom:6px;">Where</div>
+                    <div style="font-size:13px;font-weight:500;">Their own area only</div>
+                  </div>
+                </div>
+
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-size:13px;font-weight:500;">Can approve applications</div>
+                    <div style="font-size:11px;line-height:16px;color:#626F86;">{{r.approveDesc}}</div>
+                  </div>
+                  <div onClick="{{r.onApprove}}" style="{{r.approveTrackStyle}}"><span style="{{r.knobStyle}}"></span></div>
+                </div>
+
+                <div style="margin-top:14px;padding:10px 12px;border-radius:8px;background:#EEF6F8;font-size:12px;line-height:18px;color:#386271;">{{r.summary}}</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{r.closed}}" hint-placeholder-val="{{false}}">
+              <div style="padding:14px 20px;font-size:12px;color:#626F86;">{{r.offNote}}</div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+        <button style="height:36px;padding:0 14px;border:none;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:14px;font-weight:500;cursor:pointer;" style-hover="background:#DCDFE4;">Reset to defaults</button>
+        <button style="height:36px;padding:0 16px;border:none;border-radius:8px;background:#599BAE;color:#FFFFFF;font-size:14px;font-weight:600;cursor:pointer;" style-hover="background:#487E8C;">Save delegation rules</button>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900}}">
+const TIER = {
+  county: { label: 'County admin', scope: 'Nairobi County · county-wide roster', people: '2 people' },
+  constituency: { label: 'Constituency admin', scope: '17 constituencies · 1 admin each', people: '14 people' },
+  ward: { label: 'Ward admin', scope: '85 wards · 1–2 admins each', people: '63 people' },
+  station: { label: 'Polling station agent', scope: '2,614 stations · lowest tier', people: '1,908 assigned' }
+};
+const LADDERS = {
+  governor: ['county', 'constituency', 'ward', 'station'],
+  senator: ['county', 'constituency', 'ward', 'station'],
+  mp: ['constituency', 'ward', 'station'],
+  mca: ['ward', 'station']
+};
+
+class Component extends DCLogic {
+  state = {
+    tab: 'delegation',
+    seat: 'governor',
+    on: { county: true, constituency: true, ward: true },
+    approve: { county: true, constituency: true, ward: false }
+  };
+
+  renderVals() {
+    const s = this.state;
+    const ladder = LADDERS[s.seat];
+    const track = (on) => `width:34px;height:20px;border-radius:9999px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;padding:2px;box-sizing:border-box;justify-content:${on ? 'flex-end' : 'flex-start'};background:${on ? '#599BAE' : '#B3B9C4'};`;
+    const knob = 'width:16px;height:16px;border-radius:50%;background:#FFFFFF;display:block;';
+
+    return {
+      tabs: [['general', 'General'], ['delegation', 'Delegation'], ['thresholds', 'Result thresholds'], ['notifications', 'Notifications']].map(([id, label]) => ({
+        label,
+        onClick: () => this.setState({ tab: id }),
+        style: `padding:0 2px 10px;cursor:pointer;font-size:14px;font-weight:${s.tab === id ? '600' : '400'};color:${s.tab === id ? '#386271' : '#44546F'};border-bottom:2px solid ${s.tab === id ? '#599BAE' : 'transparent'};margin-bottom:-1px;`
+      })),
+      seat: s.seat,
+      onSeat: (e) => this.setState({ seat: e.target.value }),
+      ladder: ladder.map((id, i) => ({
+        label: TIER[id].label,
+        arrow: i === 0 ? '' : '→',
+        arrowStyle: i === 0 ? 'display:none;' : 'font-size:12px;color:#8590A2;',
+        wrapStyle: 'display:inline-flex;align-items:center;gap:8px;white-space:nowrap;',
+        chipStyle: 'display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:13px;background:#EEF6F8;color:#386271;font-size:12px;font-weight:600;'
+      })),
+      rows: ladder.slice(0, -1).map(id => {
+        const on = !!s.on[id];
+        const targets = ladder.slice(ladder.indexOf(id) + 1);
+        const targetLabels = targets.map(t => TIER[t].label.toLowerCase() + 's').join(', ');
+        return {
+          label: TIER[id].label, scope: TIER[id].scope, people: TIER[id].people,
+          cardStyle: `border:1px solid ${on ? '#DCDFE4' : '#EBECF0'};border-radius:8px;background:${on ? '#FFFFFF' : '#FCFCFD'};overflow:hidden;`,
+          onToggle: () => this.setState(st => ({ on: { ...st.on, [id]: !st.on[id] } })),
+          trackStyle: track(on), knobStyle: knob,
+          open: on, closed: !on,
+          offNote: `Invites at this level come from you. ${TIER[id].label}s can still view their area and flag gaps.`,
+          onApprove: () => this.setState(st => ({ approve: { ...st.approve, [id]: !st.approve[id] } })),
+          approveTrackStyle: track(!!s.approve[id]),
+          approveDesc: 'Applications from their own area — they can accept or decline without asking you.',
+          targets: targets.map(t => ({
+            label: TIER[t].label,
+            style: 'display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:13px;background:#FFFFFF;border:1px solid #DCDFE4;color:#44546F;font-size:12px;font-weight:500;white-space:nowrap;'
+          })),
+          summary: `A ${TIER[id].label.toLowerCase()} can invite ${targetLabels} within their own area, ${s.approve[id] ? 'and can approve applications from there without asking you.' : 'but applications from there still come to you for approval.'}`
+        };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>

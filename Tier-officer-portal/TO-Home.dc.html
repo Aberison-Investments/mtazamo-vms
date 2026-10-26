@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; }
+  input, button { font-family: inherit; }
+  ::placeholder { color: #8590A2; }
+  a { color: #386271; }
+  a:hover { color: #1A2E36; }
+  @keyframes riseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes growBar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes pulseDot { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:#FFFFFF;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#172B4D;font-size:14px;line-height:20px;">
+
+  <div style="height:56px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 16px;border-bottom:1px solid #DCDFE4;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="width:24px;height:24px;border-radius:5px;background:#599BAE;display:inline-flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:12px;font-weight:700;">M</span>
+      <span style="font-size:14px;font-weight:600;">Mtazamo Votes</span>
+    </div>
+    <input placeholder="Search stations, agents, wards in Dagoretti North" style="flex:1;max-width:460px;height:32px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 12px;font-size:14px;background:#F7F8F9;color:#172B4D;" style-focus="background:#FFFFFF;border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:#EEF6F8;color:#386271;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Constituency officer</span>
+      <span style="width:32px;height:32px;border-radius:50%;background:#F1F2F4;display:flex;align-items:center;justify-content:center;font-size:13px;color:#44546F;">?</span>
+      <span style="width:32px;height:32px;border-radius:50%;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">BO</span>
+    </div>
+  </div>
+
+  <div style="flex:1;display:flex;align-items:stretch;min-height:0;">
+    <div style="width:256px;flex-shrink:0;background:#F7F8F9;border-right:1px solid #DCDFE4;padding:16px 12px;">
+      <div style="display:flex;align-items:center;gap:10px;padding:8px;margin-bottom:16px;">
+        <span style="width:32px;height:32px;border-radius:5px;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">27</span>
+        <div style="min-width:0;">
+          <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">2027 Nairobi General</div>
+          <div style="font-size:12px;color:#626F86;">Dagoretti North only</div>
+        </div>
+      </div>
+      <a href="TO-Home.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;font-weight:600;color:#386271;background:#EEF6F8;">Overview</a>
+      <a href="TO-Agents.dc.html" style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;"><span>Agents</span><span style="font-size:12px;color:#626F86;">8</span></a>
+      <a href="TO-Geography.html" style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;"><span>Geography</span><span style="font-size:12px;color:#626F86;">5 wards</span></a>
+      <a href="TO-Settings.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;">Settings</a>
+      <div style="height:1px;background:#DCDFE4;margin:12px 8px;"></div>
+      <div style="padding:0 8px;font-size:12px;color:#8590A2;line-height:17px;">You see Dagoretti North only. The rest of Nairobi stays with Daniel Mwangi.</div>
+    </div>
+
+    <div style="flex:1;min-width:0;padding:28px 40px 56px;">
+
+      <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:8px;background:#EEF6F8;margin-bottom:24px;animation:riseIn 300ms ease-out both;">
+        <span style="width:32px;height:32px;border-radius:50%;background:#599BAE;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;">DM</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:600;color:#1A2E36;margin-bottom:2px;">You're in, Brian.</div>
+          <div style="font-size:13px;line-height:19px;color:#386271;">Daniel Mwangi appointed you Dagoretti North constituency officer on 20 Sep. Everything below covers your 5 wards and 183 polling stations only.</div>
+        </div>
+        <span style="font-size:12px;color:#386271;cursor:pointer;flex-shrink:0;" style-hover="color:#1A2E36;">Dismiss</span>
+      </div>
+
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
+        <div>
+          <div style="font-size:24px;line-height:28px;font-weight:700;margin-bottom:4px;">Dagoretti North overview</div>
+          <div style="font-size:14px;color:#626F86;">Election day is 10 Aug 2027 · <strong style="color:#172B4D;font-weight:600;">322 days out</strong></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0;">
+          <a href="#" style="display:flex;align-items:center;height:32px;padding:0 12px;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:14px;font-weight:500;text-decoration:none;" style-hover="background:#DCDFE4;">Send invites</a>
+          <a href="TO-Agents.dc.html" style="display:flex;align-items:center;height:32px;padding:0 12px;border-radius:8px;background:#599BAE;color:#FFFFFF;font-size:14px;font-weight:500;text-decoration:none;" style-hover="background:#487E8C;">{{reviewLabel}}</a>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px;">
+        <sc-for list="{{metrics}}" as="m" hint-placeholder-count="4">
+          <div style="{{m.cardStyle}}" style-hover="box-shadow:0 4px 8px rgba(9,30,66,0.16);transform:translateY(-2px);">
+            <div style="font-size:12px;color:#626F86;margin-bottom:6px;">{{m.label}}</div>
+            <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:10px;">
+              <span style="font-size:26px;line-height:28px;font-weight:700;">{{m.value}}</span>
+              <span style="font-size:12px;color:#626F86;">{{m.suffix}}</span>
+            </div>
+            <span style="display:block;height:4px;border-radius:2px;background:#F1F2F4;overflow:hidden;"><span style="{{m.barStyle}}"></span></span>
+            <div style="font-size:12px;color:{{m.noteColor}};margin-top:8px;">{{m.note}}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:24px;align-items:start;">
+
+        <div style="border:1px solid #DCDFE4;border-radius:8px;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-bottom:1px solid #DCDFE4;flex-wrap:wrap;">
+            <div>
+              <div style="font-size:16px;font-weight:600;">Constituency readiness</div>
+              <div style="font-size:12px;color:#626F86;margin-top:2px;">{{taskSummary}}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="display:block;width:132px;height:6px;border-radius:3px;background:#F1F2F4;overflow:hidden;"><span style="{{readinessBarStyle}}"></span></span>
+              <span style="font-size:20px;line-height:22px;font-weight:700;">{{readinessPct}}<span style="font-size:13px;font-weight:600;color:#626F86;">%</span></span>
+            </div>
+          </div>
+          <sc-for list="{{phases}}" as="p" hint-placeholder-count="3">
+            <div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 20px;background:#F7F8F9;border-bottom:1px solid #DCDFE4;border-top:1px solid #DCDFE4;">
+                <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+                  <span style="{{p.dotStyle}}"></span>
+                  <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:#44546F;">{{p.name}}</span>
+                  <span style="font-size:12px;color:#8590A2;">{{p.window}}</span>
+                </div>
+                <span style="font-size:12px;color:#626F86;white-space:nowrap;">{{p.summary}}</span>
+              </div>
+              <sc-for list="{{p.items}}" as="t" hint-placeholder-count="2">
+                <div style="display:flex;align-items:flex-start;gap:12px;padding:13px 20px;border-bottom:1px solid #F1F2F4;transition:background 120ms ease;" style-hover="background:#F7F8F9;">
+                  <span style="{{t.boxStyle}}">{{t.mark}}</span>
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+                      <span style="font-size:14px;font-weight:500;">{{t.title}}</span>
+                      <span style="font-size:12px;color:#626F86;">{{t.req}}</span>
+                    </div>
+                    <div style="font-size:12px;color:#626F86;margin-top:3px;">{{t.detail}}</div>
+                    <div style="display:flex;align-items:center;gap:10px;margin-top:7px;">
+                      <span style="display:block;flex:1;min-width:0;max-width:220px;height:4px;border-radius:2px;background:#F1F2F4;overflow:hidden;"><span style="{{t.barStyle}}"></span></span>
+                      <span style="font-size:12px;font-weight:600;color:{{t.statColor}};white-space:nowrap;">{{t.stat}}</span>
+                    </div>
+                  </div>
+                  <span style="{{t.tagStyle}}">{{t.tag}}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+          <div style="padding:12px 20px;font-size:12px;color:#626F86;">Counts roll up to Daniel's campaign view automatically. Last recalculated 4 minutes ago.</div>
+        </div>
+
+        <div>
+          <div style="border:1px solid #DCDFE4;border-radius:8px;margin-bottom:16px;">
+            <div style="padding:14px 18px;border-bottom:1px solid #F1F2F4;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+              <span style="font-size:16px;font-weight:600;">Ward officers</span>
+              <span style="font-size:12px;color:#626F86;">{{wardSummary}}</span>
+            </div>
+            <sc-for list="{{wards}}" as="w" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid #F1F2F4;">
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:13px;font-weight:500;">{{w.ward}}</div>
+                  <div style="font-size:12px;color:{{w.personColor}};">{{w.person}}</div>
+                </div>
+                <span style="{{w.tagStyle}}">{{w.tag}}</span>
+              </div>
+            </sc-for>
+            <div style="padding:12px 18px;font-size:12px;"><a href="#" style="text-decoration:none;font-weight:500;">Invite a ward officer</a></div>
+          </div>
+
+          <div style="border:1px solid #DCDFE4;border-radius:8px;margin-bottom:16px;">
+            <div style="padding:14px 18px;border-bottom:1px solid #F1F2F4;font-size:16px;font-weight:600;">Your access</div>
+            <sc-for list="{{access}}" as="a" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid #F1F2F4;">
+                <span style="{{a.iconStyle}}">{{a.icon}}</span>
+                <span style="flex:1;min-width:0;font-size:13px;color:{{a.color}}">{{a.label}}</span>
+              </div>
+            </sc-for>
+            <div style="padding:12px 18px;font-size:12px;color:#626F86;">Set by Daniel Mwangi. Every action is logged under your name.</div>
+          </div>
+
+          <div style="border:1px solid #DCDFE4;border-radius:8px;">
+            <div style="padding:14px 18px;border-bottom:1px solid #F1F2F4;display:flex;align-items:center;gap:8px;">
+              <span style="width:7px;height:7px;border-radius:50%;background:#1F845A;animation:pulseDot 2.4s ease-in-out infinite;"></span>
+              <span style="font-size:16px;font-weight:600;">Recent in Dagoretti North</span>
+            </div>
+            <sc-for list="{{activity}}" as="e" hint-placeholder-count="4">
+              <div style="padding:11px 18px;border-bottom:1px solid #F1F2F4;">
+                <div style="font-size:13px;line-height:18px;">{{e.text}}</div>
+                <div style="font-size:12px;color:#626F86;margin-top:2px;">{{e.time}}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;canApprove&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Delegation from campaign manager&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const canApprove = this.props.canApprove ?? true;
+    const metricDefs = [
+      { label: 'Stations with a confirmed agent', value: '112', suffix: 'of 183', pct: 61, note: '71 still uncovered', noteColor: '#AE2A19' },
+      { label: canApprove ? 'Awaiting your vetting' : 'Awaiting vetting by Daniel', value: '8', suffix: 'applications', pct: 40, note: '3 waiting over 5 days', noteColor: '#974F0C' },
+      { label: 'Ward officer posts', value: '3', suffix: 'of 5', pct: 60, note: 'Gatina and Mountain View open', noteColor: '#974F0C' },
+      { label: 'Volunteers active', value: '9', suffix: 'this week', pct: 75, note: '+2 since last week', noteColor: '#216E4E' }
+    ];
+    const phaseDefs = [
+      { name: 'Set up', window: 'by 31 Dec 2026', tone: 'red', items: [
+        { title: 'Appoint ward officers', req: '1 per ward', detail: 'Gatina and Mountain View have nobody named. Kawangware\u2019s officer hasn\u2019t confirmed collation duty.', done: 3, total: 5, unit: 'wards named' }
+      ]},
+      { name: 'Recruit & vet', window: 'by 30 Apr 2027', tone: 'amber', items: [
+        { title: 'Recruit polling station agents', req: '1 per station + 10% reserve', detail: 'Gatina is the widest gap — 21 of 35 stations uncovered.', done: 112, total: 183, unit: 'stations covered' },
+        { title: 'Clear the vetting queue', req: 'ID + photo + phone verified', detail: canApprove ? '3 applications from Kawangware and Kileleshwa have waited over 5 days.' : 'Daniel Mwangi approves for your area. You can review and flag.', done: 0, total: 8, unit: 'vetted' },
+        { title: 'Collect signed agent undertakings', req: 'one per deployed agent', detail: 'Required before an agent can be gazetted to a station.', done: 74, total: 112, unit: 'signed' }
+      ]},
+      { name: 'Train & accredit', window: 'by 30 Jun 2027', tone: 'amber', items: [
+        { title: 'Run Form 34A training', req: 'every agent', detail: '54 confirmed agents in Dagoretti North haven\u2019t finished the form-capture module.', done: 58, total: 112, unit: 'trained' },
+        { title: 'Dry-run the reporting flow', req: 'each ward once', detail: 'Kilimani and Kileleshwa done. Schedule the other three.', done: 2, total: 5, unit: 'wards tested' }
+      ]}
+    ];
+    const tones = { red: 'background:#FFECEB;color:#AE2A19;', amber: 'background:#FFF7D6;color:#974F0C;', green: 'background:#E3FCEF;color:#164B35;', grey: 'background:#F1F2F4;color:#44546F;' };
+    const dots = { red: '#C9372C', amber: '#E2B203', green: '#1F845A' };
+    const tag = (t) => `display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap;flex-shrink:0;${tones[t]}`;
+    const fmt = (n) => n.toLocaleString('en-US');
+    const icon = (ok) => `width:18px;height:18px;border-radius:50%;background:${ok ? '#E3FCEF' : '#F1F2F4'};color:${ok ? '#164B35' : '#8590A2'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;`;
+    const yes = (label) => ({ label, icon: '✓', color: '#172B4D', iconStyle: icon(true) });
+    const no = (label) => ({ label, icon: '✕', color: '#626F86', iconStyle: icon(false) });
+    const all = phaseDefs.flatMap(p => p.items);
+    const overall = Math.round(all.reduce((s, t) => s + t.done / t.total, 0) / all.length * 100);
+    const wardDefs = [
+      { ward: 'Kilimani', person: 'Lucy Wairimu', state: 'confirmed' },
+      { ward: 'Kileleshwa', person: 'Ahmed Hassan', state: 'confirmed' },
+      { ward: 'Kawangware', person: 'Tom Kiprono', state: 'pending' },
+      { ward: 'Gatina', person: 'Nobody named', state: 'open' },
+      { ward: 'Mountain View', person: 'Nobody named', state: 'open' }
+    ];
+    const wt = { confirmed: ['Confirmed', 'green'], pending: ['Invite sent', 'amber'], open: ['Open', 'red'] };
+    return {
+      reviewLabel: canApprove ? 'Review pending agents' : 'View pending agents',
+      metrics: metricDefs.map((m, i) => ({
+        ...m,
+        cardStyle: `border:1px solid #DCDFE4;border-radius:8px;padding:16px;background:#FFFFFF;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);transition:box-shadow 140ms ease,transform 140ms ease;animation:riseIn 360ms ease-out ${i * 60}ms both;`,
+        barStyle: `display:block;height:100%;width:${m.pct}%;background:#599BAE;transform-origin:left;animation:growBar 600ms ease-out ${180 + i * 60}ms both;`
+      })),
+      phases: phaseDefs.map(p => {
+        const items = p.items.map(t => {
+          const pct = Math.round(t.done / t.total * 100);
+          const done = pct === 100, zero = pct === 0;
+          return {
+            ...t,
+            tag: done ? 'Complete' : zero ? 'Not started' : `${pct}%`,
+            mark: done ? '✓' : zero ? '·' : '↻',
+            stat: `${fmt(t.done)} of ${fmt(t.total)} ${t.unit}`,
+            statColor: done ? '#216E4E' : zero ? '#8590A2' : '#44546F',
+            barStyle: `display:block;height:100%;width:${pct}%;background:${done ? '#1F845A' : '#599BAE'};transform-origin:left;animation:growBar 600ms ease-out both;`,
+            boxStyle: `width:18px;height:18px;border-radius:50%;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;${done ? 'background:#E3FCEF;color:#164B35;' : zero ? 'background:#F1F2F4;color:#8590A2;' : 'background:#FFF7D6;color:#974F0C;'}`,
+            tagStyle: tag(done ? 'green' : zero ? 'grey' : p.tone)
+          };
+        });
+        const pp = Math.round(p.items.reduce((s, t) => s + t.done / t.total, 0) / p.items.length * 100);
+        return { name: p.name, window: p.window, items, summary: `${pp}% ready`, dotStyle: `width:8px;height:8px;border-radius:50%;flex-shrink:0;background:${dots[p.tone]};` };
+      }),
+      readinessPct: overall,
+      readinessBarStyle: `display:block;height:100%;width:${overall}%;background:#599BAE;transform-origin:left;animation:growBar 700ms ease-out both;`,
+      taskSummary: '6 requirements across 5 wards · 322 days to poll',
+      wardSummary: '3 of 5 named',
+      wards: wardDefs.map(w => ({ ward: w.ward, person: w.person, personColor: w.state === 'open' ? '#AE2A19' : '#626F86', tag: wt[w.state][0], tagStyle: tag(wt[w.state][1]) })),
+      access: [
+        yes('Invite ward officers, agents and volunteers'),
+        canApprove ? yes('Approve applications in Dagoretti North') : no('Approve applications — Daniel does this'),
+        yes('Assign agents to stations and the ward bench'),
+        no('Other constituencies in Nairobi'),
+        no('War room and result escalations'),
+        no('Workspace settings and billing')
+      ],
+      activity: [
+        { text: 'Daniel Mwangi appointed you constituency officer', time: '20 Sep, 10:02' },
+        { text: '3 agent applications received from Kawangware', time: 'Yesterday, 18:02' },
+        { text: 'Lucy Wairimu confirmed 29 stations in Kilimani', time: 'Yesterday, 11:47' },
+        { text: 'Kileleshwa dry-run passed — SMS fallback OK', time: '19 Sep, 16:20' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

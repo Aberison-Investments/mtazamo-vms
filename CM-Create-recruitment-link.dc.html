@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; }
+  input, button, select, textarea { font-family: inherit; }
+  ::placeholder { color: #8590A2; }
+  a { color: #386271; }
+  a:hover { color: #1A2E36; }
+  @keyframes riseIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:#FFFFFF;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#172B4D;font-size:14px;line-height:20px;">
+
+  <div style="height:56px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 16px;border-bottom:1px solid #DCDFE4;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="width:24px;height:24px;border-radius:5px;background:#599BAE;display:inline-flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:12px;font-weight:700;">M</span>
+      <span style="font-size:14px;font-weight:600;">Mtazamo Votes</span>
+    </div>
+    <input placeholder="Search stations, agents, wards" style="flex:1;max-width:460px;height:32px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 12px;font-size:14px;background:#F7F8F9;color:#172B4D;" style-focus="background:#FFFFFF;border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:#EEF6F8;color:#386271;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Campaign manager</span>
+      <span style="width:32px;height:32px;border-radius:50%;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">DM</span>
+    </div>
+  </div>
+
+  <div style="flex:1;display:flex;align-items:stretch;min-height:0;">
+    <div style="width:256px;flex-shrink:0;background:#F7F8F9;border-right:1px solid #DCDFE4;padding:16px 12px;">
+      <div style="display:flex;align-items:center;gap:10px;padding:8px;margin-bottom:16px;">
+        <span style="width:32px;height:32px;border-radius:5px;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">27</span>
+        <div style="min-width:0;">
+          <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">2027 Nairobi General</div>
+          <div style="font-size:12px;color:#626F86;">Governor · Nairobi</div>
+        </div>
+      </div>
+      <a href="CM-Home.dc.html" style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;">Overview</a>
+      <div style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;font-weight:600;color:#386271;background:#EEF6F8;"><span>Agents</span><span style="font-size:12px;color:#386271;">48</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;color:#44546F;cursor:pointer;" style-hover="background:#F1F2F4;color:#172B4D;"><span>Volunteers</span><span style="font-size:12px;color:#626F86;">23</span></div>
+      <a href="Geography.html" style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;text-decoration:none;color:#44546F;" style-hover="background:#F1F2F4;color:#172B4D;"><span>Geography</span><span style="font-size:12px;color:#626F86;">17</span></a>
+      <div style="display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 8px;border-radius:8px;margin-bottom:2px;color:#44546F;cursor:pointer;" style-hover="background:#F1F2F4;color:#172B4D;"><span>War room</span><span style="width:8px;height:8px;border-radius:50%;background:#1F845A;"></span></div>
+    </div>
+
+    <div style="flex:1;min-width:0;padding:28px 40px 56px;">
+      <div style="font-size:12px;color:#626F86;margin-bottom:6px;"><a href="CM-Home.dc.html" style="text-decoration:none;color:#626F86;">Agents</a> / Recruitment</div>
+      <div style="font-size:24px;line-height:28px;font-weight:700;margin-bottom:4px;">Recruitment</div>
+      <div style="font-size:14px;color:#626F86;margin-bottom:20px;">One public application link for the campaign. Everyone who applies lands in the review queue — you assign the station after approval.</div>
+
+      <div style="display:flex;gap:24px;border-bottom:1px solid #DCDFE4;margin-bottom:24px;">
+        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="2">
+          <div onClick="{{t.onClick}}" style="{{t.style}}">{{t.label}}</div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{isPublic}}" hint-placeholder-val="{{true}}">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;align-items:start;animation:riseIn 240ms ease-out both;">
+
+          <div style="border:1px solid #DCDFE4;border-radius:8px;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);padding:24px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+              <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:#E3FCEF;color:#164B35;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">{{linkState}}</span>
+              <span style="font-size:12px;color:#626F86;">General election segment</span>
+            </div>
+            <div style="border:1px solid #DCDFE4;border-radius:8px;background:#F7F8F9;padding:12px 14px;font-size:14px;color:#172B4D;word-break:break-all;margin-bottom:10px;">{{publicUrl}}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
+              <div onClick="{{copy}}" style="display:flex;align-items:center;height:32px;padding:0 14px;border-radius:8px;background:#599BAE;color:#FFFFFF;font-size:13px;font-weight:600;cursor:pointer;transition:background 120ms ease;" style-hover="background:#487E8C;">{{copyLabel}}</div>
+              <div style="display:flex;align-items:center;height:32px;padding:0 14px;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:13px;font-weight:500;cursor:pointer;" style-hover="background:#DCDFE4;">Share by SMS</div>
+              <div style="display:flex;align-items:center;height:32px;padding:0 14px;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:13px;font-weight:500;cursor:pointer;" style-hover="background:#DCDFE4;">Share on WhatsApp</div>
+              <div onClick="{{regenerate}}" style="display:flex;align-items:center;height:32px;padding:0 14px;border-radius:8px;background:#FFFFFF;border:1px solid #DCDFE4;color:#44546F;font-size:13px;font-weight:500;cursor:pointer;" style-hover="background:#F1F2F4;color:#172B4D;">Regenerate</div>
+            </div>
+            <div style="font-size:12px;color:#626F86;margin-bottom:20px;">Regenerating kills the old link immediately. Anything already shared stops working.</div>
+
+            <div style="height:1px;background:#F1F2F4;margin-bottom:18px;"></div>
+
+            <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:8px;">What the applicant fills in</div>
+            <sc-for list="{{fields}}" as="f" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #F1F2F4;">
+                <span style="{{f.iconStyle}}">{{f.icon}}</span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:13px;font-weight:500;">{{f.label}}</div>
+                  <div style="font-size:12px;color:#626F86;">{{f.note}}</div>
+                </div>
+                <span style="{{f.tagStyle}}">{{f.tag}}</span>
+              </div>
+            </sc-for>
+            <div style="font-size:12px;color:#626F86;margin:10px 0 20px;">Name, ID, phone and ward are fixed by the requirements — you cannot remove them.</div>
+
+            <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:8px;">Applying for</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
+              <sc-for list="{{applyFor}}" as="r" hint-placeholder-count="2">
+                <div onClick="{{r.onClick}}" style="{{r.style}}">{{r.label}}</div>
+              </sc-for>
+            </div>
+            <div style="font-size:12px;color:#626F86;margin-bottom:20px;">{{applyForNote}}</div>
+
+            <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:8px;">Wards open for applications</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
+              <sc-for list="{{wardChips}}" as="w" hint-placeholder-count="6">
+                <div onClick="{{w.onClick}}" style="{{w.style}}">{{w.label}}<span style="{{w.countStyle}}">{{w.count}}</span></div>
+              </sc-for>
+            </div>
+            <div style="font-size:12px;color:#626F86;margin-bottom:20px;">{{wardNote}}</div>
+
+            <div style="height:1px;background:#F1F2F4;margin-bottom:18px;"></div>
+
+            <sc-for list="{{toggles}}" as="t" hint-placeholder-count="3">
+              <div onClick="{{t.onClick}}" style="display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid #DCDFE4;border-radius:8px;background:#F7F8F9;cursor:pointer;margin-bottom:10px;">
+                <span style="{{t.boxStyle}}">{{t.mark}}</span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:13px;font-weight:500;">{{t.label}}</div>
+                  <div style="font-size:12px;line-height:17px;color:#626F86;margin-top:2px;">{{t.note}}</div>
+                </div>
+              </div>
+            </sc-for>
+
+            <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;background:#EEF6F8;color:#386271;font-size:12px;line-height:18px;margin:8px 0 20px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#599BAE;margin-top:5px;flex-shrink:0;"></span>
+              <span>Phone is verified by OTP before anyone can be approved, and a national ID or phone already in this workspace is rejected on submission — no agent can hold two stations or draw two payments.</span>
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;gap:8px;">
+              <a href="CM-Home.dc.html" style="display:flex;align-items:center;height:36px;padding:0 14px;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:14px;font-weight:500;text-decoration:none;" style-hover="background:#DCDFE4;color:#172B4D;">Cancel</a>
+              <button onClick="{{save}}" style="{{saveBtnStyle}}">{{saveLabel}}</button>
+            </div>
+          </div>
+
+          <div>
+            <div style="border:1px solid #DCDFE4;border-radius:8px;margin-bottom:16px;overflow:hidden;">
+              <div style="padding:14px 18px;border-bottom:1px solid #F1F2F4;font-size:16px;font-weight:600;">What the applicant sees</div>
+              <div style="padding:18px;background:#F7F8F9;">
+                <div style="border:1px solid #DCDFE4;border-radius:8px;background:#FFFFFF;padding:16px;">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                    <span style="width:26px;height:26px;border-radius:5px;background:#294854;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;">27</span>
+                    <div style="font-size:12px;font-weight:600;line-height:15px;">Wanjiru Kamau for Nairobi Governor<br /><span style="font-weight:400;color:#626F86;">2027 General Election</span></div>
+                  </div>
+                  <div style="font-size:15px;font-weight:700;line-height:20px;margin-bottom:6px;">Apply to be a polling agent</div>
+                  <div style="font-size:12px;line-height:18px;color:#44546F;margin-bottom:12px;">{{previewBlurb}}</div>
+                  <sc-for list="{{previewFields}}" as="p" hint-placeholder-count="5">
+                    <div style="height:30px;border:1px solid #DCDFE4;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:11px;color:#8590A2;margin-bottom:6px;">{{p}}</div>
+                  </sc-for>
+                  <div style="height:32px;border-radius:6px;background:#599BAE;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;margin-top:10px;">Send my application</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="border:1px solid #DCDFE4;border-radius:8px;margin-bottom:16px;">
+              <div style="padding:14px 18px;border-bottom:1px solid #F1F2F4;font-size:16px;font-weight:600;">Since the link went out</div>
+              <sc-for list="{{stats}}" as="s" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 18px;border-bottom:1px solid #F1F2F4;">
+                  <span style="font-size:13px;color:#44546F;">{{s.label}}</span>
+                  <span style="font-size:13px;font-weight:600;color:{{s.color}};">{{s.value}}</span>
+                </div>
+              </sc-for>
+              <div style="padding:12px 18px;font-size:12px;"><a href="#" style="text-decoration:none;font-weight:500;">Open the review queue</a></div>
+            </div>
+
+            <div style="border:1px solid #DCDFE4;border-radius:8px;padding:14px 18px;font-size:12px;line-height:18px;color:#626F86;">
+              Applicants are not assigned anywhere by this link. After approval you place them from the ward coverage board, individually or in bulk — reserves sit in the ward bench pool.
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isTargeted}}" hint-placeholder-val="{{false}}">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;align-items:start;animation:riseIn 240ms ease-out both;">
+
+          <div style="border:1px solid #DCDFE4;border-radius:8px;box-shadow:0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31);padding:24px;">
+            <div style="font-size:16px;font-weight:600;margin-bottom:4px;">Invite a named person to a role</div>
+            <div style="font-size:13px;color:#626F86;margin-bottom:20px;">For people you already know — a ward admin you have chosen, or an agent for a station nobody has applied to. Sent by SMS to one number, usable once.</div>
+
+            <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:8px;">Role <span style="color:#BF2600;">*</span></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-bottom:6px;">
+              <sc-for list="{{roles}}" as="r" hint-placeholder-count="5">
+                <div onClick="{{r.onClick}}" style="{{r.style}}">
+                  <div style="font-size:13px;font-weight:600;margin-bottom:2px;">{{r.label}}</div>
+                  <div style="font-size:11px;line-height:15px;color:#626F86;">{{r.blurb}}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font-size:12px;color:#626F86;margin-bottom:20px;">{{roleNote}}</div>
+
+            <div style="height:1px;background:#F1F2F4;margin-bottom:18px;"></div>
+
+            <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:8px;">{{geoLabel}} <span style="color:#BF2600;">*</span></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:10px;">
+              <div>
+                <div style="font-size:11px;color:#626F86;margin-bottom:3px;">County</div>
+                <div style="width:100%;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;display:flex;align-items:center;font-size:14px;color:#44546F;background:#F1F2F4;">Nairobi County</div>
+              </div>
+              <div>
+                <div style="font-size:11px;color:#626F86;margin-bottom:3px;">Constituency</div>
+                <select value="{{constituency}}" onChange="{{onConstituency}}" disabled="{{constituencyDisabled}}" style="{{constituencySelectStyle}}" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;">
+                  <sc-for list="{{constituencies}}" as="c" hint-placeholder-count="4">
+                    <option value="{{c}}">{{c}}</option>
+                  </sc-for>
+                </select>
+              </div>
+              <div>
+                <div style="font-size:11px;color:#626F86;margin-bottom:3px;">Ward</div>
+                <select value="{{ward}}" onChange="{{onWard}}" disabled="{{wardDisabled}}" style="{{wardSelectStyle}}">
+                  <sc-for list="{{wards}}" as="w" hint-placeholder-count="4">
+                    <option value="{{w}}">{{w}}</option>
+                  </sc-for>
+                </select>
+              </div>
+            </div>
+
+            <sc-if value="{{needsStation}}" hint-placeholder-val="{{true}}">
+              <div style="border:1px solid #DCDFE4;border-radius:8px;overflow:hidden;margin-bottom:6px;">
+                <sc-for list="{{stations}}" as="s" hint-placeholder-count="4">
+                  <div onClick="{{s.onClick}}" style="{{s.rowStyle}}">
+                    <span style="{{s.markStyle}}">{{s.mark}}</span>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:13px;font-weight:500;">{{s.name}}</div>
+                      <div style="font-size:11px;color:#626F86;">{{s.meta}}</div>
+                    </div>
+                    <span style="{{s.tagStyle}}">{{s.tag}}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="font-size:12px;color:#626F86;margin-bottom:20px;">Stations already covered cannot be selected. A second agent on a covered station goes to the ward bench instead.</div>
+            </sc-if>
+
+            <div style="height:1px;background:#F1F2F4;margin-bottom:18px;"></div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:16px;">
+              <div>
+                <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">Full name <span style="color:#BF2600;">*</span></div>
+                <input value="{{name}}" onChange="{{onName}}" placeholder="Grace Njeri" style="width:100%;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;font-size:14px;color:#172B4D;background:#FFFFFF;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+              </div>
+              <div>
+                <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:4px;">Phone <span style="color:#BF2600;">*</span></div>
+                <div style="display:flex;gap:8px;">
+                  <span style="display:flex;align-items:center;height:36px;padding:0 10px;border:1px solid #DCDFE4;border-radius:8px;background:#F7F8F9;color:#44546F;font-size:14px;flex-shrink:0;">+254</span>
+                  <input value="{{phone}}" onChange="{{onPhone}}" inputmode="numeric" placeholder="7xx xxx xxx" style="flex:1;min-width:0;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 10px;font-size:14px;color:#172B4D;background:#FFFFFF;" style-focus="border-color:#599BAE;box-shadow:0 0 0 1px #599BAE;outline:none;" />
+                </div>
+              </div>
+            </div>
+            <div style="font-size:12px;color:#626F86;margin-bottom:18px;">They still verify this number by OTP and still pass the duplicate-ID check before the role takes effect.</div>
+
+            <div style="font-size:12px;font-weight:600;color:#44546F;margin-bottom:6px;">Link expires</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;">
+              <sc-for list="{{expiries}}" as="e" hint-placeholder-count="3">
+                <div onClick="{{e.onClick}}" style="{{e.style}}">{{e.label}}</div>
+              </sc-for>
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;gap:8px;">
+              <a href="CM-Home.dc.html" style="display:flex;align-items:center;height:36px;padding:0 14px;border-radius:8px;background:#F1F2F4;color:#172B4D;font-size:14px;font-weight:500;text-decoration:none;" style-hover="background:#DCDFE4;color:#172B4D;">Cancel</a>
+              <button onClick="{{send}}" style="{{sendBtnStyle}}">{{sendLabel}}</button>
+            </div>
+          </div>
+
+          <div>
+            <div style="border:1px solid #DCDFE4;border-radius:8px;margin-bottom:16px;">
+              <div style="padding:14px 18px;border-bottom:1px solid #F1F2F4;font-size:16px;font-weight:600;">Invite preview</div>
+              <div style="padding:16px 18px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                  <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;background:#EEF6F8;color:#386271;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">{{previewRole}}</span>
+                </div>
+                <div style="font-size:15px;font-weight:600;line-height:20px;margin-bottom:2px;">{{previewScope}}</div>
+                <div style="font-size:12px;color:#626F86;line-height:17px;margin-bottom:14px;">{{previewMeta}}</div>
+                <div style="border:1px solid #DCDFE4;border-radius:8px;background:#F7F8F9;padding:10px 12px;font-size:12px;line-height:18px;color:#44546F;">{{smsPreview}}</div>
+              </div>
+            </div>
+
+            <div style="border:1px solid #DCDFE4;border-radius:8px;margin-bottom:16px;">
+              <div style="padding:14px 18px;border-bottom:1px solid #F1F2F4;font-size:16px;font-weight:600;">Coverage here</div>
+              <sc-for list="{{coverage}}" as="c" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 18px;border-bottom:1px solid #F1F2F4;">
+                  <span style="font-size:13px;color:#44546F;">{{c.label}}</span>
+                  <span style="font-size:13px;font-weight:600;color:{{c.color}};">{{c.value}}</span>
+                </div>
+              </sc-for>
+              <div style="padding:12px 18px;font-size:12px;color:#626F86;">Sending an invite does not fill the seat — it fills when they accept and pass vetting.</div>
+            </div>
+
+            <div style="border:1px solid #DCDFE4;border-radius:8px;">
+              <div style="padding:14px 18px;border-bottom:1px solid #F1F2F4;font-size:16px;font-weight:600;">Outstanding invites</div>
+              <sc-for list="{{openInvites}}" as="l" hint-placeholder-count="3">
+                <div style="padding:11px 18px;border-bottom:1px solid #F1F2F4;">
+                  <div style="font-size:13px;font-weight:500;">{{l.who}}</div>
+                  <div style="font-size:12px;color:#626F86;margin-top:2px;">{{l.meta}}</div>
+                </div>
+              </sc-for>
+              <div style="padding:12px 18px;font-size:12px;"><a href="#" style="text-decoration:none;font-weight:500;">See all 11 outstanding invites</a></div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    tab: 'public', copied: false, saved: false, regenerated: false,
+    applyFor: { agent: true, volunteer: true },
+    openWards: { Kilimani: true, Kawangware: true, Gatina: true, Kileleshwa: false, 'Mountain View': true, Karura: false },
+    prefStation: true, walkthrough: true, closeWhenFull: false,
+    role: 'agent', constituency: 'Dagoretti North', ward: 'Kilimani', stationId: 's047',
+    name: '', phone: '', expiry: '7 days', sent: false
+  };
+  roleDefs = [
+    { id: 'agent', label: 'Polling agent', blurb: 'One station. Captures Form 37A.', geo: 'station', note: 'Tied to a single polling station. Must be a registered voter with a national ID; scope is that station only.' },
+    { id: 'ward', label: 'Ward admin', blurb: 'Verifies or queries stations in a ward.', geo: 'ward', note: 'Sees every station in the ward and nothing above it. Verifies Form 37A submissions or sends them back as a query.' },
+    { id: 'constituency', label: 'Constituency agent', blurb: 'Form 37B reconciliation.', geo: 'constituency', note: 'Reconciles the constituency tallying centre against the station figures below. Inherits every ward in the constituency.' },
+    { id: 'county', label: 'County agent', blurb: 'Form 37C reconciliation.', geo: 'county', note: 'Top of the governor chain. Reconciles Form 37C against all constituencies in Nairobi County.' },
+    { id: 'national', label: 'National agent', blurb: 'Forms 34C and 34D at the national tally centre.', geo: 'national', note: 'Presidential chain only. Sits at the national tallying centre and reconciles Form 34C constituency declarations into the 34D national result — the top of the 34A → 34B → 34C/34D chain.' },
+    { id: 'volunteer', label: 'Volunteer', blurb: 'Mobilisation. No verification rights.', geo: 'ward', note: 'Lighter record — no station assignment, no verification rights. Grouped by ward and tagged by activity.' }
+  ];
+  stationDefs = [
+    { id: 's047', name: 'Kilimani Primary School — Stream 2', meta: 'Station 047 · 1,142 voters', state: 'gap' },
+    { id: 's048', name: 'Kilimani Primary School — Stream 3', meta: 'Station 048 · 1,098 voters', state: 'gap' },
+    { id: 's051', name: 'Jamhuri High School — Stream 1', meta: 'Station 051 · 967 voters', state: 'partial' },
+    { id: 's052', name: 'Toi Market Social Hall — Stream 1', meta: 'Station 052 · 884 voters', state: 'full' }
+  ];
+  chip(active, label) {
+    return `display:flex;align-items:center;gap:6px;height:30px;padding:0 10px;white-space:nowrap;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid ${active ? '#599BAE' : '#DCDFE4'};background:${active ? '#EEF6F8' : '#FFFFFF'};color:${active ? '#386271' : '#44546F'};transition:background 120ms ease,border-color 120ms ease;`;
+  }
+  box(on) {
+    return `width:16px;height:16px;border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#FFFFFF;background:${on ? '#599BAE' : '#FFFFFF'};border:1px solid ${on ? '#599BAE' : '#8590A2'};transition:background 120ms ease;`;
+  }
+  renderVals() {
+    const s = this.state;
+    const role = this.roleDefs.find(r => r.id === s.role);
+    const station = this.stationDefs.find(x => x.id === s.stationId);
+    const openWardList = Object.keys(s.openWards).filter(w => s.openWards[w]);
+    const req = { tag: 'Required', style: 'background:#F1F2F4;color:#44546F;' };
+    const opt = { tag: 'Optional', style: 'background:#EEF6F8;color:#386271;' };
+    const field = (label, note, kind, on) => ({
+      label, note, tag: kind.tag, icon: on ? '✓' : '—',
+      iconStyle: `width:18px;height:18px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;${on ? 'background:#E3FCEF;color:#164B35;' : 'background:#F1F2F4;color:#8590A2;'}`,
+      tagStyle: `display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap;flex-shrink:0;${kind.style}`
+    });
+    const tags = { gap: 'background:#FFECEB;color:#AE2A19;', partial: 'background:#FFF7D6;color:#974F0C;', full: 'background:#F1F2F4;color:#626F86;' };
+    const tagText = { gap: 'No agent', partial: '1 of 2', full: 'Covered' };
+    const geoScope = role.geo === 'national' ? 'National tallying centre'
+      : role.geo === 'county' ? 'Nairobi County'
+      : role.geo === 'constituency' ? `${s.constituency} Constituency`
+      : role.geo === 'ward' ? `${s.ward} Ward` : station.name;
+
+    return {
+      tabs: [['public', 'Public application link'], ['targeted', 'Targeted invite']].map(([id, label]) => ({
+        label,
+        onClick: () => this.setState({ tab: id }),
+        style: `padding:0 0 10px;font-size:14px;font-weight:600;cursor:pointer;color:${s.tab === id ? '#172B4D' : '#626F86'};border-bottom:2px solid ${s.tab === id ? '#599BAE' : 'transparent'};margin-bottom:-1px;transition:color 120ms ease;`
+      })),
+      isPublic: s.tab === 'public',
+      isTargeted: s.tab === 'targeted',
+
+      linkState: s.regenerated ? 'New link live' : 'Live',
+      publicUrl: `mtazamo.co.ke/apply/wanjiru-kamau-2027${s.regenerated ? '-b4k9' : ''}`,
+      copy: () => this.setState({ copied: true }),
+      copyLabel: s.copied ? 'Copied' : 'Copy link',
+      regenerate: () => this.setState({ regenerated: true, copied: false }),
+      fields: [
+        field('Full name', 'As it appears on the national ID', req, true),
+        field('National ID number', 'Checked for duplicates across the workspace', req, true),
+        field('Phone number', 'Verified by OTP before approval', req, true),
+        field('Ward', `Limited to the ${openWardList.length} wards you opened below`, req, true),
+        field('Preferred station', s.prefStation ? 'A wish, not an assignment' : 'Hidden — you assign after approval', opt, s.prefStation)
+      ],
+      applyFor: [['agent', 'Polling agent'], ['volunteer', 'Volunteer']].map(([id, label]) => ({
+        label,
+        onClick: () => this.setState(st => ({ applyFor: { ...st.applyFor, [id]: !st.applyFor[id] } })),
+        style: this.chip(s.applyFor[id], label)
+      })),
+      applyForNote: s.applyFor.agent && s.applyFor.volunteer
+        ? 'Applicants choose which one on the form. Tier officers are never recruited this way — invite them by name.'
+        : s.applyFor.agent ? 'Agent applications only.' : s.applyFor.volunteer ? 'Volunteer applications only — no station, no verification rights.' : 'Nothing is open. The link will show a closed notice.',
+      wardChips: Object.keys(s.openWards).map(w => ({
+        label: w,
+        count: s.openWards[w] ? '' : 'closed',
+        countStyle: s.openWards[w] ? 'display:none;' : 'font-size:10px;font-weight:500;color:#8590A2;text-transform:uppercase;letter-spacing:0.3px;',
+        onClick: () => this.setState(st => ({ openWards: { ...st.openWards, [w]: !st.openWards[w] } })),
+        style: this.chip(s.openWards[w], w)
+      })),
+      wardNote: `${openWardList.length} of 17 Nairobi wards accepting applications. An applicant outside these wards sees a closed notice instead of the form.`,
+      toggles: [
+        { id: 'prefStation', label: 'Ask for a preferred station', note: 'Collected as a preference only. Assignment still happens from the coverage board after approval.' },
+        { id: 'walkthrough', label: 'Show the agent walkthrough video before submitting', note: 'Counts towards the readiness checklist so they arrive on election day already briefed.' },
+        { id: 'closeWhenFull', label: 'Close the link automatically at full coverage', note: 'Stops applications once all 3,247 stations have a confirmed agent. Off keeps building the bench pool.' }
+      ].map(t => ({
+        label: t.label, note: t.note, mark: s[t.id] ? '✓' : '',
+        boxStyle: this.box(s[t.id]),
+        onClick: () => this.setState(st => ({ [t.id]: !st[t.id] }))
+      })),
+      previewBlurb: s.applyFor.agent && s.applyFor.volunteer
+        ? 'Sit at one polling station on 10 August 2027, or join as a volunteer. Approval takes a day or two.'
+        : s.applyFor.volunteer && !s.applyFor.agent
+        ? 'Help mobilise voters in your ward ahead of 10 August 2027.'
+        : 'Sit at one polling station on 10 August 2027, watch the count, and send the signed form through the app.',
+      previewFields: ['Full name', 'National ID number', 'Phone number', 'Ward'].concat(s.prefStation ? ['Preferred station (optional)'] : []),
+      save: () => this.setState({ saved: true }),
+      saveLabel: s.saved ? 'Saved ✓' : 'Save link settings',
+      saveBtnStyle: `display:flex;align-items:center;height:36px;padding:0 14px;border:none;border-radius:8px;background:${s.saved ? '#1F845A' : '#599BAE'};color:#FFFFFF;font-size:14px;font-weight:600;cursor:pointer;transition:background 140ms ease;`,
+      stats: [
+        { label: 'Applications received', value: '164', color: '#172B4D' },
+        { label: 'Awaiting your review', value: '31', color: '#974F0C' },
+        { label: 'Approved and assigned', value: '118', color: '#216E4E' },
+        { label: 'Rejected (reason recorded)', value: '15', color: '#44546F' }
+      ],
+
+      roles: this.roleDefs.map(r => ({
+        label: r.label, blurb: r.blurb,
+        onClick: () => this.setState({ role: r.id, sent: false }),
+        style: `border:1px solid ${s.role === r.id ? '#599BAE' : '#DCDFE4'};box-shadow:${s.role === r.id ? '0 0 0 1px #599BAE' : 'none'};background:${s.role === r.id ? '#EEF6F8' : '#FFFFFF'};border-radius:8px;padding:10px 12px;cursor:pointer;transition:border-color 120ms ease,background 120ms ease;`
+      })),
+      roleNote: role.note,
+      geoLabel: role.geo === 'station' ? 'Station' : role.geo === 'ward' ? 'Ward' : role.geo === 'constituency' ? 'Constituency' : role.geo === 'national' ? 'National' : 'County',
+      needsStation: role.geo === 'station',
+      countyValue: role.geo === 'national' ? 'All 47 counties' : 'Nairobi County',
+      wardDisabled: role.geo === 'constituency' || role.geo === 'county' || role.geo === 'national',
+      wardSelectStyle: `width:100%;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 8px;font-size:14px;color:#172B4D;background:${role.geo === 'ward' || role.geo === 'station' ? '#FFFFFF' : '#F1F2F4'};opacity:${role.geo === 'ward' || role.geo === 'station' ? 1 : 0.6};`,
+      constituencyDisabled: role.geo === 'county' || role.geo === 'national',
+      constituencySelectStyle: `width:100%;height:36px;box-sizing:border-box;border:1px solid #DCDFE4;border-radius:8px;padding:0 8px;font-size:14px;color:#172B4D;background:${role.geo === 'county' || role.geo === 'national' ? '#F1F2F4' : '#FFFFFF'};opacity:${role.geo === 'county' || role.geo === 'national' ? 0.6 : 1};`,
+      constituency: s.constituency,
+      onConstituency: (e) => this.setState({ constituency: e.target.value }),
+      constituencies: ['Dagoretti North', 'Westlands', 'Embakasi South', 'Langata', 'Kasarani'],
+      ward: s.ward,
+      onWard: (e) => this.setState({ ward: e.target.value }),
+      wards: ['Kilimani', 'Kawangware', 'Gatina', 'Kileleshwa'],
+      stations: this.stationDefs.map(x => {
+        const selected = x.id === s.stationId;
+        const disabled = x.state === 'full';
+        return {
+          name: x.name, meta: x.meta, tag: tagText[x.state],
+          onClick: () => { if (!disabled) this.setState({ stationId: x.id, sent: false }); },
+          rowStyle: `display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #F1F2F4;cursor:${disabled ? 'not-allowed' : 'pointer'};opacity:${disabled ? 0.55 : 1};background:${selected ? '#EEF6F8' : '#FFFFFF'};transition:background 120ms ease;`,
+          mark: selected ? '●' : '',
+          markStyle: `width:16px;height:16px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#FFFFFF;background:${selected ? '#599BAE' : '#FFFFFF'};border:1px solid ${selected ? '#599BAE' : '#8590A2'};`,
+          tagStyle: `display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:3px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap;flex-shrink:0;${tags[x.state]}`
+        };
+      }),
+      name: s.name, onName: (e) => this.setState({ name: e.target.value, sent: false }),
+      phone: s.phone, onPhone: (e) => this.setState({ phone: e.target.value.replace(/[^0-9 ]/g, ''), sent: false }),
+      expiries: ['48 hours', '7 days', '30 days'].map(label => ({
+        label,
+        onClick: () => this.setState({ expiry: label }),
+        style: this.chip(s.expiry === label, label)
+      })),
+      send: () => this.setState({ sent: true }),
+      sendLabel: s.sent ? 'Invite sent ✓' : 'Send SMS invite',
+      sendBtnStyle: `display:flex;align-items:center;height:36px;padding:0 14px;border:none;border-radius:8px;background:${s.sent ? '#1F845A' : '#599BAE'};color:#FFFFFF;font-size:14px;font-weight:600;cursor:pointer;transition:background 140ms ease;`,
+      previewRole: role.label,
+      previewScope: geoScope,
+      previewMeta: role.geo === 'station'
+        ? `${station.meta} · ${s.ward} Ward · ${s.constituency}`
+        : role.geo === 'ward' ? `${s.constituency} · Nairobi County · 38 stations below`
+        : role.geo === 'constituency' ? 'Nairobi County · 4 wards, 212 stations below'
+        : role.geo === 'national' ? 'Presidential chain · 290 constituencies, 46,229 stations below'
+        : '17 constituencies, 3,247 stations below',
+      smsPreview: `${s.name || 'Grace'}, Wanjiru Kamau's campaign has named you ${role.label.toLowerCase()} for ${geoScope}. Accept and verify your phone: mtazamo.co.ke/join/${role.id}-t3p8 (expires in ${s.expiry})`,
+      coverage: role.geo === 'station' ? [
+        { label: `${s.ward} Ward stations`, value: '38', color: '#172B4D' },
+        { label: 'With a confirmed agent', value: '21', color: '#216E4E' },
+        { label: 'Still uncovered', value: '17', color: '#AE2A19' },
+        { label: 'On the ward bench', value: '4', color: '#44546F' }
+      ] : [
+        { label: 'Tier posts in Nairobi', value: '17 + 4', color: '#172B4D' },
+        { label: 'Ward admins named', value: '11 of 17', color: '#974F0C' },
+        { label: 'Constituency agents named', value: '13 of 17', color: '#974F0C' },
+        { label: 'County agent', value: 'Vacant', color: '#AE2A19' }
+      ],
+      openInvites: [
+        { who: 'Peter Wafula', meta: 'Ward admin · Kawangware · sent 2 days ago · not opened' },
+        { who: 'Mary Atieno', meta: 'Constituency agent · Langata · opened, not accepted' },
+        { who: 'Joseph Kariuki', meta: 'Polling agent · Station 051 · expired yesterday' }
+      ]
+    };
+  }
+}
+
+</script>
+</body>
+</html>
