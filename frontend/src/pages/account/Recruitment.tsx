@@ -501,7 +501,10 @@ function SendInviteDrawer({
                     onClick={() => {
                       if (disabled) return;
                       setInviteRole(r.id);
-                      setInviteStationId(""); setInviteWardId(""); setInviteConstituencyId(""); setInviteCountyId("");
+                      setInviteStationId("");
+                      if (!lockedWardId)         setInviteWardId("");
+                      if (!lockedConstituencyId) setInviteConstituencyId("");
+                      if (!lockedCountyId)       setInviteCountyId("");
                     }}
                     style={{ padding: "10px 12px", border: `1px solid ${disabled ? portal.borderSubtle : on ? portal.brand : portal.border}`, borderRadius: 8, background: disabled ? portal.canvasSubtle : on ? portal.brandSubtlest : portal.canvas, cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.6 : 1 }}
                   >
