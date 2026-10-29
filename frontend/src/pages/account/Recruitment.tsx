@@ -8,6 +8,7 @@ import {
   type RecruitmentStation,
   type RecruitmentWard,
   type SeatRole,
+  type TierContext,
   type Ward,
   type Constituency,
   type AgentInviteSent,
@@ -59,6 +60,7 @@ export function Recruitment() {
   const [filledConstituencyIds, setFilledConstituencyIds] = useState<Set<string>>(new Set());
   const [filledWardIds, setFilledWardIds] = useState<Set<string>>(new Set());
   const [refreshKey, setRefreshKey] = useState(0);
+  const [tierCtx, setTierCtx] = useState<TierContext | null>(null);
 
   const [linkDrawerOpen, setLinkDrawerOpen] = useState(false);
   const [linkDrawerWardId, setLinkDrawerWardId] = useState<string | null>(null);
@@ -83,6 +85,7 @@ export function Recruitment() {
     if (!id || !myRole || !TIER_ROLES.has(myRole)) return;
     api.getTierContext(id)
       .then((ctx) => {
+        setTierCtx(ctx);
         if (!ctx.can_assign && tab === "targeted") {
           navigate(`/workspaces/${id}/recruitment?tab=public`, { replace: true });
         }
@@ -185,6 +188,7 @@ export function Recruitment() {
           filledConstituencyIds={filledConstituencyIds}
           filledWardIds={filledWardIds}
           aspirantName={user?.name ?? "Aspirant"}
+          tierCtx={tierCtx}
           onClose={() => setInviteDrawerOpen(false)}
           onSent={() => setRefreshKey((k) => k + 1)}
         />
@@ -286,6 +290,9 @@ function TargetedInvitesTable({
 
 // ---- SendInviteDrawer --------------------------------------------------------
 
+// Roles that have a geo-scoped assignment (not national-level or management)
+const GEO_LOCKED_ROLES = new Set(["county", "constituency", "ward"]);
+
 function SendInviteDrawer({
   workspaceId,
   workspace,
@@ -294,6 +301,7 @@ function SendInviteDrawer({
   filledConstituencyIds,
   filledWardIds,
   aspirantName,
+  tierCtx,
   onClose,
   onSent,
 }: {
@@ -304,6 +312,7 @@ function SendInviteDrawer({
   filledConstituencyIds: Set<string>;
   filledWardIds: Set<string>;
   aspirantName: string;
+  tierCtx: TierContext | null;
   onClose: () => void;
   onSent: () => void;
 }) {
@@ -327,9 +336,29 @@ function SendInviteDrawer({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [sending, setSending] = useState(false);
 
+  // Derive which geo levels are locked to the current officer's assignment.
+  // Only applies to county, constituency, ward officers — not national / CM / aspirant.
+  const isGeoLocked = tierCtx && GEO_LOCKED_ROLES.has(tierCtx.role);
+  const lockedCountyId       = isGeoLocked ? (tierCtx.county_id ?? null)       : null;
+  const lockedConstituencyId = isGeoLocked ? (tierCtx.constituency_id ?? null) : null;
+  const lockedWardId         = isGeoLocked ? (tierCtx.ward_id ?? null)         : null;
+
+  // Resolved display names for locked fields
+  const lockedCountyName       = lockedCountyId       ? (counties.find(c => c.id === lockedCountyId)?.name ?? workspace.county ?? null) : null;
+  const lockedConstituencyName = lockedConstituencyId ? (constituencies.find(c => c.id === lockedConstituencyId)?.name ?? workspace.constituency ?? null) : null;
+  const lockedWardName         = lockedWardId         ? (cascadeWards.find(w => w.id === lockedWardId)?.name ?? workspace.ward ?? null) : null;
+
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 10);
     return () => clearTimeout(t);
+  }, []);
+
+  // Seed locked geo IDs into the form state on mount
+  useEffect(() => {
+    if (lockedCountyId)       setInviteCountyId(lockedCountyId);
+    if (lockedConstituencyId) setInviteConstituencyId(lockedConstituencyId);
+    if (lockedWardId)         setInviteWardId(lockedWardId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -502,35 +531,37 @@ function SendInviteDrawer({
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 10, marginBottom: 10 }}>
+                {/* County field */}
                 {workspace.scope === "national" && geoLevel !== "" && (
                   <div>
                     <div style={{ fontSize: 11, color: portal.textSubtle, marginBottom: 3 }}>County</div>
-                    <SearchableSelect
-                      items={counties.map((c) => ({ id: c.id, name: c.name }))}
-                      value={inviteCountyId}
-                      onChange={(cid) => { setInviteCountyId(cid); setInviteConstituencyId(""); setInviteWardId(""); setInviteStationId(""); }}
-                      placeholder="Select county…"
-                    />
+                    {lockedCountyId ? (
+                      <LockedGeoField label={lockedCountyName ? `${lockedCountyName} County` : "—"} />
+                    ) : (
+                      <SearchableSelect
+                        items={counties.map((c) => ({ id: c.id, name: c.name }))}
+                        value={inviteCountyId}
+                        onChange={(cid) => { setInviteCountyId(cid); setInviteConstituencyId(""); setInviteWardId(""); setInviteStationId(""); }}
+                        placeholder="Select county…"
+                      />
+                    )}
                   </div>
                 )}
 
                 {(workspace.scope === "county" || workspace.scope === "constituency") && (
                   <div>
                     <div style={{ fontSize: 11, color: portal.textSubtle, marginBottom: 3 }}>County</div>
-                    <div style={{ height: 36, border: `1px solid ${portal.border}`, borderRadius: 8, padding: "0 10px", display: "flex", alignItems: "center", fontSize: 14, color: portal.label, background: portal.canvasSubtle }}>
-                      {workspace.county} County
-                    </div>
+                    <LockedGeoField label={`${workspace.county} County`} />
                   </div>
                 )}
 
+                {/* Constituency field */}
                 {(geoLevel === "constituency" || geoLevel === "ward" || geoLevel === "station") &&
                  (workspace.scope !== "ward" || geoLevel === "constituency") && (
                   <div>
                     <div style={{ fontSize: 11, color: portal.textSubtle, marginBottom: 3 }}>Constituency</div>
-                    {(workspace.scope === "constituency" || workspace.scope === "ward") ? (
-                      <div style={{ height: 36, border: `1px solid ${portal.border}`, borderRadius: 8, padding: "0 10px", display: "flex", alignItems: "center", fontSize: 14, color: portal.label, background: portal.canvasSubtle }}>
-                        {workspace.constituency}
-                      </div>
+                    {(workspace.scope === "constituency" || workspace.scope === "ward" || lockedConstituencyId) ? (
+                      <LockedGeoField label={lockedConstituencyName ?? workspace.constituency ?? "—"} />
                     ) : (
                       <SearchableSelect
                         items={constituencies}
@@ -544,27 +575,30 @@ function SendInviteDrawer({
                   </div>
                 )}
 
+                {/* Ward field */}
                 {(geoLevel === "ward" || geoLevel === "station") && workspace.scope === "ward" && (
                   <div>
                     <div style={{ fontSize: 11, color: portal.textSubtle, marginBottom: 3 }}>Ward</div>
-                    <div style={{ height: 36, border: `1px solid ${portal.border}`, borderRadius: 8, padding: "0 10px", display: "flex", alignItems: "center", fontSize: 14, color: portal.label, background: portal.canvasSubtle }}>
-                      {workspace.ward}
-                    </div>
+                    <LockedGeoField label={workspace.ward ?? "—"} />
                   </div>
                 )}
                 {(geoLevel === "ward" || geoLevel === "station") && (workspace.scope === "national" || workspace.scope === "county" || workspace.scope === "constituency") && (
                   <div>
                     <div style={{ fontSize: 11, color: portal.textSubtle, marginBottom: 3 }}>Ward</div>
-                    <SearchableSelect
-                      items={workspace.scope === "constituency"
-                        ? constituencies.filter((c) => !workspace.constituency_id || c.id === workspace.constituency_id).flatMap((c) => c.wards)
-                        : cascadeWards}
-                      value={inviteWardId}
-                      onChange={setInviteWardId}
-                      placeholder="Select ward…"
-                      disabled={!inviteConstituencyId && workspace.scope !== "constituency"}
-                      filledIds={filledWardIds}
-                    />
+                    {lockedWardId ? (
+                      <LockedGeoField label={lockedWardName ?? "—"} />
+                    ) : (
+                      <SearchableSelect
+                        items={workspace.scope === "constituency"
+                          ? constituencies.filter((c) => !workspace.constituency_id || c.id === workspace.constituency_id).flatMap((c) => c.wards)
+                          : cascadeWards}
+                        value={inviteWardId}
+                        onChange={setInviteWardId}
+                        placeholder="Select ward…"
+                        disabled={!inviteConstituencyId && workspace.scope !== "constituency"}
+                        filledIds={filledWardIds}
+                      />
+                    )}
                   </div>
                 )}
               </div>
@@ -1190,6 +1224,19 @@ function RegenerateConfirmModal({
         </div>
       </div>
     </>
+  );
+}
+
+// ---- LockedGeoField ----------------------------------------------------------
+
+function LockedGeoField({ label }: { label: string }) {
+  return (
+    <div style={{ height: 36, border: `1px solid ${portal.border}`, borderRadius: 8, padding: "0 10px", display: "flex", alignItems: "center", gap: 6, fontSize: 14, color: portal.label, background: portal.canvasSubtle }}>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12, flexShrink: 0, color: portal.textSubtlest }}>
+        <rect x="4" y="7" width="8" height="7" rx="1" /><path d="M6 7V5a2 2 0 0 1 4 0v2" />
+      </svg>
+      {label}
+    </div>
   );
 }
 
