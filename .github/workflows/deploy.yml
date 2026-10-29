@@ -6,8 +6,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/mtazamo-backend
-  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/mtazamo-frontend
+  BACKEND_IMAGE: ghcr.io/aberison-investments/mtazamo-backend
+  FRONTEND_IMAGE: ghcr.io/aberison-investments/mtazamo-frontend
 
 jobs:
   build-and-push:
@@ -37,7 +37,7 @@ jobs:
           context: ./backend
           file: ./backend/Dockerfile.prod
           push: true
-          tags: ${{ env.BACKEND_IMAGE }}:latest
+          tags: ${{ env.BACKEND_IMAGE }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -47,7 +47,7 @@ jobs:
           context: ./frontend
           file: ./frontend/Dockerfile.prod
           push: true
-          tags: ${{ env.FRONTEND_IMAGE }}:latest
+          tags: ${{ env.FRONTEND_IMAGE }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
