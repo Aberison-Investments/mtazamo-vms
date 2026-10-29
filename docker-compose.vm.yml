@@ -34,6 +34,8 @@ services:
       DB_DATABASE: ${POSTGRES_DB}
       DB_USERNAME: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - uploads:/var/www/storage/app/public
 
   frontend:
     image: ghcr.io/aberison-investments/mtazamo-frontend:latest
@@ -46,3 +48,4 @@ services:
 
 volumes:
   db_data:
+  uploads:
