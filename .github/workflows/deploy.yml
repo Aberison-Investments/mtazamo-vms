@@ -68,7 +68,8 @@ jobs:
             cd /opt/mtazamo
 
             echo "── Pulling latest compose file ──"
-            git pull origin main
+            git fetch origin
+            git reset --hard origin/main
 
             echo "── Logging in to ghcr.io ──"
             echo "${{ secrets.GITHUB_TOKEN }}" | \
