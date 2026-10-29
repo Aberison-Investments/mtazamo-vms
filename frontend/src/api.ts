@@ -1217,11 +1217,21 @@ export interface WarRoomLeaderboardEntry {
   pct: number;
 }
 
+export interface WarRoomCountyRegion {
+  id: string;
+  name: string;
+  total_stations: number;
+  reporting_stations: number;
+  votes: Array<{ candidate_id: string; candidate_name: string | null; candidate_party: string | null; votes: number }>;
+  total_valid: number;
+}
+
 export interface WarRoomSummary {
   run: { id: string; name: string; type: string; status: string } | null;
   leaderboard: WarRoomLeaderboardEntry[];
   stations: WarRoomStation[];
   coverage: { total_stations: number; reporting_stations: number; pct: number } | null;
+  county_regions?: WarRoomCountyRegion[];
 }
 
 // ---- tier form types (Form 34B / 37B / 35B etc.) ----------------------------

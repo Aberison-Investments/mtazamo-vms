@@ -168,6 +168,88 @@ class WarRoomController extends Controller
         ];
     }
 
+    private function countyAggregates(string $workspaceId, string $runId, array $candidates): array
+    {
+        $rows = DB::table('polling_stations as ps')
+            ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
+            ->join('wards as w', 'w.id', '=', 'pc.ward_id')
+            ->join('counties as co', 'co.id', '=', 'w.county_id')
+            ->leftJoin('station_results as sr', function ($j) use ($workspaceId, $runId) {
+                $j->on('sr.station_id', '=', 'ps.id')
+                  ->where('sr.workspace_id', $workspaceId)
+                  ->where('sr.run_id', $runId)
+                  ->whereNotIn('sr.status', ['draft']);
+            })
+            ->select(
+                'co.id as county_id',
+                'co.name as county_name',
+                DB::raw('COUNT(DISTINCT ps.id) AS total_stations'),
+                DB::raw('COUNT(DISTINCT sr.id) AS reporting_stations'),
+                DB::raw("jsonb_agg(sr.votes) FILTER (WHERE sr.votes IS NOT NULL) AS all_votes"),
+            )
+            ->groupBy('co.id', 'co.name')
+            ->orderBy('co.name')
+            ->get();
+
+        $candidateIds = array_column($candidates, 'id');
+        $candidateNames = collect($candidates)->keyBy('id')
+            ->map(fn ($c) => ['name' => $c['name'] ?? $c->name, 'party' => $c['party'] ?? $c->party])
+            ->toArray();
+
+        return $rows->map(function ($row) use ($candidateIds, $candidateNames) {
+            $totals = [];
+            if ($row->all_votes) {
+                $stationVoteArrays = json_decode($row->all_votes, true) ?? [];
+                foreach ($stationVoteArrays as $stationVotes) {
+                    if (! is_array($stationVotes)) continue;
+                    foreach ($stationVotes as $v) {
+                        $cid = $v['candidate_id'] ?? null;
+                        if ($cid) $totals[$cid] = ($totals[$cid] ?? 0) + ($v['votes'] ?? 0);
+                    }
+                }
+            }
+
+            $votes = array_map(fn ($cid) => [
+                'candidate_id'    => $cid,
+                'candidate_name'  => $candidateNames[$cid]['name'] ?? null,
+                'candidate_party' => $candidateNames[$cid]['party'] ?? null,
+                'votes'           => $totals[$cid] ?? 0,
+            ], $candidateIds);
+
+            return [
+                'id'                 => $row->county_id,
+                'name'               => $row->county_name,
+                'total_stations'     => (int) $row->total_stations,
+                'reporting_stations' => (int) $row->reporting_stations,
+                'votes'              => $votes,
+                'total_valid'        => array_sum($totals),
+            ];
+        })->toArray();
+    }
+
+    private function nationalCoverage(string $workspaceId, string $runId): array
+    {
+        $row = DB::table('polling_stations as ps')
+            ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
+            ->join('wards as w', 'w.id', '=', 'pc.ward_id')
+            ->leftJoin('station_results as sr', function ($j) use ($workspaceId, $runId) {
+                $j->on('sr.station_id', '=', 'ps.id')
+                  ->where('sr.workspace_id', $workspaceId)
+                  ->where('sr.run_id', $runId)
+                  ->whereNotIn('sr.status', ['draft']);
+            })
+            ->selectRaw('COUNT(DISTINCT ps.id) AS total_stations, COUNT(DISTINCT sr.id) AS reporting_stations')
+            ->first();
+
+        $total     = (int) ($row->total_stations ?? 0);
+        $reporting = (int) ($row->reporting_stations ?? 0);
+        return [
+            'total_stations'     => $total,
+            'reporting_stations' => $reporting,
+            'pct'                => $total > 0 ? round($reporting / $total * 100) : 0,
+        ];
+    }
+
     // ---- endpoints -------------------------------------------------------------
 
     public function summary(Request $request, string $workspaceId): JsonResponse
@@ -193,9 +275,22 @@ class WarRoomController extends Controller
             ->get()
             ->toArray();
 
-        $stations    = $this->stationRows($workspaceId, $run->id, $scope, $scopeId, $candidates);
         $leaderboard = $this->leaderboard($workspaceId, $run->id, $scope, $scopeId, $candidates);
-        $coverage    = $this->coverage($stations);
+
+        if ($scope === 'national') {
+            $countyRegions = $this->countyAggregates($workspaceId, $run->id, $candidates);
+            $coverage      = $this->nationalCoverage($workspaceId, $run->id);
+            return response()->json([
+                'run'            => ['id' => $run->id, 'name' => $run->name, 'type' => $run->type, 'status' => $run->status],
+                'leaderboard'    => $leaderboard,
+                'stations'       => [],
+                'coverage'       => $coverage,
+                'county_regions' => $countyRegions,
+            ]);
+        }
+
+        $stations = $this->stationRows($workspaceId, $run->id, $scope, $scopeId, $candidates);
+        $coverage = $this->coverage($stations);
 
         return response()->json([
             'run'         => [

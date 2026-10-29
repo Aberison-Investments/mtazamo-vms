@@ -6,6 +6,7 @@ import {
   type WarRoomStation,
   type WarRoomLeaderboardEntry,
   type WarRoomSummary,
+  type WarRoomCountyRegion,
   type TierFormContext,
   type TierFormCandidateEntry,
 } from "../../api";
@@ -462,6 +463,70 @@ function Th({ children, left }: { children?: React.ReactNode; left?: boolean }) 
   return <th style={{ padding: "10px 16px", textAlign: left ? "left" : "right", fontWeight: 600, fontSize: 12, color: portal.label, whiteSpace: "nowrap" }}>{children}</th>;
 }
 
+// ---- county summary grid (national level) ------------------------------------
+
+function CountySummaryGrid({ countyRegions, candidates }: {
+  countyRegions: WarRoomCountyRegion[];
+  candidates: WarRoomLeaderboardEntry[];
+}) {
+  const [search, setSearch] = useState("");
+  const filtered = search.trim()
+    ? countyRegions.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()))
+    : countyRegions;
+
+  const reporting = countyRegions.filter((r) => r.reporting_stations > 0).length;
+
+  return (
+    <section style={{ background: portal.canvas, borderRadius: 8, boxShadow: portal.cardShadow, overflow: "hidden" }}>
+      <div style={{ padding: "14px 16px", borderBottom: `1px solid ${portal.borderSubtle}`, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600, flex: 1 }}>Counties</h2>
+        <span style={{ fontSize: 12, color: portal.textSubtle }}>{reporting} of {countyRegions.length} counties reporting</span>
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search county…"
+          style={{ height: 34, padding: "0 12px", border: `1px solid ${portal.border}`, borderRadius: 6, fontSize: 13, fontFamily: "inherit", color: portal.ink, width: 200, background: portal.canvas }} />
+      </div>
+      <div style={{ overflowX: "auto", maxHeight: 480 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: 500 + candidates.length * 80 }}>
+          <thead>
+            <tr style={{ background: portal.canvasSubtle }}>
+              <Th left>County</Th>
+              <Th>Reporting stations</Th>
+              {candidates.map((c) => <Th key={c.candidate_id}>{c.name.split(" ")[0]}</Th>)}
+              <Th>Total valid</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((r) => {
+              const hasData = r.reporting_stations > 0;
+              return (
+                <tr key={r.id} style={{ borderTop: `1px solid ${portal.borderSubtle}`, background: portal.canvas }}>
+                  <td style={{ padding: "8px 16px", fontWeight: 500 }}>{r.name}</td>
+                  <td style={{ padding: "8px 16px", textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                    {r.reporting_stations} / {r.total_stations}
+                  </td>
+                  {candidates.map((c) => {
+                    const v = r.votes.find((vv) => vv.candidate_id === c.candidate_id);
+                    return (
+                      <td key={c.candidate_id} style={{ padding: "8px 16px", textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                        {hasData ? fmt(v?.votes ?? 0) : "—"}
+                      </td>
+                    );
+                  })}
+                  <td style={{ padding: "8px 16px", textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                    {hasData ? fmt(r.total_valid) : "—"}
+                  </td>
+                </tr>
+              );
+            })}
+            {filtered.length === 0 && (
+              <tr><td colSpan={3 + candidates.length} style={{ padding: 24, textAlign: "center", color: portal.textSubtle }}>No counties match your search.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 // ---- main heat-map war room --------------------------------------------------
 
 type GeoLevel = "national" | "county" | "constituency";
@@ -535,9 +600,24 @@ function WarRoomHeatMap({
   // ---- aggregate votes by child regions ------------------------------------
   const regions: Record<string, HeatRegion> = useMemo(() => {
     if (!summary) return {};
+    if (level === "national") {
+      // National scope: backend returns pre-aggregated county_regions to avoid
+      // returning 46k+ station rows in one response.
+      const countyRegions = summary.county_regions ?? [];
+      const acc: Record<string, HeatRegion> = {};
+      for (const r of countyRegions) {
+        acc[r.id] = {
+          id:                 r.id,
+          name:               r.name,
+          votes:              candidateIds.map((cid) => r.votes.find((v) => v.candidate_id === cid)?.votes ?? 0),
+          totalValid:         r.total_valid,
+          totalStations:      r.total_stations,
+          reportingStations:  r.reporting_stations,
+        };
+      }
+      return acc;
+    }
     const stations = summary.stations;
-    if (level === "national")
-      return aggregateRegions(stations, (s) => s.county_id, (s) => s.county_name, candidateIds);
     if (level === "county")
       return aggregateRegions(stations, (s) => s.constituency_id, (s) => s.constituency_name, candidateIds);
     // constituency
@@ -857,12 +937,17 @@ function WarRoomHeatMap({
           />
         )}
 
-        {/* Station grid */}
-        <StationGrid
-          stations={displayedStations}
-          search={stationSearch}
-          onSearch={setStationSearch}
-        />
+        {/* Station grid — hidden at national level (county_regions used instead) */}
+        {level !== "national" && (
+          <StationGrid
+            stations={displayedStations}
+            search={stationSearch}
+            onSearch={setStationSearch}
+          />
+        )}
+        {level === "national" && (summary?.county_regions?.length ?? 0) > 0 && (
+          <CountySummaryGrid countyRegions={summary!.county_regions!} candidates={candidates} />
+        )}
       </div>
       </main>
 
