@@ -304,6 +304,70 @@ class WarRoomController extends Controller
         return response()->json(['result' => ['id' => $result->id, 'status' => 'queried', 'query_note' => $data['note']]]);
     }
 
+    public function amendResult(Request $request, string $workspaceId, string $runId, string $resultId): JsonResponse
+    {
+        $this->resolveRun($workspaceId, $runId);
+
+        $data = $request->validate([
+            'candidates'       => 'required|array|min:1',
+            'candidates.*.candidate_id' => 'required|string',
+            'candidates.*.votes'        => 'required|integer|min:0',
+            'rejected_ballots' => 'required|integer|min:0',
+            'note'             => 'required|string|max:1000',
+        ]);
+
+        $result = StationResult::where('workspace_id', $workspaceId)
+            ->where('run_id', $runId)
+            ->findOrFail($resultId);
+
+        $user  = $request->user();
+        $agent = WorkspaceAgent::where('workspace_id', $workspaceId)
+            ->where('user_id', $user->id)
+            ->where('role', 'ward')
+            ->where('status', 'approved')
+            ->first();
+
+        $isCMOrAspirant = $this->isCMOrAspirant($user, $workspaceId);
+
+        if (! $agent && ! $isCMOrAspirant) {
+            abort(403, 'Only a ward admin or campaign manager can amend results.');
+        }
+
+        if ($agent) {
+            $stationWard = DB::table('polling_stations as ps')
+                ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
+                ->where('ps.id', $result->station_id)
+                ->value('pc.ward_id');
+
+            if ($stationWard !== $agent->ward_id) {
+                abort(403, 'This station is not in your ward.');
+            }
+        }
+
+        $totalVotes = array_sum(array_column($data['candidates'], 'votes'));
+
+        $wardId = $agent?->ward_id ?? DB::table('polling_stations as ps')
+            ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
+            ->where('ps.id', $result->station_id)->value('pc.ward_id');
+
+        $result->update([
+            'candidates'           => $data['candidates'],
+            'total_votes'          => $totalVotes,
+            'rejected_ballots'     => $data['rejected_ballots'],
+            'status'               => 'verified',
+            'verified_by_user_id'  => $user->id,
+            'ward_amendment_note'  => $data['note'],
+        ]);
+
+        AuditService::log($request, 'result.amended', $workspaceId,
+            'StationResult', $result->id, $result->reference_code,
+            ['run_id' => $runId, 'note' => $data['note'], 'total_votes' => $totalVotes],
+            $wardId,
+        );
+
+        return response()->json(['result' => ['id' => $result->id, 'status' => 'verified']]);
+    }
+
     private function isCMOrAspirant(\App\Models\User $user, string $workspaceId): bool
     {
         $workspace = \App\Models\Workspace::find($workspaceId);

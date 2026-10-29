@@ -900,7 +900,27 @@ function WardReconcileView({
   const [queryOpenId, setQueryOpenId]         = useState<string | null>(null);
   const [queryNote, setQueryNote]             = useState("");
   const [busy, setBusy]                       = useState<string | null>(null);
+  const [amendMode, setAmendMode]             = useState(false);
+  const [amendVotes, setAmendVotes]           = useState<Record<string, number>>({});
+  const [amendRejected, setAmendRejected]     = useState<number | "">("");
+  const [amendNote, setAmendNote]             = useState("");
   const { add: addNotif, update: updateNotif } = useNotifications();
+
+  function enterAmendMode(s: WarRoomStation) {
+    const votes: Record<string, number> = {};
+    s.votes.forEach((v) => { votes[v.candidate_id] = v.votes; });
+    setAmendVotes(votes);
+    setAmendRejected(s.rejected_ballots ?? 0);
+    setAmendNote("");
+    setAmendMode(true);
+  }
+
+  function exitAmendMode() {
+    setAmendMode(false);
+    setAmendVotes({});
+    setAmendRejected("");
+    setAmendNote("");
+  }
 
   const load = useCallback(() => {
     setLoading(true);
@@ -936,6 +956,24 @@ function WardReconcileView({
       load(); onRefresh();
     } catch { /* ignore */ }
     finally { setBusy(null); }
+  }
+
+  async function doAmend(s: WarRoomStation) {
+    if (!s.result_id || !amendNote.trim() || busy) return;
+    setBusy(s.id);
+    const toastId = addNotif("Saving amendment…", "loading");
+    try {
+      await api.amendResult(workspaceId, runId, s.result_id, {
+        candidates: s.votes.map((v) => ({ candidate_id: v.candidate_id, votes: amendVotes[v.candidate_id] ?? v.votes })),
+        rejected_ballots: typeof amendRejected === "number" ? amendRejected : s.rejected_ballots ?? 0,
+        note: amendNote.trim(),
+      });
+      updateNotif(toastId, `${s.name} amended and verified`, "success");
+      exitAmendMode(); setReviewId(null);
+      load(); onRefresh();
+    } catch {
+      updateNotif(toastId, "Failed to save amendment.", "error");
+    } finally { setBusy(null); }
   }
 
   const counts = {
@@ -1161,12 +1199,14 @@ function WardReconcileView({
       {/* Review panel — right drawer */}
       {reviewStation && (
         <>
-          <div onClick={() => setReviewId(null)} style={{ position: "fixed", inset: 0, background: "rgba(9,30,66,0.2)", zIndex: 50 }} />
+          <div onClick={() => { setReviewId(null); exitAmendMode(); }} style={{ position: "fixed", inset: 0, background: "rgba(9,30,66,0.2)", zIndex: 50 }} />
           <aside style={{ position: "fixed", top: 56, right: 0, bottom: 0, zIndex: 51, width: 680, maxWidth: "100%", background: portal.canvas, boxShadow: portal.modalShadow, display: "flex", flexDirection: "column" }}>
             {/* Panel header */}
             <div style={{ padding: "18px 20px 14px", borderBottom: `1px solid ${portal.border}`, display: "flex", gap: 12, alignItems: "flex-start" }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: portal.textSubtle, letterSpacing: "0.04em", textTransform: "uppercase" }}>Review Form 34A</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: portal.textSubtle, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                  {amendMode ? "Amend Form 34A" : "Review Form 34A"}
+                </div>
                 <h2 style={{ margin: "4px 0 0", fontSize: 20, fontWeight: 600 }}>{reviewStation.name}</h2>
                 {reviewStation.code && <div style={{ marginTop: 4, fontFamily: "monospace", fontSize: 12, color: portal.label }}>{reviewStation.code}</div>}
                 <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -1174,7 +1214,7 @@ function WardReconcileView({
                   {reviewStation.submitted_at && <span style={{ fontSize: 12, color: portal.textSubtle }}>Submitted {new Date(reviewStation.submitted_at).toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit" })} EAT</span>}
                 </div>
               </div>
-              <button onClick={() => setReviewId(null)} style={{ width: 36, height: 36, flexShrink: 0, border: 0, borderRadius: 6, background: "transparent", color: portal.label, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+              <button onClick={() => { setReviewId(null); exitAmendMode(); }} style={{ width: 36, height: 36, flexShrink: 0, border: 0, borderRadius: 6, background: "transparent", color: portal.label, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
                 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}><path d="M4 4l8 8M12 4l-8 8" /></svg>
               </button>
             </div>
@@ -1202,19 +1242,50 @@ function WardReconcileView({
 
               {/* Tallies */}
               <section>
-                <h3 style={{ margin: "0 0 10px", fontSize: 14, fontWeight: 600 }}>Tallies as submitted</h3>
+                <h3 style={{ margin: "0 0 10px", fontSize: 14, fontWeight: 600 }}>
+                  {amendMode ? "Amended tallies" : "Tallies as submitted"}
+                </h3>
                 {reviewStation.votes.map((v, i) => (
                   <div key={v.candidate_id} style={{ display: "flex", alignItems: "center", gap: 10, minHeight: 44, padding: "0 8px", margin: "0 -8px", borderBottom: `1px solid ${portal.borderSubtle}`, fontSize: 14 }}>
                     <span style={{ flex: 1 }}><span style={{ fontWeight: 600 }}>{v.candidate_name ?? `Candidate ${i + 1}`}</span>{" "}<span style={{ color: portal.textSubtle }}>{v.candidate_party}</span></span>
-                    <span style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{fmt(v.votes)}</span>
+                    {amendMode ? (
+                      <input
+                        type="number"
+                        min={0}
+                        value={amendVotes[v.candidate_id] ?? v.votes}
+                        onChange={(e) => setAmendVotes((prev) => ({ ...prev, [v.candidate_id]: Math.max(0, parseInt(e.target.value) || 0) }))}
+                        style={{ width: 80, height: 32, border: `1px solid ${portal.brand}`, borderRadius: 6, padding: "0 8px", fontSize: 14, fontWeight: 600, textAlign: "right", fontFamily: "inherit", outline: "none", boxSizing: "border-box" }}
+                      />
+                    ) : (
+                      <span style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{fmt(v.votes)}</span>
+                    )}
                   </div>
                 ))}
-                <div style={{ display: "flex", justifyContent: "space-between", minHeight: 40, alignItems: "center", background: portal.canvasSubtle, padding: "0 10px", margin: "6px -10px 0", borderRadius: 6, fontSize: 14, fontWeight: 700 }}>
-                  <span>Total valid votes</span><span style={{ fontVariantNumeric: "tabular-nums" }}>{fmt(reviewStation.total_votes)}</span>
-                </div>
+                {(() => {
+                  const amendTotal = amendMode ? Object.values(amendVotes).reduce((a, b) => a + b, 0) : null;
+                  return (
+                    <div style={{ display: "flex", justifyContent: "space-between", minHeight: 40, alignItems: "center", background: portal.canvasSubtle, padding: "0 10px", margin: "6px -10px 0", borderRadius: 6, fontSize: 14, fontWeight: 700 }}>
+                      <span>Total valid votes</span>
+                      <span style={{ fontVariantNumeric: "tabular-nums" }}>{amendMode ? fmt(amendTotal!) : fmt(reviewStation.total_votes)}</span>
+                    </div>
+                  );
+                })()}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 10 }}>
+                  <div style={{ padding: "8px 10px", borderRadius: 6, border: `1px solid ${amendMode ? portal.brand : portal.border}` }}>
+                    <div style={{ fontSize: 12, color: portal.textSubtle, marginBottom: 2 }}>Rejected</div>
+                    {amendMode ? (
+                      <input
+                        type="number"
+                        min={0}
+                        value={amendRejected}
+                        onChange={(e) => setAmendRejected(Math.max(0, parseInt(e.target.value) || 0))}
+                        style={{ width: "100%", height: 28, border: "none", padding: 0, fontSize: 16, fontWeight: 700, fontFamily: "inherit", outline: "none", background: "transparent", boxSizing: "border-box" }}
+                      />
+                    ) : (
+                      <div style={{ fontSize: 16, fontWeight: 700 }}>{fmt(reviewStation.rejected_ballots)}</div>
+                    )}
+                  </div>
                   {[
-                    { label: "Rejected", val: fmt(reviewStation.rejected_ballots) },
                     { label: "Registered", val: fmt(reviewStation.registered_voters) },
                     { label: "Turnout", val: reviewStation.total_votes != null && reviewStation.registered_voters ? ((reviewStation.total_votes + (reviewStation.rejected_ballots ?? 0)) / reviewStation.registered_voters * 100).toFixed(1) + "%" : "—" },
                   ].map((item) => (
@@ -1224,9 +1295,27 @@ function WardReconcileView({
                     </div>
                   ))}
                 </div>
-                {reviewStation.query_note && (
+                {reviewStation.query_note && !amendMode && (
                   <div style={{ marginTop: 10, padding: "10px 12px", borderRadius: 6, background: "#FFF7D6", border: "1px solid #F8E6A0", fontSize: 13, color: "#7F5F01" }}>
                     <strong>Query note:</strong> {reviewStation.query_note}
+                  </div>
+                )}
+                {/* Amendment note input */}
+                {amendMode && (
+                  <div style={{ marginTop: 16 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: portal.label, marginBottom: 6 }}>
+                      Reason for amendment <span style={{ color: "#AE2A19" }}>*</span>
+                    </div>
+                    <textarea
+                      value={amendNote}
+                      onChange={(e) => setAmendNote(e.target.value)}
+                      placeholder="Describe why you are changing these figures (e.g. transcription error on agent's submission)…"
+                      rows={3}
+                      style={{ width: "100%", boxSizing: "border-box", border: `1px solid ${amendNote.trim() ? portal.border : "#AE2A19"}`, borderRadius: 8, padding: "10px 12px", fontSize: 13, fontFamily: "inherit", resize: "vertical", outline: "none", color: portal.ink, background: portal.canvas }}
+                    />
+                    {!amendNote.trim() && (
+                      <div style={{ fontSize: 12, color: "#AE2A19", marginTop: 4 }}>A reason is required before saving.</div>
+                    )}
                   </div>
                 )}
               </section>
@@ -1275,10 +1364,28 @@ function WardReconcileView({
             {/* Panel footer actions */}
             {canVerify && (
               <div style={{ padding: "14px 20px", borderTop: `1px solid ${portal.border}`, display: "flex", gap: 8, justifyContent: "flex-end", flexWrap: "wrap" }}>
-                <button onClick={() => { setReviewId(null); setQueryOpenId(reviewStation.id); setQueryNote(""); }} style={{ height: 40, padding: "0 14px", border: `1px solid ${portal.border}`, borderRadius: 8, background: portal.canvas, color: "#AE2A19", fontFamily: "inherit", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Query</button>
-                <button onClick={() => setConfirmVerifyTarget(reviewStation)} disabled={!!busy} style={{ height: 40, padding: "0 18px", border: 0, borderRadius: 8, background: busy ? portal.neutral : "#1F845A", color: busy ? portal.textSubtle : "#FFFFFF", fontFamily: "inherit", fontSize: 14, fontWeight: 600, cursor: busy ? "default" : "pointer" }}>
-                  Confirm verified
-                </button>
+                {amendMode ? (
+                  <>
+                    <button onClick={exitAmendMode} style={{ height: 40, padding: "0 14px", border: `1px solid ${portal.border}`, borderRadius: 8, background: portal.canvas, color: portal.ink, fontFamily: "inherit", fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => doAmend(reviewStation)}
+                      disabled={!amendNote.trim() || !!busy}
+                      style={{ height: 40, padding: "0 18px", border: 0, borderRadius: 8, background: (!amendNote.trim() || !!busy) ? portal.neutral : "#1F845A", color: (!amendNote.trim() || !!busy) ? portal.textSubtle : "#FFFFFF", fontFamily: "inherit", fontSize: 14, fontWeight: 600, cursor: (!amendNote.trim() || !!busy) ? "default" : "pointer" }}
+                    >
+                      {busy === reviewStation.id ? "Saving…" : "Save amendment & verify"}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={() => { setReviewId(null); setQueryOpenId(reviewStation.id); setQueryNote(""); }} style={{ height: 40, padding: "0 14px", border: `1px solid ${portal.border}`, borderRadius: 8, background: portal.canvas, color: "#AE2A19", fontFamily: "inherit", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Query</button>
+                    <button onClick={() => enterAmendMode(reviewStation)} style={{ height: 40, padding: "0 14px", border: `1px solid ${portal.border}`, borderRadius: 8, background: portal.canvas, color: portal.ink, fontFamily: "inherit", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Amend tallies</button>
+                    <button onClick={() => setConfirmVerifyTarget(reviewStation)} disabled={!!busy} style={{ height: 40, padding: "0 18px", border: 0, borderRadius: 8, background: busy ? portal.neutral : "#1F845A", color: busy ? portal.textSubtle : "#FFFFFF", fontFamily: "inherit", fontSize: 14, fontWeight: 600, cursor: busy ? "default" : "pointer" }}>
+                      Confirm verified
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </aside>

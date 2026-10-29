@@ -753,6 +753,17 @@ export const api = {
       { method: 'POST', body: JSON.stringify({ note }) },
     ),
 
+  amendResult: (
+    workspaceId: string,
+    runId: string,
+    resultId: string,
+    payload: { candidates: Array<{ candidate_id: string; votes: number }>; rejected_ballots: number; note: string },
+  ) =>
+    request<{ result: { id: string; status: string } }>(
+      `/api/workspaces/${workspaceId}/runs/${runId}/results/${resultId}/amend`,
+      { method: 'POST', body: JSON.stringify(payload) },
+    ),
+
   // ---- tier form (Form 34B / 37B etc.) ----------------------------------------
   getTierForm: (workspaceId: string, runId: string, tier: string, geoId?: string | null) => {
     const qs = new URLSearchParams({ tier });

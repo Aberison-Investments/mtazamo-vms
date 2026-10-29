@@ -99,6 +99,7 @@ Route::middleware('auth.token')->group(function () {
     Route::get('workspaces/{id}/warroom/summary',                                      [WarRoomController::class, 'summary']);
     Route::post('workspaces/{id}/runs/{runId}/results/{resultId}/verify',              [WarRoomController::class, 'verifyResult']);
     Route::post('workspaces/{id}/runs/{runId}/results/{resultId}/query',               [WarRoomController::class, 'queryResult']);
+    Route::post('workspaces/{id}/runs/{runId}/results/{resultId}/amend',               [WarRoomController::class, 'amendResult']);
 
     // Tier form submissions (Form 34B / 37B / 35B etc.)
     Route::get('workspaces/{id}/runs/{runId}/tier-form',         [TierFormController::class, 'show']);
