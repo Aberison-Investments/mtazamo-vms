@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Loads the geography dumps into the running Postgres/PostGIS container.
-# Order matters: counties → constituencies → wards → polling_stations (FKs).
+# Order matters: counties → constituencies → wards → polling_centres → polling_stations (FKs).
 # Idempotent-ish: the dumps CREATE TABLE, so run this against a fresh DB.
+# After loading, run: docker compose exec backend php artisan geo:import-stations
 #
 # Usage:  ./scripts/load-geo.sh
 set -euo pipefail
@@ -13,7 +14,7 @@ set -a; [ -f .env ] && . ./.env; set +a
 DB_USER="${POSTGRES_USER:-mtazamo}"
 DB_NAME="${POSTGRES_DB:-mtazamo}"
 
-DUMPS=(counties constituencies wards polling_stations)
+DUMPS=(counties constituencies wards polling_centres polling_stations)
 
 echo "Ensuring PostGIS extension..."
 docker compose exec -T db psql -v ON_ERROR_STOP=1 -U "$DB_USER" -d "$DB_NAME" \
@@ -50,4 +51,5 @@ docker compose exec -T db psql -U "$DB_USER" -d "$DB_NAME" -c \
   "SELECT 'counties' AS tbl, count(*) FROM counties
    UNION ALL SELECT 'constituencies', count(*) FROM constituencies
    UNION ALL SELECT 'wards', count(*) FROM wards
+   UNION ALL SELECT 'polling_centres', count(*) FROM polling_centres
    UNION ALL SELECT 'polling_stations', count(*) FROM polling_stations;"

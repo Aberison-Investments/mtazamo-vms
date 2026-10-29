@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Navigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { makeProjector, type ProjFeature } from "../../projector";
 import {
   api,
@@ -10,14 +10,19 @@ import {
   type WorkspaceGeoSummary,
 } from "../../api";
 import { portal } from "../../portalTheme";
-import { WorkspaceShell } from "../../components/portal/WorkspaceShell";
+import { useWorkspaceContext } from "../../contexts/WorkspaceContext";
 
 // ---- coverage palette -------------------------------------------------------
 
+// Continuous brand ramp: 0% = lightest tint, 100% = deep brand
 function coverageColor(pct: number): string {
-  if (pct >= 65) return "#1F845A";
-  if (pct >= 40) return "#E2B203";
-  return "#AE2A19";
+  const t = Math.max(0, Math.min(100, pct)) / 100;
+  const light = { r: 220, g: 238, b: 244 };
+  const dark  = { r: 30,  g: 95,  b: 115 };
+  const r = Math.round(light.r + (dark.r - light.r) * t);
+  const g = Math.round(light.g + (dark.g - light.g) * t);
+  const b = Math.round(light.b + (dark.b - light.b) * t);
+  return `rgb(${r},${g},${b})`;
 }
 
 // ---- drill state ------------------------------------------------------------
@@ -150,9 +155,16 @@ function GeoMap({ geoJson, items, selectedId, onSelect }: MapProps) {
 
 export function WorkspaceGeography() {
   const { id } = useParams<{ id: string }>();
-  const [workspace, setWorkspace] = useState<Workspace | null>(null);
-  const [myRole, setMyRole] = useState<string>('campaign_manager');
-  const [notFound, setNotFound] = useState(false);
+  const { workspace, myRole } = useWorkspaceContext();
+
+  // When the logged-in user is a ward admin, their specific ward (from tier context)
+  const [wardFilter, setWardFilter] = useState<{ id: string; name: string } | null>(null);
+
+  // When the logged-in user is a constituency agent, their specific constituency
+  const [constituencyFilter, setConstituencyFilter] = useState<{ id: string; name: string } | null>(null);
+
+  // When the logged-in user is a county agent, their specific county
+  const [countyFilter, setCountyFilter] = useState<{ id: string; name: string } | null>(null);
 
   // mapLevel + parent region — only changes when the user drills into a new level
   const [drillState, setDrillState] = useState<DrillState | null>(null);
@@ -173,18 +185,41 @@ export function WorkspaceGeography() {
 
   const loadIdRef = useRef(0); // monotonic counter to ignore stale responses
 
-  // Load workspace once
+  // Initialise drill state; ward/constituency officers also fetch their tier context to pin their area
   useEffect(() => {
     if (!id) return;
-    api
-      .getWorkspace(id)
-      .then(({ workspace: w, my_role }) => {
-        setWorkspace(w);
-        setMyRole(my_role);
-        setDrillState(initDrillState(w));
-      })
-      .catch(() => setNotFound(true));
-  }, [id]);
+    if (myRole === 'ward') {
+      api.getTierContext(id).then((ctx) => {
+        if (ctx.ward_id) setWardFilter({ id: ctx.ward_id, name: ctx.geo_scope ?? 'Ward' });
+      }).catch(() => {});
+      setDrillState({ mapLevel: 'ward-only', county: null, constituency: null });
+    } else if (myRole === 'county') {
+      api.getTierContext(id).then((ctx) => {
+        if (ctx.county_id && ctx.geo_scope) {
+          const cf = { id: ctx.county_id, name: ctx.geo_scope };
+          setCountyFilter(cf);
+          setDrillState({ mapLevel: 'county', county: cf, constituency: null });
+        } else {
+          setDrillState(initDrillState(workspace));
+        }
+      }).catch(() => setDrillState(initDrillState(workspace)));
+    } else if (myRole === 'constituency') {
+      api.getTierContext(id).then((ctx) => {
+        if (ctx.constituency_id && ctx.geo_scope) {
+          const cf = { id: ctx.constituency_id, name: ctx.geo_scope };
+          setConstituencyFilter(cf);
+          const county = workspace.county_id && workspace.county
+            ? { id: workspace.county_id, name: workspace.county }
+            : null;
+          setDrillState({ mapLevel: 'constituency', county, constituency: cf });
+        } else {
+          setDrillState(initDrillState(workspace));
+        }
+      }).catch(() => setDrillState(initDrillState(workspace)));
+    } else {
+      setDrillState(initDrillState(workspace));
+    }
+  }, [id, myRole]);
 
   // Load geography data when the map level changes
   useEffect(() => {
@@ -201,18 +236,17 @@ export function WorkspaceGeography() {
     const { mapLevel, county, constituency } = drillState;
 
     if (mapLevel === "ward-only") {
-      // MCA scope: no map, just load stations for the single workspace ward
-      const wardId = workspace.ward_id;
-      if (wardId) {
-        setStationsLoading(true);
-        api.workspaceWardStations(workspace.id, wardId).then((d) => {
-          if (loadIdRef.current !== loadId) return;
-          setStations(d.stations);
-          setStationsLoading(false);
-        }).catch(() => {
-          if (loadIdRef.current === loadId) setStationsLoading(false);
-        });
-      }
+      // Ward admins: use their tier-context ward_id; MCA workspace: use workspace.ward_id
+      const wardId = wardFilter?.id ?? workspace.ward_id;
+      if (!wardId) return; // wardFilter not yet loaded — effect will re-run when it arrives
+      setStationsLoading(true);
+      api.workspaceWardStations(workspace.id, wardId).then((d) => {
+        if (loadIdRef.current !== loadId) return;
+        setStations(d.stations);
+        setStationsLoading(false);
+      }).catch(() => {
+        if (loadIdRef.current === loadId) setStationsLoading(false);
+      });
       return;
     }
 
@@ -245,7 +279,7 @@ export function WorkspaceGeography() {
       if (loadIdRef.current !== loadId) return;
       setLoadError(err instanceof Error ? err.message : "Failed to load geography data");
     });
-  }, [workspace, drillState]);
+  }, [workspace, drillState, wardFilter]);
 
   // ---- handlers ---------------------------------------------------------------
 
@@ -272,6 +306,11 @@ export function WorkspaceGeography() {
 
   function resetToEntry() {
     if (!workspace) return;
+    // County-pinned officers cannot navigate above their county
+    if (countyFilter) {
+      setDrillState({ mapLevel: "county", county: countyFilter, constituency: null });
+      return;
+    }
     setDrillState(initDrillState(workspace));
   }
 
@@ -285,13 +324,11 @@ export function WorkspaceGeography() {
     setStations(null);
   }
 
-  if (notFound) return <Navigate to="/workspaces" replace />;
-
-  if (!workspace || !drillState) {
+  if (!drillState) {
     return (
       <div
         style={{
-          minHeight: "100vh",
+          flex: 1,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -306,36 +343,37 @@ export function WorkspaceGeography() {
   }
 
   if (drillState.mapLevel === "ward-only") {
+    const wardName = wardFilter?.name ?? workspace.ward ?? "Ward";
     return (
-      <WorkspaceShell workspace={workspace} active="geography" myRole={myRole}>
-        <WardOnlyContent
-          workspace={workspace}
-          stations={stations}
-          stationsLoading={stationsLoading}
-        />
-      </WorkspaceShell>
+      <WardOnlyContent
+        workspace={workspace}
+        wardName={wardName}
+        stations={stations}
+        stationsLoading={stationsLoading}
+      />
     );
   }
 
   return (
-    <WorkspaceShell workspace={workspace} active="geography" myRole={myRole}>
-      <GeographyContent
-        workspace={workspace}
-        drillState={drillState}
-        selectedWard={selectedWard}
-        geoJson={geoJson}
-        summary={summary}
-        loadError={loadError}
-        search={search}
-        stations={stations}
-        stationsLoading={stationsLoading}
-        onSearch={setSearch}
-        onMapSelect={handleMapSelect}
-        onBreadcrumbRoot={resetToEntry}
-        onBreadcrumbCounty={resetToCounty}
-        onBreadcrumbConstituency={resetToConstituency}
-      />
-    </WorkspaceShell>
+    <GeographyContent
+      workspace={workspace}
+      myRole={myRole}
+      countyFilter={countyFilter}
+      constituencyFilter={constituencyFilter}
+      drillState={drillState}
+      selectedWard={selectedWard}
+      geoJson={geoJson}
+      summary={summary}
+      loadError={loadError}
+      search={search}
+      stations={stations}
+      stationsLoading={stationsLoading}
+      onSearch={setSearch}
+      onMapSelect={handleMapSelect}
+      onBreadcrumbRoot={resetToEntry}
+      onBreadcrumbCounty={resetToCounty}
+      onBreadcrumbConstituency={resetToConstituency}
+    />
   );
 }
 
@@ -343,6 +381,9 @@ export function WorkspaceGeography() {
 
 interface ContentProps {
   workspace: Workspace;
+  myRole: string;
+  countyFilter: { id: string; name: string } | null;
+  constituencyFilter: { id: string; name: string } | null;
   drillState: DrillState;
   selectedWard: { id: string; name: string } | null;
   geoJson: GeoFeatureCollection | null;
@@ -360,6 +401,9 @@ interface ContentProps {
 
 function GeographyContent({
   workspace,
+  myRole,
+  countyFilter,
+  constituencyFilter,
   drillState,
   selectedWard,
   geoJson,
@@ -377,22 +421,29 @@ function GeographyContent({
   const { mapLevel, county, constituency } = drillState;
   const [listCollapsed, setListCollapsed] = useState(false);
 
+  // Officers pinned to a geo scope cannot navigate upward past their scope
+  const isCountyPinned = myRole === 'county' && !!countyFilter;
+  const isConstituencyPinned = myRole === 'constituency' && !!constituencyFilter;
+
   // Breadcrumb
   const breadcrumb = useMemo(() => {
     const parts: Array<{ label: string; onClick?: () => void }> = [];
 
     if (workspace.scope === "national") {
-      parts.push({ label: "All counties", onClick: county ? onBreadcrumbRoot : undefined });
+      if (!isCountyPinned) {
+        parts.push({ label: "All counties", onClick: county ? onBreadcrumbRoot : undefined });
+      }
       if (county) {
         parts.push({
-          label: county.name,
+          label: county.name + " County",
           onClick: constituency ? () => onBreadcrumbCounty(county) : undefined,
         });
       }
     } else if (workspace.scope === "county" && workspace.county) {
       parts.push({
         label: workspace.county + " County",
-        onClick: constituency ? onBreadcrumbRoot : undefined,
+        // Constituency officers cannot navigate back up to county level
+        onClick: constituency && !isConstituencyPinned ? onBreadcrumbRoot : undefined,
       });
     } else if (workspace.scope === "constituency" && workspace.constituency) {
       parts.push({ label: workspace.constituency });
@@ -410,7 +461,7 @@ function GeographyContent({
     }
 
     return parts;
-  }, [workspace, mapLevel, county, constituency, selectedWard, onBreadcrumbRoot, onBreadcrumbCounty, onBreadcrumbConstituency]);
+  }, [workspace, mapLevel, county, constituency, selectedWard, isConstituencyPinned, onBreadcrumbRoot, onBreadcrumbCounty, onBreadcrumbConstituency]);
 
   // Subtitle text
   const subtitle = useMemo(() => {
@@ -613,12 +664,11 @@ function GeographyContent({
             fontSize: 11, color: portal.textSubtle,
             background: "rgba(255,255,255,0.9)", padding: "4px 8px", borderRadius: 6,
           }}>
-            {([["#AE2A19", "Low coverage"], ["#E2B203", "Partial"], ["#1F845A", "Covered"]] as const).map(([col, lbl]) => (
-              <span key={lbl} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <span style={{ width: 8, height: 8, borderRadius: 2, background: col }} />
-                {lbl}
-              </span>
-            ))}
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 10, color: portal.textSubtle }}>Low</span>
+              <span style={{ width: 80, height: 8, borderRadius: 4, background: "linear-gradient(to right, rgb(220,238,244), rgb(30,95,115))" }} />
+              <span style={{ fontSize: 10, color: portal.textSubtle }}>High coverage</span>
+            </span>
           </div>
         </div>
 
@@ -732,7 +782,6 @@ function StationsGrid({
         background: portal.canvasSubtle,
       }}>
         <div style={{ fontSize: 16, fontWeight: 600 }}>Polling stations in {wardName}</div>
-        <div style={{ fontSize: 12, color: portal.textSubtle }}>No mapped coordinates — listed only</div>
       </div>
       {loading && (
         <div style={{ padding: 16, fontSize: 13, color: portal.textSubtle }}>Loading stations…</div>
@@ -750,9 +799,11 @@ function StationsGrid({
               }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {s.name}
+                    {s.name}{s.stream_number != null ? ` · stream ${s.stream_number}` : ""}
                   </div>
-                  <div style={{ fontSize: 11, color: portal.textSubtle }}>{s.code ?? "—"}</div>
+                  <div style={{ fontSize: 11, color: portal.textSubtle }}>
+                    {s.code ?? "—"}{s.agent ? ` · ${s.agent}` : ""}
+                  </div>
                 </div>
                 <span style={{
                   display: "inline-flex", alignItems: "center", height: 20,
@@ -774,15 +825,20 @@ function StationsGrid({
 // ---- ward-only view (MCA scope) ---------------------------------------------
 
 function WardOnlyContent({
-  workspace, stations, stationsLoading,
+  workspace, wardName, stations, stationsLoading,
 }: {
   workspace: Workspace;
+  wardName: string;
   stations: Station[] | null;
   stationsLoading: boolean;
 }) {
-  const wardName = workspace.ward ?? "Ward";
   const consName = workspace.constituency ?? "";
   const countyName = workspace.county ? `${workspace.county} County` : "";
+
+  const totalStations = stations?.length ?? 0;
+  const coveredStations = stations?.filter((s) => s.agent).length ?? 0;
+  const coveragePct = totalStations > 0 ? Math.round((coveredStations / totalStations) * 100) : 0;
+
   return (
     <div style={{ flex: 1, minWidth: 0, padding: "28px 40px 56px" }}>
       <div style={{ fontSize: 12, color: portal.textSubtle, marginBottom: 6 }}>
@@ -790,9 +846,24 @@ function WardOnlyContent({
       </div>
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>Geography</div>
-        <div style={{ fontSize: 14, color: portal.textSubtle }}>{wardName} — ward scope</div>
+        <div style={{ fontSize: 14, color: portal.textSubtle }}>{wardName} Ward</div>
       </div>
-      <StationsGrid wardName={wardName} stations={stations} loading={stationsLoading} />
+
+      {/* Stats + grid side by side */}
+      <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
+        {stations && (
+          <StatsPanel
+            title={wardName}
+            levelTag="Ward"
+            totalStations={totalStations}
+            coveredStations={coveredStations}
+            coveragePct={coveragePct}
+          />
+        )}
+        <div style={{ flex: 1, minWidth: 280 }}>
+          <StationsGrid wardName={wardName} stations={stations} loading={stationsLoading} />
+        </div>
+      </div>
     </div>
   );
 }

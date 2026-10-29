@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 
 /**
  * Geography is READ-ONLY, sourced from the pre-loaded IEBC station register
- * (counties -> constituencies -> wards -> polling_stations). There is no upload;
+ * (counties -> constituencies -> wards -> polling_centres -> polling_stations). There is no upload;
  * the only mutation is adding a single station that is missing from the register.
  *
  * These tables are introspected/managed outside Laravel (loaded from PostGIS
@@ -101,18 +101,27 @@ class GeographyController extends Controller
             return response()->json(['error' => 'Ward not found'], 404);
         }
 
-        $stations = DB::table('polling_stations')
-            ->select('id', 'code', 'name', 'registered_voters')
-            ->where('ward_id', $wardId)
-            ->orderBy('code')
-            ->orderBy('name')
+        $centres = DB::table('polling_centres as pc')
+            ->select(
+                'pc.id',
+                'pc.code',
+                'pc.name',
+                DB::raw('COALESCE(SUM(ps.registered_voters), pc.registered_voters) AS registered_voters'),
+                DB::raw('COUNT(ps.id) AS stream_count'),
+            )
+            ->leftJoin('polling_stations as ps', 'ps.polling_centre_id', '=', 'pc.id')
+            ->where('pc.ward_id', $wardId)
+            ->groupBy('pc.id', 'pc.code', 'pc.name', 'pc.registered_voters')
+            ->orderBy('pc.code')
+            ->orderBy('pc.name')
             ->get()
-            ->map(fn ($s) => [
-                'id' => $s->id,
-                'code' => $s->code,
-                'name' => $s->name,
-                'registered_voters' => $s->registered_voters,
-                'agent' => null,
+            ->map(fn ($c) => [
+                'id'                => $c->id,
+                'code'              => $c->code,
+                'name'              => $c->name,
+                'registered_voters' => (int)$c->registered_voters,
+                'stream_count'      => (int)$c->stream_count,
+                'agent'             => null,
             ]);
 
         return response()->json([
@@ -123,7 +132,7 @@ class GeographyController extends Controller
                     ? ['id' => $ward->constituency_id, 'name' => $ward->constituency_name]
                     : null,
             ],
-            'stations' => $stations,
+            'stations' => $centres,
         ]);
     }
 
@@ -148,22 +157,32 @@ class GeographyController extends Controller
             return response()->json(['error' => 'Ward not found'], 404);
         }
 
-        // Approved agents keyed by station_id — name comes from workspace_agents
-        // directly so this works whether or not the agent has created an account yet.
+        // Approved agents keyed by polling_station_id (individual stream).
         $agentsByStation = DB::table('workspace_agents as wa')
             ->where('wa.workspace_id', $workspaceId)
             ->where('wa.status', 'approved')
             ->where('wa.role', 'agent')
             ->whereNotNull('wa.station_id')
-            ->select('wa.station_id', DB::raw("wa.first_name || ' ' || wa.last_name AS agent_name"))
+            ->select(
+                'wa.station_id',
+                DB::raw("string_agg(wa.first_name || ' ' || wa.last_name, ', ' ORDER BY wa.first_name) AS agent_names"),
+            )
+            ->groupBy('wa.station_id')
             ->get()
             ->keyBy('station_id');
 
-        $stations = DB::table('polling_stations')
-            ->select('id', 'code', 'name', 'registered_voters')
-            ->where('ward_id', $wardId)
-            ->orderBy('code')
-            ->orderBy('name')
+        $stations = DB::table('polling_stations as ps')
+            ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
+            ->where('pc.ward_id', $wardId)
+            ->select(
+                'ps.id',
+                'ps.iebc_code as code',
+                'pc.name',
+                'ps.stream_number',
+                'ps.registered_voters',
+            )
+            ->orderBy('pc.code')
+            ->orderBy('ps.stream_number')
             ->get()
             ->map(function ($s) use ($agentsByStation) {
                 $agentRow = $agentsByStation->get($s->id);
@@ -171,8 +190,9 @@ class GeographyController extends Controller
                     'id'                => $s->id,
                     'code'              => $s->code,
                     'name'              => $s->name,
-                    'registered_voters' => $s->registered_voters,
-                    'agent'             => $agentRow?->agent_name ?? null,
+                    'stream_number'     => $s->stream_number,
+                    'registered_voters' => $s->registered_voters ? (int)$s->registered_voters : null,
+                    'agent'             => $agentRow?->agent_names ?? null,
                 ];
             });
 
@@ -239,23 +259,23 @@ class GeographyController extends Controller
 
         $id = (string) Str::uuid();
         try {
-            DB::table('polling_stations')->insert([
-                'id' => $id,
-                'ward_id' => $wardId,
-                'name' => $name,
-                'code' => $code,
+            DB::table('polling_centres')->insert([
+                'id'                => $id,
+                'ward_id'           => $wardId,
+                'name'              => $name,
+                'code'              => $code,
                 'registered_voters' => $voters,
-                'created_at' => now(),
+                'created_at'        => now(),
             ]);
         } catch (QueryException $e) {
             // Unique (ward_id, code) violation
             if ($e->getCode() === '23505') {
-                return response()->json(['error' => 'A station with this code already exists in this ward'], 409);
+                return response()->json(['error' => 'A polling centre with this code already exists in this ward'], 409);
             }
             throw $e;
         }
 
-        $station = DB::table('polling_stations')
+        $station = DB::table('polling_centres')
             ->select('id', 'code', 'name', 'registered_voters')
             ->where('id', $id)
             ->first();
@@ -393,7 +413,8 @@ class GeographyController extends Controller
             FROM counties co
             LEFT JOIN constituencies c ON c.county_id = co.id
             LEFT JOIN wards w ON w.constituency_id = c.id
-            LEFT JOIN polling_stations ps ON ps.ward_id = w.id
+            LEFT JOIN polling_centres pc ON pc.ward_id = w.id
+            LEFT JOIN polling_stations ps ON ps.polling_centre_id = pc.id
             LEFT JOIN workspace_agents wa ON wa.workspace_id = ? AND wa.station_id = ps.id
             GROUP BY co.id, co.name
             ORDER BY co.name
@@ -410,7 +431,8 @@ class GeographyController extends Controller
                    COUNT(DISTINCT CASE WHEN wa.status = 'approved' AND wa.role = 'agent' AND wa.station_id IS NOT NULL THEN wa.station_id END) AS covered_stations
             FROM constituencies c
             LEFT JOIN wards w ON w.constituency_id = c.id
-            LEFT JOIN polling_stations ps ON ps.ward_id = w.id
+            LEFT JOIN polling_centres pc ON pc.ward_id = w.id
+            LEFT JOIN polling_stations ps ON ps.polling_centre_id = pc.id
             LEFT JOIN workspace_agents wa ON wa.workspace_id = ? AND wa.station_id = ps.id
             WHERE c.county_id = ?
             GROUP BY c.id, c.name
@@ -427,7 +449,8 @@ class GeographyController extends Controller
                    COUNT(DISTINCT ps.id) AS total_stations,
                    COUNT(DISTINCT CASE WHEN wa.status = 'approved' AND wa.role = 'agent' AND wa.station_id IS NOT NULL THEN wa.station_id END) AS covered_stations
             FROM wards w
-            LEFT JOIN polling_stations ps ON ps.ward_id = w.id
+            LEFT JOIN polling_centres pc ON pc.ward_id = w.id
+            LEFT JOIN polling_stations ps ON ps.polling_centre_id = pc.id
             LEFT JOIN workspace_agents wa ON wa.workspace_id = ? AND wa.station_id = ps.id
             WHERE w.constituency_id = ?
             GROUP BY w.id, w.name
@@ -480,16 +503,23 @@ class GeographyController extends Controller
             return response('Ward not found', 404);
         }
 
-        $stations = DB::table('polling_stations')
-            ->select('code', 'name', 'registered_voters')
-            ->where('ward_id', $wardId)
-            ->orderBy('code')
-            ->orderBy('name')
+        $centres = DB::table('polling_centres as pc')
+            ->select(
+                'pc.code',
+                'pc.name',
+                DB::raw('COALESCE(SUM(ps.registered_voters), pc.registered_voters) AS registered_voters'),
+                DB::raw('COUNT(ps.id) AS stream_count'),
+            )
+            ->leftJoin('polling_stations as ps', 'ps.polling_centre_id', '=', 'pc.id')
+            ->where('pc.ward_id', $wardId)
+            ->groupBy('pc.id', 'pc.code', 'pc.name', 'pc.registered_voters')
+            ->orderBy('pc.code')
+            ->orderBy('pc.name')
             ->get();
 
-        $rows = [['Code', 'Station', 'Registered voters', 'Agent']];
-        foreach ($stations as $s) {
-            $rows[] = [$s->code ?? '', $s->name, $s->registered_voters ?? '', 'Unassigned'];
+        $rows = [['Code', 'Polling Centre', 'Streams', 'Registered voters', 'Agent']];
+        foreach ($centres as $c) {
+            $rows[] = [$c->code ?? '', $c->name, $c->stream_count, $c->registered_voters ?? '', 'Unassigned'];
         }
 
         $handle = fopen('php://temp', 'r+');

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams, Navigate } from "react-router-dom";
-import { api, type CandidateListResponse, type Workspace } from "../../api";
+import { useParams } from "react-router-dom";
+import { api, type CandidateListResponse } from "../../api";
 import { portal } from "../../portalTheme";
-import { WorkspaceShell } from "../../components/portal/WorkspaceShell";
+import { useWorkspaceContext } from "../../contexts/WorkspaceContext";
+import { useNotifications } from "../../notifications";
 
 // ---- types ------------------------------------------------------------------
 
@@ -76,37 +77,32 @@ function IconButton({
 
 export function Candidates() {
   const { id } = useParams<{ id: string }>();
-  const [workspace, setWorkspace] = useState<Workspace | null>(null);
-  const [myRole, setMyRole] = useState<string | undefined>(undefined);
+  useWorkspaceContext(); // ensures we're inside a workspace layout
+  const { add: addNotif, update: updateNotif } = useNotifications();
   const [rows, setRows] = useState<Row[] | null>(null);
   const [apiStatus, setApiStatus] = useState<ApiStatus>("draft");
   const [localDirty, setLocalDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [confirmPublish, setConfirmPublish] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saveHint, setSaveHint] = useState<string | null>(null);
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!id) return;
-    Promise.all([
-      api.getWorkspace(id),
-      api.getCandidates(id),
-    ]).then(([wsRes, candRes]) => {
-      setWorkspace(wsRes.workspace);
-      setMyRole(wsRes.my_role);
+    api.getCandidates(id).then((candRes) => {
       setRows(candRes.candidates.map((c) => ({ id: c.id, name: c.name, party: c.party, is_ours: c.is_ours })));
       setApiStatus(candRes.status);
     }).catch((e) => setError(String(e)));
   }, [id]);
 
-  if (!id) return <Navigate to="/workspaces" replace />;
-  if (error && !workspace) {
+  if (error && rows === null) {
     return (
       <div style={{ padding: 40, fontFamily: portal.font, color: portal.dangerText }}>{error}</div>
     );
   }
-  if (!workspace || rows === null) {
+  if (rows === null) {
     return (
       <div style={{ padding: 40, fontFamily: portal.font, color: portal.textSubtle, fontSize: 14 }}>
         Loading…
@@ -179,8 +175,10 @@ export function Candidates() {
 
   async function handlePublish() {
     if (!ready || isLive || publishing) return;
+    setConfirmPublish(false);
     setPublishing(true);
     setError(null);
+    const toastId = addNotif("Publishing candidates to agents…", "loading");
     try {
       if (localDirty) {
         const saveRes = await api.saveCandidates(
@@ -192,8 +190,10 @@ export function Candidates() {
       }
       const res = await api.publishCandidates(safeId);
       setApiStatus(res.status);
+      updateNotif(toastId, "Candidates published to agents", "success");
     } catch (e) {
       setError(String(e));
+      updateNotif(toastId, "Failed to publish candidates", "error");
     } finally {
       setPublishing(false);
     }
@@ -216,7 +216,45 @@ export function Candidates() {
   const canPublish = ready && !isLive && !saving && !publishing;
 
   return (
-    <WorkspaceShell workspace={workspace} active="candidates" myRole={myRole}>
+    <>
+      {confirmPublish && (
+        <>
+          <div
+            onClick={() => setConfirmPublish(false)}
+            style={{ position: "fixed", inset: 0, background: "rgba(9,30,66,0.54)", zIndex: 99 }}
+          />
+          <div style={{
+            position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
+            background: portal.canvas, borderRadius: 14, boxShadow: "0 20px 48px rgba(9,30,66,0.22)",
+            padding: "28px 24px", width: "100%", maxWidth: 420, zIndex: 100,
+            fontFamily: portal.font,
+          }}>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: portal.brandSubtlest, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+              <svg viewBox="0 0 16 16" fill="none" stroke={portal.brandText} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 20, height: 20 }}>
+                <path d="M3 8.5l3 3 7-7" />
+              </svg>
+            </div>
+            <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 8 }}>Publish candidates to agents?</div>
+            <div style={{ fontSize: 13, color: portal.label, lineHeight: "20px", marginBottom: 24 }}>
+              This will make the candidate list visible to all agents in this workspace. They will see every candidate's name and party when submitting results.
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={() => setConfirmPublish(false)}
+                style={{ flex: 1, height: 42, border: "none", borderRadius: 8, background: portal.neutral, color: portal.ink, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePublish}
+                style={{ flex: 2, height: 42, border: "none", borderRadius: 8, background: portal.brand, color: portal.inverse, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}
+              >
+                Publish to agents
+              </button>
+            </div>
+          </div>
+        </>
+      )}
       <div style={{ flex: 1, padding: "24px 40px 56px" }}>
         <div
           style={{
@@ -335,7 +373,7 @@ export function Candidates() {
               <div style={{ display: "flex", gap: 8 }}>
                 <SaveDraftButton onClick={handleSave} saving={saving} />
                 <PublishButton
-                  onClick={handlePublish}
+                  onClick={() => setConfirmPublish(true)}
                   enabled={canPublish}
                   publishing={publishing}
                   isLive={isLive}
@@ -345,7 +383,7 @@ export function Candidates() {
           </div>
         </div>
       </div>
-    </WorkspaceShell>
+    </>
   );
 }
 

@@ -8,6 +8,7 @@ use App\Models\Workspace;
 use App\Models\WorkspaceManager;
 use App\Models\WorkspaceAgent;
 use App\Models\WorkspaceAgentPermission;
+use App\Services\AuditService;
 use App\Support\SeatRoles;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,7 +21,24 @@ class RecruitmentController extends Controller
     {
         [$workspace, $tierRecord] = $this->resolveWorkspaceForInvite($request, $workspaceId);
 
-        $wards = $this->wardsForWorkspace($workspace, $tierRecord);
+        $page    = max(1, (int) $request->query('page', 1));
+        $perPage = min(200, max(1, (int) $request->query('per_page', 10)));
+        $search  = trim((string) $request->query('search', ''));
+
+        $query = $this->wardsQueryForWorkspace($workspace, $tierRecord);
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('wards.name', 'ilike', "%{$search}%")
+                  ->orWhere('constituencies.name', 'ilike', "%{$search}%");
+            });
+        }
+
+        $total = (clone $query)->count();
+        $wards = $query->orderBy('wards.name')
+                       ->offset(($page - 1) * $perPage)
+                       ->limit($perPage)
+                       ->get();
 
         $linkMap = RecruitmentLink::where('workspace_id', $workspace->id)
             ->get()
@@ -53,16 +71,43 @@ class RecruitmentController extends Controller
             'filled' => $this->isRoleFilled($workspace, $r),
         ], $roles);
 
+        // Which constituencies / wards already have an approved agent in this role
+        $filledConstituencyIds = WorkspaceAgent::where('workspace_id', $workspace->id)
+            ->where('role', 'constituency')
+            ->where('status', 'approved')
+            ->whereNotNull('constituency_id')
+            ->pluck('constituency_id')
+            ->unique()
+            ->values()
+            ->toArray();
+
+        $filledWardIds = WorkspaceAgent::where('workspace_id', $workspace->id)
+            ->where('role', 'ward')
+            ->where('status', 'approved')
+            ->whereNotNull('ward_id')
+            ->pluck('ward_id')
+            ->unique()
+            ->values()
+            ->toArray();
+
         return response()->json([
             'workspace' => [
                 'id'   => $workspace->id,
                 'name' => $workspace->name,
                 'seat' => $workspace->seat,
             ],
-            'wards'       => $result->values(),
-            'seat_roles'  => $roleData,
-            'form_letter' => SeatRoles::formLetter($seat),
-            'my_role'     => $myRole,
+            'wards'      => $result->values(),
+            'wards_meta' => [
+                'total'        => $total,
+                'per_page'     => $perPage,
+                'current_page' => $page,
+                'last_page'    => (int) ceil($total / $perPage),
+            ],
+            'seat_roles'              => $roleData,
+            'form_letter'             => SeatRoles::formLetter($seat),
+            'my_role'                 => $myRole,
+            'filled_constituency_ids' => $filledConstituencyIds,
+            'filled_ward_ids'         => $filledWardIds,
         ]);
     }
 
@@ -75,9 +120,13 @@ class RecruitmentController extends Controller
             ['token' => Str::random(40), 'open_roles' => ['agent', 'volunteer']],
         );
 
-        $stations = DB::table('polling_stations')
-            ->where('ward_id', $wardId)
-            ->select('id', 'code', 'name', 'registered_voters')
+        $stations = DB::table('polling_stations as ps')
+            ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
+            ->where('pc.ward_id', $wardId)
+            ->select('ps.id', 'ps.iebc_code as code', 'ps.stream_number', 'ps.registered_voters',
+                     'pc.name', 'pc.code as centre_code')
+            ->orderBy('pc.code')
+            ->orderBy('ps.stream_number')
             ->get();
 
         $agentsByStation = WorkspaceAgent::where('workspace_id', $workspace->id)
@@ -130,6 +179,14 @@ class RecruitmentController extends Controller
 
         $link->update($data);
 
+        if (array_key_exists('is_active', $data)) {
+            $action = $data['is_active'] ? 'recruitment.link_opened' : 'recruitment.link_closed';
+            AuditService::log($request, $action, $workspaceId,
+                'RecruitmentLink', (string) $link->id, null,
+                ['ward_id' => $wardId],
+            );
+        }
+
         return response()->json(['link' => $this->presentLink($link->fresh())]);
     }
 
@@ -142,6 +199,11 @@ class RecruitmentController extends Controller
             ->firstOrFail();
 
         $link->update(['token' => Str::random(40)]);
+
+        AuditService::log($request, 'recruitment.link_regenerated', $workspaceId,
+            'RecruitmentLink', (string) $link->id, null,
+            ['ward_id' => $wardId],
+        );
 
         return response()->json(['link' => $this->presentLink($link->fresh())]);
     }
@@ -178,12 +240,9 @@ class RecruitmentController extends Controller
             $myPos = array_search($tierRecord->role, $seatChain, true);
             if ($myPos === false) abort(403, 'Your role is not in this seat\'s chain.');
             $rolesBelow = array_slice($seatChain, $myPos + 1);
-            // Tier officers cannot invite volunteers via targeted invite
-            $validRoles = array_values(array_filter($rolesBelow, fn ($r) => $r !== 'volunteer' && $r !== 'agent'));
-            // Allow agent invites only if the tier officer is at ward or constituency level
-            if (in_array($tierRecord->role, ['ward', 'constituency'], true)) {
-                $validRoles[] = 'agent';
-            }
+            // All roles below the caller in the chain are invitable, except volunteer
+            // (volunteers use the public application link, not targeted invites)
+            $validRoles = array_values(array_filter($rolesBelow, fn ($r) => $r !== 'volunteer'));
         }
 
         // Filter out volunteer — tier officers use public links for volunteers
@@ -263,6 +322,12 @@ class RecruitmentController extends Controller
             'status'              => 'pending',
         ]);
 
+        AuditService::log($request, 'recruitment.invite_sent', $workspaceId,
+            'AgentInvite', (string) $invite->id, $invite->name,
+            ['role' => $invite->role, 'phone' => $phone],
+            $invite->ward_id, $invite->constituency_id, $invite->county_id,
+        );
+
         $presented = $this->presentInvite($invite);
         if (config('app.debug')) {
             $presented['dev_token'] = $invite->invite_token;
@@ -334,25 +399,36 @@ class RecruitmentController extends Controller
 
     private function isRoleFilled(Workspace $workspace, string $role): bool
     {
-        return match ($role) {
-            // One-per-workspace tier roles: filled if anyone holds that role in an approved state.
-            'national', 'county', 'constituency' =>
-                WorkspaceAgent::where('workspace_id', $workspace->id)
-                    ->where('role', $role)
-                    ->where('status', 'approved')
-                    ->exists(),
-            // Ward admin: for ward-scoped workspaces (MCA) only one slot exists.
-            'ward' => $workspace->scope === 'ward'
-                && WorkspaceAgent::where('workspace_id', $workspace->id)
-                    ->where('role', 'ward')
-                    ->where('status', 'approved')
-                    ->exists(),
-            // Agents and volunteers are per-station/per-ward — never globally "filled".
-            default => false,
-        };
+        // A role is globally "filled" only when the workspace scope means exactly
+        // one slot exists for it. Broader scopes have N slots — never globally filled.
+        //
+        //  national      → one slot only in presidential (national) workspaces
+        //  county        → one slot only in county-scoped workspaces (governor/senator)
+        //  constituency  → one slot only in constituency- or ward-scoped workspaces (MP/MCA)
+        //  ward          → one slot only in ward-scoped workspaces (MCA)
+        //  agent/volunteer → per-station/per-ward, never globally filled
+        $singleSlotScopes = [
+            'national'     => ['national'],
+            'county'       => ['county'],
+            'constituency' => ['constituency', 'ward'],
+            'ward'         => ['ward'],
+        ];
+
+        if (! isset($singleSlotScopes[$role])) {
+            return false;
+        }
+
+        if (! in_array($workspace->scope, $singleSlotScopes[$role], true)) {
+            return false;
+        }
+
+        return WorkspaceAgent::where('workspace_id', $workspace->id)
+            ->where('role', $role)
+            ->where('status', 'approved')
+            ->exists();
     }
 
-    private function wardsForWorkspace(Workspace $workspace, ?WorkspaceAgent $tierRecord = null): \Illuminate\Support\Collection
+    private function wardsQueryForWorkspace(Workspace $workspace, ?WorkspaceAgent $tierRecord = null): \Illuminate\Database\Query\Builder
     {
         $query = DB::table('wards')
             ->leftJoin('constituencies', 'wards.constituency_id', '=', 'constituencies.id')
@@ -365,7 +441,6 @@ class RecruitmentController extends Controller
             );
 
         if ($tierRecord) {
-            // Ward-scoped workspace (MCA): all tier officers see only the workspace's ward.
             if ($workspace->scope === 'ward' && $workspace->ward_id) {
                 $query->where('wards.id', $workspace->ward_id);
             } else {
@@ -377,7 +452,7 @@ class RecruitmentController extends Controller
                     default        => null,
                 };
             }
-            return $query->orderBy('wards.name')->get();
+            return $query;
         }
 
         switch ($workspace->scope) {
@@ -391,11 +466,11 @@ class RecruitmentController extends Controller
                 $query->where('constituencies.county_id', $workspace->county_id);
                 break;
             case 'national':
-                $query->limit(200);
+                // no geo filter — all wards in Kenya
                 break;
         }
 
-        return $query->get();
+        return $query;
     }
 
     /** @return array<string, mixed> */
@@ -418,31 +493,71 @@ class RecruitmentController extends Controller
     /** @return array<string, mixed> */
     private function presentInvite(AgentInvite $inv): array
     {
+        $wardName         = null;
+        $constituencyName = null;
+        $countyName       = null;
+        $stationName      = null;
+
+        if ($inv->ward_id) {
+            $geo = DB::table('wards')
+                ->leftJoin('constituencies', 'wards.constituency_id', '=', 'constituencies.id')
+                ->leftJoin('counties', 'constituencies.county_id', '=', 'counties.id')
+                ->where('wards.id', $inv->ward_id)
+                ->select('wards.name as ward_name', 'constituencies.name as constituency_name', 'counties.name as county_name')
+                ->first();
+            $wardName         = $geo?->ward_name;
+            $constituencyName = $geo?->constituency_name;
+            $countyName       = $geo?->county_name;
+        } elseif ($inv->constituency_id) {
+            $geo = DB::table('constituencies')
+                ->leftJoin('counties', 'constituencies.county_id', '=', 'counties.id')
+                ->where('constituencies.id', $inv->constituency_id)
+                ->select('constituencies.name as constituency_name', 'counties.name as county_name')
+                ->first();
+            $constituencyName = $geo?->constituency_name;
+            $countyName       = $geo?->county_name;
+        } elseif ($inv->county_id) {
+            $geo = DB::table('counties')->where('id', $inv->county_id)->value('name');
+            $countyName = $geo;
+        }
+
+        if ($inv->station_id) {
+            $stationName = DB::table('polling_stations')->where('id', $inv->station_id)->value('name');
+        }
+
         return [
-            'id'          => $inv->id,
-            'role'        => $inv->role,
-            'name'        => $inv->name,
-            'phone'       => $inv->phone,
-            'station_id'  => $inv->station_id,
-            'ward_id'     => $inv->ward_id,
-            'status'      => $inv->status,
-            'expires_at'  => $inv->expires_at?->toIso8601String(),
-            'invited_at'  => $inv->created_at?->toIso8601String(),
+            'id'                => $inv->id,
+            'role'              => $inv->role,
+            'name'              => $inv->name,
+            'phone'             => $inv->phone,
+            'station_id'        => $inv->station_id,
+            'station_name'      => $stationName,
+            'ward_id'           => $inv->ward_id,
+            'ward_name'         => $wardName,
+            'constituency_name' => $constituencyName,
+            'county_name'       => $countyName,
+            'status'            => $inv->status,
+            'expires_at'        => $inv->expires_at?->toIso8601String(),
+            'invited_at'        => $inv->created_at?->toIso8601String(),
         ];
     }
 
     private function normalizePhone(string $phone): string
     {
         $digits = preg_replace('/\D/', '', $phone);
-        if (strlen($digits) === 10 && str_starts_with($digits, '0')) {
-            return '+254' . substr($digits, 1);
-        }
-        if (strlen($digits) === 9) {
-            return '+254' . $digits;
-        }
+        // Already has country code: 254XXXXXXXXX
         if (str_starts_with($digits, '254') && strlen($digits) >= 12) {
             return '+' . $digits;
         }
-        return '+' . $digits;
+        // Local format with leading zero: 07XXXXXXXX
+        if (str_starts_with($digits, '0') && strlen($digits) === 10) {
+            return '+254' . substr($digits, 1);
+        }
+        // 9-digit local: 7XXXXXXXX
+        if (strlen($digits) === 9) {
+            return '+254' . $digits;
+        }
+        // Frontend always prepends +254 — strip it and re-apply cleanly
+        return '+254' . ltrim($digits, '0');
     }
 }

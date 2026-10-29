@@ -1,13 +1,48 @@
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 // ---- auth token storage ----------------------------------------------------
-const TOKEN_KEY = "mtazamo.token";
+const TOKEN_KEY   = "mtazamo.token";
+const REFRESH_KEY = "mtazamo.refresh_token";
 
 export const tokenStore = {
-  get: () => localStorage.getItem(TOKEN_KEY),
-  set: (t: string) => localStorage.setItem(TOKEN_KEY, t),
-  clear: () => localStorage.removeItem(TOKEN_KEY),
+  get:          ()        => localStorage.getItem(TOKEN_KEY),
+  set:          (t: string) => localStorage.setItem(TOKEN_KEY, t),
+  getRefresh:   ()        => localStorage.getItem(REFRESH_KEY),
+  setRefresh:   (t: string) => localStorage.setItem(REFRESH_KEY, t),
+  clear:        () => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_KEY);
+  },
 };
+
+// ---- transparent token refresh ----------------------------------------------
+// When the server returns TOKEN_EXPIRED (401), we attempt a silent refresh
+// using the stored refresh token. Concurrent requests are queued and retried
+// once the refresh succeeds, or all fail if it doesn't.
+
+let _isRefreshing = false;
+let _refreshQueue: Array<{ resolve: (newToken: string) => void; reject: (err: unknown) => void }> = [];
+
+async function attemptRefresh(): Promise<string | null> {
+  const refreshToken = tokenStore.getRefresh();
+  if (!refreshToken) return null;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+    if (!res.ok) { tokenStore.clear(); return null; }
+    const data = await res.json() as { token: string; refresh_token: string };
+    tokenStore.set(data.token);
+    tokenStore.setRefresh(data.refresh_token);
+    return data.token;
+  } catch {
+    tokenStore.clear();
+    return null;
+  }
+}
 
 // ---- account & workspace types --------------------------------------------
 export interface AuthUser {
@@ -24,6 +59,7 @@ export interface AuthUser {
   email_verified: boolean;
   is_aspirant: boolean;
   primary_workspace_id: string | null;
+  primary_role: string | null;
   initials: string;
 }
 
@@ -46,6 +82,7 @@ export interface LoginChallenge {
 
 export interface VerifyResult {
   token: string;
+  refresh_token: string;
   user: AuthUser;
 }
 
@@ -119,8 +156,9 @@ export interface CountyTree {
 
 export interface Station {
   id: string;
-  code: string | null;
-  name: string;
+  code: string | null;          // IEBC station code
+  name: string;                 // polling centre name
+  stream_number: number | null;
   registered_voters: number | null;
   agent: string | null;
 }
@@ -164,7 +202,7 @@ export interface WardStations {
   stations: Station[];
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: RequestInit, _isRetry = false): Promise<T> {
   const token = tokenStore.get();
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
@@ -175,6 +213,40 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       ...init?.headers,
     },
   });
+
+  if (res.status === 401 && !_isRetry) {
+    // If we have a refresh token, try a silent refresh first.
+    if (tokenStore.getRefresh()) {
+      if (_isRefreshing) {
+        return new Promise<T>((resolve, reject) => {
+          _refreshQueue.push({
+            resolve: (newToken) => { request<T>(path, init, true).then(resolve).catch(reject); void newToken; },
+            reject,
+          });
+        });
+      }
+      _isRefreshing = true;
+      const newToken = await attemptRefresh();
+      _isRefreshing = false;
+      if (newToken) {
+        const queue = _refreshQueue;
+        _refreshQueue = [];
+        queue.forEach(({ resolve }) => resolve(newToken));
+        return request<T>(path, init, true);
+      }
+      // Refresh failed — reject all queued requests so their callers don't hang.
+      const expiredErr = new ApiError("Session expired. Please log in again.", 401);
+      const queue = _refreshQueue;
+      _refreshQueue = [];
+      queue.forEach(({ reject }) => reject(expiredErr));
+    }
+
+    // No refresh token, or refresh failed — clear state and redirect to login.
+    tokenStore.clear();
+    window.dispatchEvent(new CustomEvent("mtazamo:session-expired"));
+    throw new ApiError("Session expired. Please log in again.", 401);
+  }
+
   if (!res.ok) {
     let message = `Request failed (${res.status})`;
     let fields: Record<string, string[]> = {};
@@ -225,6 +297,29 @@ export const api = {
   me: () => request<{ user: AuthUser }>("/api/auth/me"),
 
   logout: () => request<{ ok: true }>("/api/auth/logout", { method: "POST" }),
+
+  // ---- session management --------------------------------------------------
+  listSessions: () =>
+    request<{ sessions: SessionInfo[] }>("/api/auth/sessions"),
+
+  revokeSession: (tokenId: number) =>
+    request<{ ok: true }>(`/api/auth/sessions/${tokenId}`, { method: "DELETE" }),
+
+  revokeAllSessions: () =>
+    request<{ ok: true }>("/api/auth/sessions/revoke-all", { method: "POST" }),
+
+  // ---- audit logs ----------------------------------------------------------
+  getAuditLogs: (workspaceId: string, params?: { action?: string; actor_id?: number }) => {
+    const qs = new URLSearchParams();
+    if (params?.action)   qs.set("action",   params.action);
+    if (params?.actor_id) qs.set("actor_id", String(params.actor_id));
+    return request<{ logs: AuditLogEntry[] }>(
+      `/api/workspaces/${workspaceId}/audit${qs.toString() ? `?${qs}` : ""}`,
+    );
+  },
+
+  getMyActivity: () =>
+    request<{ logs: AuditLogEntry[] }>("/api/auth/activity"),
 
   // ---- email verification --------------------------------------------------
   sendEmailVerification: () =>
@@ -286,7 +381,7 @@ export const api = {
 
   // ---- campaign managers ---------------------------------------------------
   listManagers: (workspaceId: string) =>
-    request<{ managers: WorkspaceManager[] }>(`/api/workspaces/${workspaceId}/managers`),
+    request<{ managers: WorkspaceManager[]; aspirant: { name: string; email: string; initials: string } }>(`/api/workspaces/${workspaceId}/managers`),
 
   inviteManager: (workspaceId: string, data: InviteManagerInput) =>
     request<{ manager: WorkspaceManager }>(`/api/workspaces/${workspaceId}/managers`, {
@@ -332,7 +427,7 @@ export const api = {
       password_confirmation: string;
     },
   ) =>
-    request<{ token: string; user: AuthUser; workspace_id: string }>(`/api/join/${token}/setup`, {
+    request<{ token: string; refresh_token: string; user: AuthUser; workspace_id: string }>(`/api/join/${token}/setup`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
@@ -341,14 +436,23 @@ export const api = {
     request<{ ok: true }>(`/api/join/${token}/decline`, { method: "POST" }),
 
   // ---- recruitment (CM) -------------------------------------------------------
-  getRecruitment: (workspaceId: string) =>
-    request<{
+  getRecruitment: (workspaceId: string, params?: { page?: number; per_page?: number; search?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.page !== undefined) qs.set("page", String(params.page));
+    if (params?.per_page !== undefined) qs.set("per_page", String(params.per_page));
+    if (params?.search) qs.set("search", params.search);
+    const q = qs.toString() ? `?${qs}` : "";
+    return request<{
       workspace: { id: string; name: string; seat: string };
       wards: RecruitmentWard[];
+      wards_meta: { total: number; per_page: number; current_page: number; last_page: number };
       seat_roles: SeatRole[];
       form_letter: string;
       my_role: string | null;
-    }>(`/api/workspaces/${workspaceId}/recruitment`),
+      filled_constituency_ids: string[];
+      filled_ward_ids: string[];
+    }>(`/api/workspaces/${workspaceId}/recruitment${q}`);
+  },
 
   getRecruitmentWard: (workspaceId: string, wardId: string) =>
     request<{ link: RecruitmentLink; stations: RecruitmentStation[] }>(
@@ -401,10 +505,10 @@ export const api = {
   getApplyLink: (token: string) =>
     request<PublicLinkInfo>(`/api/apply/${token}`),
 
-  applyRequestOtp: (token: string, phone: string) =>
+  applyRequestOtp: (token: string, phone: string, email?: string, nationalId?: string) =>
     request<{ ok: true; phone_hint: string; dev_otp: string | null }>(
       `/api/apply/${token}/request-otp`,
-      { method: "POST", body: JSON.stringify({ phone }) },
+      { method: "POST", body: JSON.stringify({ phone, email: email || undefined, national_id: nationalId || undefined }) },
     ),
 
   applySubmit: (
@@ -421,10 +525,16 @@ export const api = {
       station_id?: string;
     },
   ) =>
-    request<{ ok: true; id: string }>(`/api/apply/${token}/submit`, {
+    request<{ ok: true; id: string; setup_token: string }>(`/api/apply/${token}/submit`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
+
+  applyAgentSetup: (agentId: string, data: { setup_token: string; password: string; password_confirmation: string }) =>
+    request<{ token: string; refresh_token: string; user: AuthUser; workspace_id: string }>(
+      `/api/apply/agent/${agentId}/setup`,
+      { method: "POST", body: JSON.stringify(data) },
+    ),
 
   // ---- agent targeted invite (join) -------------------------------------------
   getAgentInvite: (token: string) =>
@@ -460,7 +570,7 @@ export const api = {
       password_confirmation: string;
     },
   ) =>
-    request<{ token: string; user: AuthUser }>(`/api/join/agent/${token}/setup`, {
+    request<{ token: string; refresh_token: string; user: AuthUser }>(`/api/join/agent/${token}/setup`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
@@ -535,6 +645,12 @@ export const api = {
       { method: 'POST', body: JSON.stringify({ station_id: stationId }) },
     ),
 
+  reassignAgent: (workspaceId: string, agentId: string, stationId: string | null) =>
+    request<{ ok: true; agent_id: string; station_id: string | null }>(
+      `/api/workspaces/${workspaceId}/agents/${agentId}/reassign`,
+      { method: 'POST', body: JSON.stringify({ station_id: stationId }) },
+    ),
+
   // ---- tier officer portal ---------------------------------------------------
   getTierContext: (workspaceId: string) =>
     request<TierContext>(`/api/workspaces/${workspaceId}/tier/context`),
@@ -561,9 +677,16 @@ export const api = {
   getStationContext: (workspaceId: string) =>
     request<StationContext>(`/api/workspaces/${workspaceId}/station/context`),
 
+  requestResultOtp: (workspaceId: string) =>
+    request<{ ok: true; phone_hint: string; dev_otp: string | null }>(
+      `/api/workspaces/${workspaceId}/station/result-otp`,
+      { method: 'POST' },
+    ),
+
   submitStationResult: (
     workspaceId: string,
     data: {
+      otp: string;
       registered_voters: number;
       votes: Array<{ candidate_id: string; votes: number }>;
       rejected_ballots: number;
@@ -575,6 +698,92 @@ export const api = {
       `/api/workspaces/${workspaceId}/station/results`,
       { method: 'POST', body: JSON.stringify(data) },
     ),
+
+  // ---- election runs ----------------------------------------------------------
+  listRuns: (workspaceId: string) =>
+    request<{ runs: ElectionRun[]; active_run: ElectionRun | null }>(
+      `/api/workspaces/${workspaceId}/runs`,
+    ),
+
+  createRun: (
+    workspaceId: string,
+    data: { name: string; type: 'live' | 'rehearsal'; run_date?: string | null; start_time?: string | null; end_time?: string | null },
+  ) =>
+    request<{ run: ElectionRun }>(`/api/workspaces/${workspaceId}/runs`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateRun: (
+    workspaceId: string,
+    runId: string,
+    data: { action?: 'activate' | 'deactivate' | 'certify' | 'archive'; name?: string; run_date?: string | null; start_time?: string | null; end_time?: string | null },
+  ) =>
+    request<{ run: ElectionRun }>(`/api/workspaces/${workspaceId}/runs/${runId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  // ---- war room ---------------------------------------------------------------
+  getWarRoomSummary: (
+    workspaceId: string,
+    params: { run_id?: string; scope?: string; scope_id?: string },
+  ) => {
+    const qs = new URLSearchParams();
+    if (params.run_id)   qs.set('run_id',   params.run_id);
+    if (params.scope)    qs.set('scope',    params.scope);
+    if (params.scope_id) qs.set('scope_id', params.scope_id);
+    return request<WarRoomSummary>(
+      `/api/workspaces/${workspaceId}/warroom/summary?${qs}`,
+    );
+  },
+
+  verifyResult: (workspaceId: string, runId: string, resultId: string) =>
+    request<{ result: { id: string; status: string } }>(
+      `/api/workspaces/${workspaceId}/runs/${runId}/results/${resultId}/verify`,
+      { method: 'POST' },
+    ),
+
+  queryResult: (workspaceId: string, runId: string, resultId: string, note: string) =>
+    request<{ result: { id: string; status: string; query_note: string } }>(
+      `/api/workspaces/${workspaceId}/runs/${runId}/results/${resultId}/query`,
+      { method: 'POST', body: JSON.stringify({ note }) },
+    ),
+
+  // ---- tier form (Form 34B / 37B etc.) ----------------------------------------
+  getTierForm: (workspaceId: string, runId: string, tier: string, geoId?: string | null) => {
+    const qs = new URLSearchParams({ tier });
+    if (geoId) qs.set('geo_id', geoId);
+    return request<TierFormContext>(`/api/workspaces/${workspaceId}/runs/${runId}/tier-form?${qs}`);
+  },
+
+  saveTierFormDraft: (workspaceId: string, runId: string, payload: TierFormSavePayload) =>
+    request<{ form: TierFormSubmission }>(
+      `/api/workspaces/${workspaceId}/runs/${runId}/tier-form/save`,
+      { method: 'POST', body: JSON.stringify(payload) },
+    ),
+
+  submitTierForm: (workspaceId: string, runId: string, payload: TierFormSavePayload) =>
+    request<{ form: TierFormSubmission }>(
+      `/api/workspaces/${workspaceId}/runs/${runId}/tier-form/submit`,
+      { method: 'POST', body: JSON.stringify(payload) },
+    ),
+
+  uploadTierFormImage: async (workspaceId: string, file: File): Promise<{ path: string; url: string }> => {
+    const token = tokenStore.get();
+    const form = new FormData();
+    form.append('image', file);
+    const res = await fetch(`${API_BASE}/api/workspaces/${workspaceId}/tier-form/upload-image`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        Accept: 'application/json',
+      },
+      body: form,
+    });
+    if (!res.ok) throw new Error('Image upload failed');
+    return res.json() as Promise<{ path: string; url: string }>;
+  },
 
   // ---- workspace delegation settings -----------------------------------------
   getDelegation: (workspaceId: string) =>
@@ -673,7 +882,11 @@ export interface AgentInviteSent {
   name: string;
   phone: string;
   station_id: string | null;
+  station_name: string | null;
   ward_id: string | null;
+  ward_name: string | null;
+  constituency_name: string | null;
+  county_name: string | null;
   status: string;
   expires_at: string | null;
   invited_at: string | null;
@@ -739,6 +952,7 @@ export interface PendingAgent {
   county_name: string | null;
   station_id: string | null;
   station_name: string | null;
+  station_occupied_by: string | null;
   source: string;
   phone_verified: boolean;
   duplicate: { type: 'id' | 'phone'; with: string } | null;
@@ -764,6 +978,7 @@ export interface AssignStation {
   registered_voters: number | null;
   coverage: 'gap' | 'full';
   approved_count: number;
+  occupant: { id: string; name: string } | null;
 }
 
 // ---- workspace delegation settings -----------------------------------------
@@ -823,8 +1038,10 @@ export interface AssignedWardSummary {
 
 export interface AssignedStation {
   id: string;
-  code: string | null;
-  name: string;
+  code: string | null;       // full IEBC station code
+  centre_code: string | null; // short centre code within ward
+  stream_number: number | null;
+  name: string;              // polling centre name
   registered_voters: number | null;
   state: 'assigned' | 'pending' | 'gap';
   agent: { id: string; name: string; phone_masked: string } | null;
@@ -919,6 +1136,10 @@ export interface TierContext {
     pending_applications: number;
     ward_officers_filled: number;
     ward_officers_total: number;
+    constituency_agents_filled: number;
+    constituency_agents_total: number;
+    ward_admins_filled: number;
+    ward_admins_total: number;
     volunteers: number;
   };
   workspace: {
@@ -928,4 +1149,157 @@ export interface TierContext {
     year: number;
     election_date: string | null;
   };
+}
+
+// ---- election run types -------------------------------------------------------
+
+export interface ElectionRun {
+  id: string;
+  name: string;
+  type: 'live' | 'rehearsal';
+  status: 'open' | 'tallying' | 'certified' | 'archived';
+  run_date: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  opened_at: string | null;
+  closed_at: string | null;
+  created_at: string | null;
+}
+
+// ---- war room types -----------------------------------------------------------
+
+export interface WarRoomStation {
+  id: string;
+  code: string | null;
+  name: string;
+  centre_name: string;
+  registered_voters: number | null;
+  ward_id: string;
+  ward_name: string;
+  constituency_id: string;
+  constituency_name: string;
+  county_id: string;
+  county_name: string;
+  result_id: string | null;
+  status: 'pending' | 'submitted' | 'queried' | 'verified';
+  votes: Array<{ candidate_id: string; candidate_name: string | null; candidate_party: string | null; votes: number }>;
+  total_votes: number | null;
+  rejected_ballots: number | null;
+  disputed_votes: number | null;
+  submitted_at: string | null;
+  reference_code: string | null;
+  form_image_path: string | null;
+  agent_name: string | null;
+  agent_phone: string | null;
+  query_note: string | null;
+}
+
+export interface WarRoomLeaderboardEntry {
+  candidate_id: string;
+  name: string;
+  party: string;
+  is_ours: boolean;
+  votes: number;
+  pct: number;
+}
+
+export interface WarRoomSummary {
+  run: { id: string; name: string; type: string; status: string } | null;
+  leaderboard: WarRoomLeaderboardEntry[];
+  stations: WarRoomStation[];
+  coverage: { total_stations: number; reporting_stations: number; pct: number } | null;
+}
+
+// ---- tier form types (Form 34B / 37B / 35B etc.) ----------------------------
+
+export interface TierFormCandidateEntry {
+  candidate_id: string;
+  candidate_name?: string;
+  form_votes: number;
+  platform_votes: number;
+}
+
+export interface TierFormDiscrepancyFlag {
+  station_id: string;
+  station_name: string;
+  ward_name?: string;
+  platform_votes: number;
+  form_votes: number;
+  note?: string;
+}
+
+export interface TierFormSubmission {
+  id: string;
+  tier_level: 'constituency' | 'county' | 'national';
+  geo_id: string | null;
+  candidate_data: TierFormCandidateEntry[];
+  total_valid_form: number | null;
+  total_valid_platform: number | null;
+  rejected_ballots_form: number | null;
+  rejected_ballots_platform: number | null;
+  discrepancy_flags: TierFormDiscrepancyFlag[];
+  has_discrepancy: boolean;
+  form_image_urls: string[];
+  form_image_paths: string[];
+  status: 'draft' | 'submitted';
+  submitted_at: string | null;
+}
+
+export interface TierFormPlatformTotals {
+  candidates: Array<{ candidate_id: string; candidate_name: string; platform_votes: number }>;
+  total_valid: number;
+  rejected_ballots: number;
+  reporting_stations: number;
+}
+
+export interface TierFormContext {
+  form: TierFormSubmission | null;
+  platform_totals: TierFormPlatformTotals;
+  candidates: Array<{ id: string; name: string; party: string }>;
+}
+
+export interface TierFormSavePayload {
+  tier: 'constituency' | 'county' | 'national';
+  geo_id?: string | null;
+  candidate_data: TierFormCandidateEntry[];
+  total_valid_form?: number | null;
+  total_valid_platform?: number | null;
+  rejected_ballots_form?: number | null;
+  rejected_ballots_platform?: number | null;
+  discrepancy_flags?: TierFormDiscrepancyFlag[];
+  has_discrepancy?: boolean;
+  form_image_paths?: string[];
+}
+
+// Extend StationContext to include active_run
+export interface ActiveRunInfo {
+  id: string;
+  name: string;
+  type: string;
+  status: string;
+}
+
+// ---- session & audit types ---------------------------------------------------
+
+export interface SessionInfo {
+  id: number;
+  device_label: string;
+  ip_address: string | null;
+  last_used_at: string | null;
+  created_at: string | null;
+  is_current: boolean;
+  access_valid: boolean;
+}
+
+export interface AuditLogEntry {
+  id: number;
+  action: string;
+  actor: { id: number; name: string } | null;
+  actor_role: string | null;
+  entity_type: string | null;
+  entity_label: string | null;
+  context: Record<string, unknown> | null;
+  ip_address: string | null;
+  created_at: string | null;
+  workspace_id?: string | null;
 }

@@ -90,6 +90,29 @@ class InviteAcceptController extends Controller
             ], 422);
         }
 
+        // Returning user — they already have an account, skip setup and re-activate directly.
+        if ($manager->user_id) {
+            $user = \App\Models\User::findOrFail($manager->user_id);
+            $manager->update([
+                'status'                    => 'active',
+                'accepted_at'               => now(),
+                'otp_code_hash'             => null,
+                'otp_expires_at'            => null,
+                'otp_attempts'              => 0,
+                'verified_token_hash'       => null,
+                'verified_token_expires_at' => null,
+            ]);
+            $tokens = ApiToken::issueFor($user, $request->ip(), $request->userAgent());
+            return response()->json([
+                'ok'           => true,
+                'skip_setup'   => true,
+                'token'        => $tokens['access_token'],
+                'refresh_token' => $tokens['refresh_token'],
+                'user'         => $this->presentUser($user),
+                'workspace_id' => $manager->workspace_id,
+            ]);
+        }
+
         $plain = Str::random(40);
         $manager->update([
             'otp_code_hash'            => null,
@@ -159,12 +182,13 @@ class InviteAcceptController extends Controller
             'verified_token_expires_at' => null,
         ]);
 
-        $plain = ApiToken::issueFor($user);
+        $tokens = ApiToken::issueFor($user, $request->ip(), $request->userAgent());
 
         return response()->json([
-            'token'        => $plain,
-            'user'         => $this->presentUser($user),
-            'workspace_id' => $manager->workspace_id,
+            'token'         => $tokens['access_token'],
+            'refresh_token' => $tokens['refresh_token'],
+            'user'          => $this->presentUser($user),
+            'workspace_id'  => $manager->workspace_id,
         ], 201);
     }
 

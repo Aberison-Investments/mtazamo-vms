@@ -34,8 +34,11 @@ export const portal = {
 
   avatarDark: "#294854",
 
+  brandBorder: "#599BAE",
+
   font: `-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif`,
   cardShadow: "0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31)",
+  modalShadow: "0 8px 12px rgba(9,30,66,0.15),0 0 1px rgba(9,30,66,0.31)",
 } as const;
 
 // Seat and segment catalogues mirror the design's Create-workspace script.

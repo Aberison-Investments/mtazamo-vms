@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api, ApiError } from "../../api";
+import { useAuth } from "../../auth";
 import { portal } from "../../portalTheme";
 import { Banner } from "../../components/portal/ui";
 
 export function JoinVerifyPhone() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   const [phoneHint, setPhoneHint] = useState<string | null>(null);
   const [inviterName, setInviterName] = useState<string | null>(null);
@@ -14,15 +16,21 @@ export function JoinVerifyPhone() {
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [resendCount, setResendCount] = useState(0);
+  const [resendAttempts, setResendAttempts] = useState(0);
+  const [cooldown, setCooldown] = useState(30);
   const [invalid, setInvalid] = useState(false);
   const refs = useRef<(HTMLInputElement | null)[]>([]);
 
   const code = useMemo(() => digits.join(""), [digits]);
 
   useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  useEffect(() => {
     if (!token) return;
-    // Load inviter name for the info note, then request OTP.
     api.getInvite(token)
       .then(({ invite }) => {
         setInviterName(invite.inviter_name);
@@ -58,6 +66,11 @@ export function JoinVerifyPhone() {
     setError(null);
     try {
       const res = await api.acceptInvite(token, code);
+      if (res.skip_setup) {
+        signIn(res.token, res.user, res.refresh_token);
+        navigate(`/workspaces/${res.workspace_id}`, { replace: true });
+        return;
+      }
       navigate(`/join/${token}/setup`, {
         replace: true,
         state: {
@@ -78,7 +91,9 @@ export function JoinVerifyPhone() {
     if (!token) return;
     try {
       const res = await api.requestInviteOtp(token);
-      setResendCount((c) => c + 1);
+      const nextAttempt = resendAttempts + 1;
+      setResendAttempts(nextAttempt);
+      setCooldown(30 * Math.pow(2, nextAttempt));
       setDevOtp(res.dev_otp ?? null);
       setError(null);
     } catch {
@@ -134,17 +149,19 @@ export function JoinVerifyPhone() {
 
         <div style={{ fontSize: 12, color: portal.textSubtle, marginBottom: 20 }}>
           Didn't get it?{" "}
-          <a
-            href="#"
-            onClick={(e) => { e.preventDefault(); resend(); }}
-            style={{ fontWeight: 500, textDecoration: "none", color: portal.brandText }}
-          >
-            Resend code{resendCount > 0 ? ` · sent ${resendCount + 1}×` : ""}
-          </a>
-          {" · "}
-          <a href="#" style={{ fontWeight: 500, textDecoration: "none", color: portal.brandText }}>
-            Call me instead
-          </a>
+          {cooldown > 0 ? (
+            <span style={{ color: portal.textSubtle }}>
+              Resend in {cooldown}s
+            </span>
+          ) : (
+            <a
+              href="#"
+              onClick={(e) => { e.preventDefault(); resend(); }}
+              style={{ fontWeight: 500, textDecoration: "none", color: portal.brandText }}
+            >
+              Resend code
+            </a>
+          )}
         </div>
 
         {error && (
@@ -153,34 +170,6 @@ export function JoinVerifyPhone() {
 
         <VerifyButton disabled={submitting || code.length < 6} submitting={submitting} />
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 10,
-            padding: "10px 12px",
-            borderRadius: 8,
-            background: portal.brandSubtlest,
-            color: portal.brandText,
-            fontSize: 12,
-            marginTop: 16,
-          }}
-        >
-          <span
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              background: portal.brand,
-              marginTop: 5,
-              flexShrink: 0,
-            }}
-          />
-          <span>
-            This number becomes your log-in and your second factor. It cannot be changed without{" "}
-            {inviterName ? `${inviterName.split(" ")[0]}'s` : "the aspirant's"} approval.
-          </span>
-        </div>
       </form>
     </CenteredCard>
   );

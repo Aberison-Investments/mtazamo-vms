@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
-import { api, type ApiError, type Workspace } from "../../api";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { api, type ApiError } from "../../api";
 import { useAuth } from "../../auth";
 import { portal, seatLabel } from "../../portalTheme";
-import { WorkspaceShell } from "../../components/portal/WorkspaceShell";
+import { useWorkspaceContext } from "../../contexts/WorkspaceContext";
 
 const EXPIRY_OPTIONS = [
   { hours: 24, label: "24 hours" },
@@ -20,10 +20,8 @@ const SCOPE_ROWS = [
 ];
 
 export function InviteCampaignManager() {
-  const { id } = useParams<{ id: string }>();
+  const { workspace } = useWorkspaceContext();
   const { user } = useAuth();
-  const [workspace, setWorkspace] = useState<Workspace | null>(null);
-  const [notFound, setNotFound] = useState(false);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -35,15 +33,10 @@ export function InviteCampaignManager() {
   const [devToken, setDevToken] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState("");
 
-  useEffect(() => {
-    if (!id) return;
-    api.getWorkspace(id).then(({ workspace: w }) => setWorkspace(w)).catch(() => setNotFound(true));
-  }, [id]);
-
   const disabled = !name.trim() || !phone.trim() || sending;
 
   async function handleSend() {
-    if (disabled || !workspace) return;
+    if (disabled) return;
     setSending(true);
     setPhoneError("");
     try {
@@ -79,28 +72,8 @@ export function InviteCampaignManager() {
   const expiryLabel = EXPIRY_OPTIONS.find((o) => o.hours === expiryHours)?.label ?? "";
   const smsPreview = `Hi ${who}, ${aspirantName} has invited you as campaign manager for the ${workspace?.name ?? "workspace"} on Mtazamo Votes.${note.trim() ? ` "${note.trim()}"` : ""} Join: mtz.vote/j/XXXXX — expires in ${expiryLabel}.`;
 
-  if (notFound) return <Navigate to="/workspaces" replace />;
-
-  if (!workspace) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontFamily: portal.font,
-          color: portal.textSubtle,
-          fontSize: 14,
-        }}
-      >
-        Loading…
-      </div>
-    );
-  }
-
   return (
-    <WorkspaceShell workspace={workspace} active="managers">
+    <>
       <div style={{ flex: 1, minWidth: 0, padding: "28px 40px 56px" }}>
         <div style={{ fontSize: 12, color: portal.textSubtle, marginBottom: 6 }}>
           <Link
@@ -482,7 +455,7 @@ export function InviteCampaignManager() {
           </div>
         </div>
       </div>
-    </WorkspaceShell>
+    </>
   );
 }
 

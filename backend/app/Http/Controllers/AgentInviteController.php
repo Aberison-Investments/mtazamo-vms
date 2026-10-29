@@ -181,9 +181,13 @@ class AgentInviteController extends Controller
             'verified_token_expires_at' => null,
         ]);
 
-        $plain = ApiToken::issueFor($user);
+        $tokens = ApiToken::issueFor($user, $request->ip(), $request->userAgent());
 
-        return response()->json(['token' => $plain, 'user' => $this->presentUser($user)], 201);
+        return response()->json([
+            'token'         => $tokens['access_token'],
+            'refresh_token' => $tokens['refresh_token'],
+            'user'          => $this->presentUser($user),
+        ], 201);
     }
 
     public function decline(string $token): JsonResponse
@@ -243,8 +247,14 @@ class AgentInviteController extends Controller
         $parts = [];
 
         if ($inv->station_id) {
-            $station = DB::table('polling_stations')->where('id', $inv->station_id)->first();
-            if ($station) $parts[] = $station->name;
+            $station = DB::table('polling_stations as ps')
+                ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
+                ->where('ps.id', $inv->station_id)
+                ->select('pc.name', 'ps.iebc_code')
+                ->first();
+            if ($station) {
+                $parts[] = $station->name . ($station->iebc_code ? ' · ' . $station->iebc_code : '');
+            }
         }
         if ($inv->ward_id) {
             $ward = DB::table('wards')->where('id', $inv->ward_id)->first();

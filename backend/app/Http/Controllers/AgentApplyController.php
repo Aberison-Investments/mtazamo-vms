@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ApiToken;
 use App\Models\RecruitmentLink;
+use App\Models\User;
 use App\Models\WorkspaceAgent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -32,9 +34,13 @@ class AgentApplyController extends Controller
             ->select('wards.id', 'wards.name', 'constituencies.name as constituency_name', 'counties.name as county_name')
             ->first();
 
-        $stations = DB::table('polling_stations')
-            ->where('ward_id', $link->ward_id)
-            ->select('id', 'code', 'name', 'registered_voters')
+        $stations = DB::table('polling_stations as ps')
+            ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
+            ->where('pc.ward_id', $link->ward_id)
+            ->select('ps.id', 'ps.iebc_code as code', 'ps.stream_number', 'ps.registered_voters',
+                     'pc.name', 'pc.code as centre_code')
+            ->orderBy('pc.code')
+            ->orderBy('ps.stream_number')
             ->get();
 
         $agentsByStation = WorkspaceAgent::where('workspace_id', $workspace->id)
@@ -82,8 +88,42 @@ class AgentApplyController extends Controller
             return response()->json(['error' => 'This application link is invalid or has been closed.'], 404);
         }
 
-        $data = $request->validate(['phone' => ['required', 'string', 'max:30']]);
+        $data = $request->validate([
+            'phone'       => ['required', 'string', 'max:30'],
+            'email'       => ['nullable', 'email', 'max:255'],
+            'national_id' => ['nullable', 'string', 'max:20'],
+        ]);
         $phone = $this->normalizePhone($data['phone']);
+
+        // Uniqueness check before sending the OTP
+        $duplicate = WorkspaceAgent::where('workspace_id', $link->workspace_id)
+            ->whereIn('status', ['pending', 'approved'])
+            ->where(function ($q) use ($phone, $data) {
+                $q->where('phone', $phone);
+                if (! empty($data['national_id'])) {
+                    $q->orWhere('national_id', $data['national_id']);
+                }
+                if (! empty($data['email'])) {
+                    $q->orWhere('email', $data['email']);
+                }
+            })
+            ->first(['phone', 'email', 'national_id']);
+
+        if ($duplicate) {
+            $emailConflict = ! empty($data['email']) && $duplicate->email === $data['email'];
+            $phoneConflict = $duplicate->phone === $phone;
+
+            if ($emailConflict && ! $phoneConflict) {
+                return response()->json([
+                    'error'  => 'That email address is already registered in this workspace.',
+                    'errors' => ['email' => ['That email address is already registered in this workspace.']],
+                ], 422);
+            }
+            return response()->json([
+                'error'  => 'That phone number already has a record in this workspace.',
+                'errors' => ['phone' => ['That phone number already has a record in this workspace.']],
+            ], 422);
+        }
 
         $code = (string) random_int(100000, 999999);
         $cacheKey = "apply_otp_{$token}_{$phone}";
@@ -156,8 +196,6 @@ class AgentApplyController extends Controller
             ], 422);
         }
 
-        Cache::forget($cacheKey);
-
         if (! in_array($data['role'], $link->open_roles ?? [])) {
             return response()->json([
                 'error'  => 'That role is not open for this link.',
@@ -165,22 +203,7 @@ class AgentApplyController extends Controller
             ], 422);
         }
 
-        $duplicate = WorkspaceAgent::where('workspace_id', $link->workspace_id)
-            ->whereIn('status', ['pending', 'approved'])
-            ->where(function ($q) use ($phone, $data) {
-                $q->where('phone', $phone);
-                if (! empty($data['national_id'])) {
-                    $q->orWhere('national_id', $data['national_id']);
-                }
-            })
-            ->exists();
-
-        if ($duplicate) {
-            return response()->json([
-                'error'  => 'A record with that phone or national ID already exists in this workspace.',
-                'errors' => ['phone' => ['That phone number already has a record in this workspace.']],
-            ], 422);
-        }
+        Cache::forget($cacheKey);
 
         $agent = WorkspaceAgent::create([
             'workspace_id'        => $link->workspace_id,
@@ -201,7 +224,84 @@ class AgentApplyController extends Controller
 
         $link->increment('application_count');
 
-        return response()->json(['ok' => true, 'id' => $agent->id]);
+        // Issue a short-lived setup token so the applicant can create their account immediately
+        $setupToken = \Illuminate\Support\Str::random(40);
+        Cache::put("apply_setup_{$agent->id}", hash('sha256', $setupToken), now()->addMinutes(30));
+
+        return response()->json([
+            'ok'          => true,
+            'id'          => $agent->id,
+            'setup_token' => $setupToken,
+        ]);
+    }
+
+    public function setup(Request $request, string $agentId): JsonResponse
+    {
+        $data = $request->validate([
+            'setup_token'           => ['required', 'string'],
+            'password'              => ['required', 'string', 'min:8', 'max:255'],
+            'password_confirmation' => ['required', 'same:password'],
+        ]);
+
+        $agent = WorkspaceAgent::find($agentId);
+        if (! $agent || $agent->status !== 'pending' || ! $agent->phone_verified) {
+            return response()->json(['error' => 'Invalid or expired setup link.'], 404);
+        }
+
+        $cacheKey = "apply_setup_{$agentId}";
+        $stored   = Cache::get($cacheKey);
+
+        if (! $stored || ! hash_equals($stored, hash('sha256', $data['setup_token']))) {
+            return response()->json(['error' => 'Setup link has expired. Please apply again.'], 422);
+        }
+
+        // If they already have an account (duplicate setup attempt), just sign them in
+        if ($agent->user_id) {
+            $user = User::find($agent->user_id);
+            if ($user) {
+                Cache::forget($cacheKey);
+                $tokens = ApiToken::issueFor($user, $request->ip(), $request->userAgent());
+                return response()->json([
+                    'token'        => $tokens['access_token'],
+                    'refresh_token' => $tokens['refresh_token'],
+                    'user'         => $this->presentUser($user),
+                    'workspace_id' => $agent->workspace_id,
+                ]);
+            }
+        }
+
+        $user = User::create([
+            'name'              => trim("{$agent->first_name} {$agent->last_name}"),
+            'first_name'        => $agent->first_name,
+            'last_name'         => $agent->last_name,
+            'phone'             => $agent->phone,
+            'phone_verified_at' => now(),
+            'email'             => $agent->email,
+            'password'          => $data['password'],
+        ]);
+
+        $agent->update(['user_id' => $user->id]);
+
+        Cache::forget($cacheKey);
+
+        $tokens = ApiToken::issueFor($user, $request->ip(), $request->userAgent());
+
+        return response()->json([
+            'token'         => $tokens['access_token'],
+            'refresh_token' => $tokens['refresh_token'],
+            'user'          => $this->presentUser($user),
+            'workspace_id'  => $agent->workspace_id,
+        ], 201);
+    }
+
+    private function presentUser(User $user): array
+    {
+        return [
+            'id'    => $user->id,
+            'name'  => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+        ];
     }
 
     private function findActiveLink(string $token): ?RecruitmentLink
@@ -215,16 +315,16 @@ class AgentApplyController extends Controller
     private function normalizePhone(string $phone): string
     {
         $digits = preg_replace('/\D/', '', $phone);
+        if (str_starts_with($digits, '254') && strlen($digits) >= 12) {
+            return '+' . $digits;
+        }
         if (strlen($digits) === 10 && str_starts_with($digits, '0')) {
             return '+254' . substr($digits, 1);
         }
         if (strlen($digits) === 9) {
             return '+254' . $digits;
         }
-        if (str_starts_with($digits, '254') && strlen($digits) >= 12) {
-            return '+' . $digits;
-        }
-        return '+' . $digits;
+        return '+254' . ltrim($digits, '0');
     }
 
     private function maskPhone(string $phone): string

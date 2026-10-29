@@ -96,7 +96,7 @@ export function AgentJoin() {
         password,
         password_confirmation: confirmPassword,
       });
-      signIn(res.token, res.user);
+      signIn(res.token, res.user, res.refresh_token);
       navigate("/workspaces", { replace: true });
     } catch (err) {
       const e = err as ApiError;

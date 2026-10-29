@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { api, type TierContext, type Workspace } from "../../api";
 import { portal, seatLabel, segmentLabel } from "../../portalTheme";
-import { WorkspaceShell } from "../../components/portal/WorkspaceShell";
+import { useWorkspaceContext } from "../../contexts/WorkspaceContext";
 import { useAuth } from "../../auth";
 
 const TIER_ROLES = new Set(["national", "county", "constituency", "ward"]);
@@ -75,72 +75,38 @@ const STEPS = [
 
 export function WorkspaceOverview() {
   const { id } = useParams<{ id: string }>();
-  const [workspace,     setWorkspace]     = useState<Workspace | null>(null);
-  const [myRole,        setMyRole]        = useState<string>('aspirant');
+  const { workspace, myRole } = useWorkspaceContext();
   const [tierCtx,       setTierCtx]       = useState<TierContext | null>(null);
   const [stats,         setStats]         = useState<Stats | null>(null);
   const [hasManagers,   setHasManagers]   = useState(false);
   const [wardStations,  setWardStations]  = useState<import('../../api').AssignedStation[] | null>(null);
-  const [notFound,      setNotFound]      = useState(false);
 
   useEffect(() => {
     if (!id) return;
-    api
-      .getWorkspace(id)
-      .then(({ workspace: w, my_role }) => {
-        setWorkspace(w);
-        setMyRole(my_role);
-        if (TIER_ROLES.has(my_role)) {
-          api.getTierContext(id).then(setTierCtx).catch(() => {});
-        } else {
-          api.workspaceStats(w.id)
-            .then(setStats)
-            .catch(() => setStats({ total_stations: null, covered_stations: null, pending_applications: 0, top_wards: [] }));
-          if (my_role === 'aspirant') {
-            api.listManagers(id)
-              .then(({ managers }) => setHasManagers(managers.some((m) => m.status === 'active')))
-              .catch(() => {});
-          }
-          // For ward-scoped workspaces (MCA) fetch per-station coverage
-          if (w.scope === 'ward' && w.ward_id) {
-            api.getAssignedWard(id, w.ward_id)
-              .then(({ stations }) => setWardStations(stations))
-              .catch(() => setWardStations([]));
-          }
-        }
-      })
-      .catch(() => setNotFound(true));
-  }, [id]);
-
-  if (notFound) return <Navigate to="/workspaces" replace />;
-
-  if (!workspace) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontFamily: portal.font,
-          color: portal.textSubtle,
-          fontSize: 14,
-        }}
-      >
-        Loading…
-      </div>
-    );
-  }
+    if (TIER_ROLES.has(myRole)) {
+      api.getTierContext(id).then(setTierCtx).catch(() => {});
+    } else {
+      api.workspaceStats(workspace.id)
+        .then(setStats)
+        .catch(() => setStats({ total_stations: null, covered_stations: null, pending_applications: 0, top_wards: [] }));
+      if (myRole === 'aspirant') {
+        api.listManagers(id)
+          .then(({ managers }) => setHasManagers(managers.some((m) => m.status === 'active')))
+          .catch(() => {});
+      }
+      if (workspace.scope === 'ward' && workspace.ward_id) {
+        api.getAssignedWard(id, workspace.ward_id)
+          .then(({ stations }) => setWardStations(stations))
+          .catch(() => setWardStations([]));
+      }
+    }
+  }, [id, myRole]);
 
   const isTier = TIER_ROLES.has(myRole);
 
-  return (
-    <WorkspaceShell workspace={workspace} active="overview" myRole={myRole} tierGeoScope={tierCtx?.geo_scope}>
-      {isTier
-        ? <TierOverviewContent ctx={tierCtx} workspaceId={id!} />
-        : <OverviewContent workspace={workspace} stats={stats} myRole={myRole} hasManagers={hasManagers} wardStations={wardStations} />}
-    </WorkspaceShell>
-  );
+  return isTier
+    ? <TierOverviewContent ctx={tierCtx} workspaceId={id!} />
+    : <OverviewContent workspace={workspace} stats={stats} myRole={myRole} hasManagers={hasManagers} wardStations={wardStations} />;
 }
 
 // ---- Tier officer overview --------------------------------------------------
@@ -253,6 +219,8 @@ function TierOverviewContent({ ctx, workspaceId }: { ctx: TierContext | null; wo
             </div>
           </div>
           {[
+            ...(m.constituency_agents_total > 0 ? [{ title: "Appoint constituency agents", req: "1 per constituency", done: m.constituency_agents_filled, total: m.constituency_agents_total, unit: "constituencies filled", detail: `${m.constituency_agents_total - m.constituency_agents_filled} constituency${m.constituency_agents_total - m.constituency_agents_filled !== 1 ? " slots" : ""} still open.` }] : []),
+            ...(m.ward_admins_total > 0 ? [{ title: "Appoint ward admins", req: "1 per ward", done: m.ward_admins_filled, total: m.ward_admins_total, unit: "wards filled", detail: `${m.ward_admins_total - m.ward_admins_filled} ward${m.ward_admins_total - m.ward_admins_filled !== 1 ? "s" : ""} still need an admin.` }] : []),
             { title: "Recruit polling agents", req: "1 per station + reserve", done: m.covered_stations, total: m.total_stations, unit: "stations covered", detail: `${(m.total_stations - m.covered_stations).toLocaleString()} stations still uncovered.` },
             ...(m.ward_officers_total > 0 ? [{ title: "Appoint ward officers", req: "1 per ward", done: m.ward_officers_filled, total: m.ward_officers_total, unit: "wards named", detail: `${m.ward_officers_total - m.ward_officers_filled} ward${m.ward_officers_total - m.ward_officers_filled !== 1 ? "s" : ""} still need an officer.` }] : []),
           ].map((item) => {
@@ -309,8 +277,8 @@ function TierOverviewContent({ ctx, workspaceId }: { ctx: TierContext | null; wo
               })}
             </div>
           )}
-          {/* Access summary */}
-          <div style={{ border: `1px solid ${portal.border}`, borderRadius: 8 }}>
+          {/* Access summary — hidden for constituency agents; their permissions are self-evident from the portal */}
+          {ctx.role !== 'constituency' && <div style={{ border: `1px solid ${portal.border}`, borderRadius: 8 }}>
             <div style={{ padding: "14px 18px", borderBottom: `1px solid ${portal.borderSubtle}`, fontSize: 16, fontWeight: 600 }}>Your access</div>
             {[
               { on: ctx.can_invite, label: `Invite ${ctx.roles_below.map((r) => r.label.toLowerCase()).join(", ") || "officers below you"}`, detail: ctx.can_invite ? "Send targeted invites to roles beneath you." : "Campaign manager sends invites for your area." },
@@ -331,7 +299,7 @@ function TierOverviewContent({ ctx, workspaceId }: { ctx: TierContext | null; wo
             <div style={{ padding: "10px 18px", fontSize: 12, color: portal.textSubtle }}>
               {ctx.appointed_by ? `Set by ${ctx.appointed_by.name}.` : "Set by your campaign manager."} Every action is logged under your name.
             </div>
-          </div>
+          </div>}
         </div>
       </div>
     </div>

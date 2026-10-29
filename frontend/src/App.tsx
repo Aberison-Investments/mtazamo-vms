@@ -1,7 +1,7 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
+import { WorkspaceLayout } from "./components/portal/WorkspaceLayout";
 import { AuthProvider, useAuth } from "./auth";
-import { Shell } from "./components/Shell";
-import { Geography } from "./pages/Geography";
+import { NotificationsProvider } from "./notifications";
 import { CreateAccount } from "./pages/account/CreateAccount";
 import { Login } from "./pages/account/Login";
 import { VerifyPhone } from "./pages/account/VerifyPhone";
@@ -13,7 +13,6 @@ import { Workspaces } from "./pages/account/Workspaces";
 import { CreateWorkspace } from "./pages/account/CreateWorkspace";
 import { WorkspaceOverview } from "./pages/account/WorkspaceOverview";
 import { CampaignManagers } from "./pages/account/CampaignManagers";
-import { InviteCampaignManager } from "./pages/account/InviteCampaignManager";
 import { JoinInvite } from "./pages/join/JoinInvite";
 import { JoinVerifyPhone } from "./pages/join/JoinVerifyPhone";
 import { JoinSetupAccount } from "./pages/join/JoinSetupAccount";
@@ -26,10 +25,13 @@ import { AssignedAgents } from "./pages/account/AssignedAgents";
 import { AgentApply } from "./pages/apply/AgentApply";
 import { AgentJoin } from "./pages/apply/AgentJoin";
 import { StationResults } from "./pages/station/StationResults";
+import { WarRoom } from "./pages/warroom/WarRoom";
+import { AuditLog } from "./pages/account/AuditLog";
 import { portal } from "./portalTheme";
 
 export function App() {
   return (
+    <NotificationsProvider>
     <AuthProvider>
       <BrowserRouter>
         <Routes>
@@ -50,40 +52,31 @@ export function App() {
 
           {/* Authenticated: account & workspace portal */}
           <Route path="/account" element={<RequireAspirant><AccountHome /></RequireAspirant>} />
-          <Route path="/account/settings" element={<RequireAuth><AccountSettings /></RequireAuth>} />
+          <Route path="/account/settings" element={<RequireAspirant><AccountSettings /></RequireAspirant>} />
           <Route path="/account/verify-email" element={<RequireAuth><VerifyEmail /></RequireAuth>} />
           <Route path="/workspaces" element={<RequireAspirant><Workspaces /></RequireAspirant>} />
           <Route path="/workspaces/new" element={<RequireAspirant><CreateWorkspace /></RequireAspirant>} />
-          <Route path="/workspaces/:id" element={<RequireAuth><WorkspaceOverview /></RequireAuth>} />
-          <Route path="/workspaces/:id/candidates" element={<RequireAuth><Candidates /></RequireAuth>} />
-          <Route path="/workspaces/:id/managers" element={<RequireAuth><CampaignManagers /></RequireAuth>} />
-          <Route path="/workspaces/:id/managers/invite" element={<RequireAuth><InviteCampaignManager /></RequireAuth>} />
-          <Route path="/workspaces/:id/recruitment" element={<RequireAuth><Recruitment /></RequireAuth>} />
-          <Route path="/workspaces/:id/geography" element={<RequireAuth><WorkspaceGeography /></RequireAuth>} />
-          <Route path="/workspaces/:id/settings" element={<RequireAuth><WorkspaceSettings /></RequireAuth>} />
-          <Route path="/workspaces/:id/agents"         element={<RequireAuth><AssignedAgents /></RequireAuth>} />
-          <Route path="/workspaces/:id/agents/pending" element={<RequireAuth><ReviewPendingAgents /></RequireAuth>} />
+          <Route path="/workspaces/:id" element={<RequireAuth><WorkspaceLayout /></RequireAuth>}>
+            <Route index element={<WorkspaceOverview />} />
+            <Route path="candidates" element={<Candidates />} />
+            <Route path="managers" element={<CampaignManagers />} />
+            <Route path="managers/invite" element={<ManagersInviteRedirect />} />
+            <Route path="recruitment" element={<Recruitment />} />
+            <Route path="geography" element={<WorkspaceGeography />} />
+            <Route path="settings" element={<WorkspaceSettings />} />
+            <Route path="agents" element={<AssignedAgents />} />
+            <Route path="agents/pending" element={<ReviewPendingAgents />} />
+            <Route path="warroom" element={<WarRoom />} />
+            <Route path="audit" element={<AuditLog />} />
+          </Route>
           <Route path="/workspaces/:id/station/results" element={<RequireAuth><StationResults /></RequireAuth>} />
-
-          {/* Workspace interior (3.3 Geography). The interior is scoped to a
-              single county; the workspace-selection subsection will pass this
-              through — for now it stays fixed to Nakuru. */}
-          <Route
-            path="/geography"
-            element={
-              <RequireAuth>
-                <Shell workspaceName="Nakuru Governor 2027" activeKey="geography">
-                  <Geography county="Nakuru" workspaceName="Nakuru Governor 2027" />
-                </Shell>
-              </RequireAuth>
-            }
-          />
 
           <Route path="/" element={<RootRedirect />} />
           <Route path="*" element={<RootRedirect />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </NotificationsProvider>
   );
 }
 
@@ -109,10 +102,25 @@ function RootRedirect() {
   const { user, loading } = useAuth();
   if (loading) return <FullScreenLoading />;
   if (!user) return <Navigate to="/login" replace />;
-  if (!user.is_aspirant && user.primary_workspace_id) {
-    return <Navigate to={`/workspaces/${user.primary_workspace_id}`} replace />;
+  if (user.primary_workspace_id) {
+    // Polling agents go straight to their station results page
+    if (user.primary_role === 'agent') {
+      return <Navigate to={`/workspaces/${user.primary_workspace_id}/station/results`} replace />;
+    }
+    if (!user.is_aspirant) {
+      return <Navigate to={`/workspaces/${user.primary_workspace_id}`} replace />;
+    }
+  }
+  if (!user.is_aspirant) {
+    // Pending agent with no approved workspace — should not reach here (login blocks them)
+    return <Navigate to="/login" replace />;
   }
   return <Navigate to="/account" replace />;
+}
+
+function ManagersInviteRedirect() {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={`/workspaces/${id}/managers`} state={{ openInvite: true }} replace />;
 }
 
 function FullScreenLoading() {

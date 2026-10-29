@@ -10,7 +10,7 @@ import { api, tokenStore, type AuthUser } from "./api";
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
-  signIn: (token: string, user: AuthUser) => void;
+  signIn: (token: string, user: AuthUser, refreshToken?: string) => void;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -45,8 +45,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signIn = (token: string, u: AuthUser) => {
+  // Handle session expiry events dispatched by the request() interceptor
+  // when a refresh token rotation fails (e.g., device was revoked).
+  useEffect(() => {
+    const handler = () => {
+      tokenStore.clear();
+      setUser(null);
+    };
+    window.addEventListener("mtazamo:session-expired", handler);
+    return () => window.removeEventListener("mtazamo:session-expired", handler);
+  }, []);
+
+  const signIn = (token: string, u: AuthUser, refreshToken?: string) => {
     tokenStore.set(token);
+    if (refreshToken) tokenStore.setRefresh(refreshToken);
     setUser(u);
   };
 

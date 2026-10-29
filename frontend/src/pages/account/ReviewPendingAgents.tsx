@@ -1,15 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import {
   api,
   type AssignStation,
   type PendingAgent,
-  type ReviewMetrics,
   type ReviewWard,
-  type Workspace,
 } from "../../api";
 import { portal } from "../../portalTheme";
-import { WorkspaceShell } from "../../components/portal/WorkspaceShell";
+import { useWorkspaceContext } from "../../contexts/WorkspaceContext";
+import { useNotifications } from "../../notifications";
 
 // ---- helpers ----------------------------------------------------------------
 
@@ -221,7 +220,7 @@ function AssignModal({
   wardName: string;
   loading: boolean;
   onBack: () => void;
-  onConfirm: (stationId: string | null) => void;
+  onConfirm: (stationId: string | null, occupantId?: string) => void;
 }) {
   const [search, setSearch]       = useState("");
   const [selected, setSelected]   = useState<string | null>(
@@ -231,9 +230,12 @@ function AssignModal({
 
   const isVolunteer = agent.role === "volunteer";
 
+  const selectedStation = stations.find((s) => s.id === selected) ?? null;
+  const occupant = selectedStation?.occupant ?? null;
+
   async function handleConfirm() {
     setConfirming(true);
-    await onConfirm(isVolunteer ? null : selected);
+    await onConfirm(isVolunteer ? null : selected, occupant?.id);
   }
 
   const filtered = stations.filter(
@@ -293,31 +295,46 @@ function AssignModal({
               <div style={{ fontSize: 13, color: portal.textSubtle, padding: "12px 0" }}>Loading stations…</div>
             ) : (
               <div style={{ border: `1px solid ${portal.border}`, borderRadius: 8, overflow: "hidden", maxHeight: 220, overflowY: "auto" }}>
-                {filtered.map((st) => {
-                  const isFull   = st.coverage === "full";
-                  const isSel    = selected === st.id;
-                  const tagStyle = isFull
-                    ? { bg: portal.neutral, color: portal.textSubtle, label: "Covered" }
-                    : { bg: "#FFECEB", color: "#AE2A19", label: "No agent" };
+                {(() => {
+                  const preferred = agent.station_id ? filtered.find((s) => s.id === agent.station_id) : null;
+                  const rest = filtered.filter((s) => s.id !== agent.station_id);
+                  const ordered = preferred ? [preferred, ...rest] : rest;
+                  return ordered.map((st, idx) => {
+                  const isFull = st.coverage === "full";
+                  const isSel  = selected === st.id;
+                  const isPreferred = st.id === agent.station_id;
                   return (
+                    <div key={st.id}>
+                      {isPreferred && (
+                        <div style={{ padding: "4px 12px", background: portal.brandSubtlest, borderBottom: `1px solid ${portal.borderSubtle}`, fontSize: 11, fontWeight: 600, color: portal.brandText, letterSpacing: "0.2px" }}>
+                          Agent selected this station
+                        </div>
+                      )}
                     <div
-                      key={st.id}
-                      onClick={() => !isFull && setSelected(st.id)}
-                      style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderBottom: `1px solid ${portal.borderSubtle}`, cursor: isFull ? "not-allowed" : "pointer", opacity: isFull ? 0.55 : 1, background: isSel ? portal.brandSubtlest : portal.canvas }}
+                      onClick={() => setSelected(st.id)}
+                      style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderBottom: idx < ordered.length - 1 ? `1px solid ${portal.borderSubtle}` : "none", cursor: "pointer", background: isSel ? portal.brandSubtlest : portal.canvas }}
                     >
                       <span style={{ width: 16, height: 16, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, color: portal.inverse, background: isSel ? portal.brand : portal.canvas, border: `1px solid ${isSel ? portal.brand : portal.textSubtlest}` }}>
                         {isSel ? "●" : ""}
                       </span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 500 }}>{st.name}</div>
-                        {st.code && <div style={{ fontSize: 11, color: portal.textSubtle }}>Station {st.code}{st.registered_voters ? ` · ${st.registered_voters.toLocaleString()} voters` : ""}</div>}
+                        <div style={{ fontSize: 11, color: portal.textSubtle }}>
+                          {[
+                            st.code ? `Station ${st.code}` : null,
+                            st.registered_voters ? `${st.registered_voters.toLocaleString()} voters` : null,
+                            isFull && st.occupant ? `${st.occupant.name} currently assigned` : null,
+                          ].filter(Boolean).join(" · ")}
+                        </div>
                       </div>
-                      <span style={{ display: "inline-flex", alignItems: "center", height: 20, padding: "0 8px", borderRadius: 3, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap", flexShrink: 0, background: tagStyle.bg, color: tagStyle.color }}>
-                        {tagStyle.label}
+                      <span style={{ display: "inline-flex", alignItems: "center", height: 20, padding: "0 8px", borderRadius: 3, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap", flexShrink: 0, background: isFull ? portal.warnBg : portal.successBg, color: isFull ? portal.warnText : portal.successText }}>
+                        {isFull ? "Occupied" : "Free"}
                       </span>
                     </div>
+                    </div>
                   );
-                })}
+                  });
+                })()}
                 {/* Bench option */}
                 <div
                   onClick={() => setSelected("bench")}
@@ -333,9 +350,16 @@ function AssignModal({
                 </div>
               </div>
             )}
-            <div style={{ fontSize: 12, color: portal.textSubtle, marginTop: 10 }}>
-              Their preferred station is preselected. Covered stations can't be picked — a second agent goes to the ward bench.
-            </div>
+            {occupant ? (
+              <div style={{ display: "flex", gap: 8, marginTop: 10, padding: "10px 12px", borderRadius: 8, background: portal.warnBg, color: portal.warnText, fontSize: 12, lineHeight: "17px" }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: portal.warnText, marginTop: 4, flexShrink: 0 }} />
+                <span><strong>{occupant.name}</strong> is currently at this station and will be moved to the ward bench to make room.</span>
+              </div>
+            ) : (
+              <div style={{ fontSize: 12, color: portal.textSubtle, marginTop: 10 }}>
+                Their preferred station is preselected. Selecting an occupied station moves the current agent to the bench.
+              </div>
+            )}
           </>
         )}
       </div>
@@ -361,51 +385,121 @@ function RejectModal({
 }: {
   agent: PendingAgent;
   onBack: () => void;
-  onConfirm: (reason: string) => void;
+  onConfirm: () => void;
 }) {
-  const [reason, setReason]     = useState("");
-  const [loading, setLoading]   = useState(false);
-
-  async function handleConfirm() {
-    if (!reason.trim()) return;
-    setLoading(true);
-    await onConfirm(reason.trim());
-  }
-
-  const canSubmit = reason.trim().length >= 5;
   return (
     <Overlay>
       <div style={{ padding: "20px 24px 4px" }}>
         <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 4 }}>
-          Reject {agent.name}'s application
+          Reject {agent.name}'s application?
         </div>
-        <div style={{ fontSize: 13, color: portal.textSubtle }}>
-          Recorded on the application and visible to the applicant.
+        <div style={{ fontSize: 13, color: portal.textSubtle, lineHeight: "19px" }}>
+          Their application will be marked as rejected. This cannot be undone.
         </div>
       </div>
-      <div style={{ padding: "16px 24px" }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: portal.label, marginBottom: 6 }}>
-          Reason for rejection <span style={{ color: portal.dangerText }}>*</span>
-        </div>
-        <textarea
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          placeholder="e.g. National ID does not match the photo submitted"
-          style={{ width: "100%", minHeight: 80, boxSizing: "border-box", border: `1px solid ${portal.border}`, borderRadius: 8, padding: "8px 10px", fontSize: 13, color: portal.ink, fontFamily: "inherit", resize: "vertical" }}
-        />
-      </div>
-      <div style={{ display: "flex", gap: 8, padding: "16px 24px 22px" }}>
+      <div style={{ display: "flex", gap: 8, padding: "20px 24px 22px" }}>
         <button onClick={onBack} style={{ ...btnBase, background: portal.canvas, border: `1px solid ${portal.border}`, color: portal.label }}>Back</button>
         <div style={{ flex: 1 }} />
-        <button
-          onClick={handleConfirm}
-          disabled={!canSubmit || loading}
-          style={{ ...btnBase, background: canSubmit ? "#C9372C" : portal.neutral, color: canSubmit ? portal.inverse : portal.textSubtlest, cursor: canSubmit ? "pointer" : "not-allowed" }}
-        >
-          {loading ? "Confirming…" : "Confirm rejection"}
+        <button onClick={onConfirm} style={{ ...btnBase, background: "#C9372C", color: portal.inverse }}>
+          Confirm rejection
         </button>
       </div>
     </Overlay>
+  );
+}
+
+// ---- BulkConfirmModal -------------------------------------------------------
+
+function BulkConfirmModal({
+  agents,
+  onCancel,
+  onConfirm,
+}: {
+  agents: PendingAgent[];
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const occupiedCount = agents.filter((a) => a.station_id && a.station_occupied_by).length;
+
+  return (
+    <>
+      <div onClick={onCancel} style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(9,30,66,0.22)" }} />
+      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 301, width: 560, maxHeight: "80vh", background: portal.canvas, borderRadius: 10, boxShadow: "0 8px 32px rgba(9,30,66,0.2)", display: "flex", flexDirection: "column", fontFamily: portal.font }}>
+        {/* Header */}
+        <div style={{ padding: "20px 22px 14px", borderBottom: `1px solid ${portal.border}`, flexShrink: 0 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: portal.ink, marginBottom: 2 }}>
+            Approve {agents.length} agent{agents.length !== 1 ? "s" : ""}?
+          </div>
+          <div style={{ fontSize: 13, color: portal.textSubtle }}>
+            Agents with a preferred station will be placed there. Those without go to the bench.
+          </div>
+        </div>
+
+        {/* Occupied warning */}
+        {occupiedCount > 0 && (
+          <div style={{ margin: "12px 22px 0", padding: "10px 12px", borderRadius: 8, background: portal.warnBg, color: portal.warnText, fontSize: 13, display: "flex", gap: 8 }}>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: portal.warnText, marginTop: 4, flexShrink: 0 }} />
+            <span>{occupiedCount} station{occupiedCount !== 1 ? "s are" : " is"} already occupied — those agents will be moved to the bench.</span>
+          </div>
+        )}
+
+        {/* Table */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "12px 22px 4px" }}>
+          <div style={{ border: `1px solid ${portal.border}`, borderRadius: 8, overflow: "hidden" }}>
+            {/* Header row */}
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.2fr)", gap: 12, padding: "8px 14px", background: portal.canvasSubtle, borderBottom: `1px solid ${portal.border}` }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: portal.textSubtle, textTransform: "uppercase", letterSpacing: "0.04em" }}>Agent</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: portal.textSubtle, textTransform: "uppercase", letterSpacing: "0.04em" }}>Station</span>
+            </div>
+            {agents.map((a, i) => {
+              const occupied = !!(a.station_id && a.station_occupied_by);
+              return (
+                <div
+                  key={a.id}
+                  style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.2fr)", gap: 12, padding: "10px 14px", borderBottom: i < agents.length - 1 ? `1px solid ${portal.borderSubtle}` : "none", alignItems: "center", background: occupied ? "#FFFAE6" : portal.canvas }}
+                >
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: portal.ink }}>{a.name}</div>
+                    <div style={{ fontSize: 11, color: portal.textSubtle, marginTop: 1 }}>{a.phone_masked}{a.ward_name ? ` · ${a.ward_name}` : ""}</div>
+                  </div>
+                  <div>
+                    {a.station_name ? (
+                      <>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <span style={{ fontSize: 13, color: portal.ink }}>{a.station_name}</span>
+                          {occupied && (
+                            <span style={{ display: "inline-flex", alignItems: "center", height: 18, padding: "0 6px", borderRadius: 3, fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.3px", background: portal.warnBg, color: portal.warnText, whiteSpace: "nowrap" as const }}>
+                              Occupied
+                            </span>
+                          )}
+                        </div>
+                        {occupied && (
+                          <div style={{ fontSize: 11, color: portal.warnText, marginTop: 1 }}>
+                            {a.station_occupied_by} will move to bench
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <span style={{ fontSize: 13, color: portal.textSubtle, fontStyle: "italic" }}>Bench</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: "14px 22px 18px", borderTop: `1px solid ${portal.border}`, display: "flex", justifyContent: "flex-end", gap: 8, flexShrink: 0 }}>
+          <button onClick={onCancel} style={{ height: 34, padding: "0 14px", border: `1px solid ${portal.border}`, borderRadius: 8, background: portal.canvas, color: portal.ink, fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
+            Cancel
+          </button>
+          <button onClick={onConfirm} style={{ height: 34, padding: "0 18px", border: "none", borderRadius: 8, background: portal.brand, color: portal.inverse, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+            Confirm approval
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -419,14 +513,11 @@ const btnBase: React.CSSProperties = {
 
 export function ReviewPendingAgents() {
   const { id } = useParams<{ id: string }>();
-
-  const [workspace,  setWorkspace]  = useState<Workspace | null>(null);
-  const [myRole,     setMyRole]     = useState<string>('campaign_manager');
-  const [notFound,   setNotFound]   = useState(false);
+  const { workspace, myRole } = useWorkspaceContext();
+  const { add: addToast, update: updateToast } = useNotifications();
 
   // List state
   const [agents,     setAgents]     = useState<PendingAgent[]>([]);
-  const [metrics,    setMetrics]    = useState<ReviewMetrics>({ pending: 0, over_5_days: 0, duplicates: 0, approved_today: 0 });
   const [wards,      setWards]      = useState<ReviewWard[]>([]);
   const [total,      setTotal]      = useState(0);
   const [page,       setPage]       = useState(1);
@@ -446,17 +537,10 @@ export function ReviewPendingAgents() {
 
   // Modals
   const [modal,      setModal]      = useState<ModalState | null>(null);
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
   const [stations,   setStations]   = useState<AssignStation[]>([]);
   const [stationTotals, setStationTotals] = useState<{ total: number; covered: number; gap: number } | null>(null);
   const [stationsLoading, setStationsLoading] = useState(false);
-
-  // Load workspace
-  useEffect(() => {
-    if (!id) return;
-    api.getWorkspace(id)
-      .then(({ workspace: w, my_role }) => { setWorkspace(w); setMyRole(my_role); })
-      .catch(() => setNotFound(true));
-  }, [id]);
 
   // Load agents list
   const loadAgents = useCallback(
@@ -472,7 +556,6 @@ export function ReviewPendingAgents() {
         });
         setAgents(res.agents);
         setTotal(res.total);
-        setMetrics(res.metrics);
         setWards(res.wards);
         setCanAssign(res.can_assign);
         setCanInvite(res.can_invite);
@@ -485,8 +568,8 @@ export function ReviewPendingAgents() {
   );
 
   useEffect(() => {
-    if (workspace) loadAgents(1, roleFilter, wardFilter, search);
-  }, [workspace]); // eslint-disable-line react-hooks/exhaustive-deps
+    loadAgents(1, roleFilter, wardFilter, search);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function reload() {
     loadAgents(page, roleFilter, wardFilter, search);
@@ -518,16 +601,34 @@ export function ReviewPendingAgents() {
     }
   }
 
-  async function handleApprove(agent: PendingAgent, stationId: string | null | undefined) {
-    await api.approveAgent(id!, agent.id, stationId);
+  async function handleApprove(agent: PendingAgent, stationId: string | null | undefined, occupantId?: string) {
     setModal(null);
-    reload();
+    const toastId = addToast(`Approving ${agent.name}…`, "loading");
+    try {
+      if (stationId && occupantId) {
+        await api.reassignAgent(id!, occupantId, null);
+      }
+      await api.approveAgent(id!, agent.id, stationId);
+      const dest = stationId && stationId !== "bench"
+        ? `Placed at ${agent.station_name ?? "station"}.`
+        : "Added to the bench.";
+      updateToast(toastId, `${agent.name} approved. ${dest}`, "success");
+      reload();
+    } catch {
+      updateToast(toastId, `Could not approve ${agent.name}. Try again.`, "error");
+    }
   }
 
-  async function handleReject(agent: PendingAgent, reason: string) {
-    await api.rejectAgent(id!, agent.id, reason);
+  async function handleReject(agent: PendingAgent) {
     setModal(null);
-    reload();
+    const toastId = addToast(`Rejecting ${agent.name}…`, "loading");
+    try {
+      await api.rejectAgent(id!, agent.id, "");
+      updateToast(toastId, `${agent.name}'s application rejected.`, "success");
+      reload();
+    } catch {
+      updateToast(toastId, `Could not reject ${agent.name}. Try again.`, "error");
+    }
   }
 
   async function handleBulkApprove() {
@@ -535,9 +636,18 @@ export function ReviewPendingAgents() {
       .filter((a) => checked.has(a.id) && !a.duplicate && a.phone_verified)
       .map((a) => a.id);
     if (!eligible.length) return;
-    await api.bulkApproveAgents(id!, eligible);
-    setChecked(new Set());
-    reload();
+    const toastId = addToast(`Approving ${eligible.length} agent${eligible.length !== 1 ? "s" : ""}…`, "loading");
+    try {
+      const res = await api.bulkApproveAgents(id!, eligible);
+      const msg = res.skipped > 0
+        ? `${res.approved} approved, ${res.skipped} skipped.`
+        : `${res.approved} agent${res.approved !== 1 ? "s" : ""} approved.`;
+      updateToast(toastId, msg, "success");
+      setChecked(new Set());
+      reload();
+    } catch {
+      updateToast(toastId, "Bulk approval failed. Try again.", "error");
+    }
   }
 
   // Pagination
@@ -564,15 +674,8 @@ export function ReviewPendingAgents() {
   const checkedEligible = agents.filter((a) => checked.has(a.id) && !a.duplicate && a.phone_verified);
   const checkedBlocked  = [...checked].filter((cid) => agents.find((a) => a.id === cid && (a.duplicate || !a.phone_verified))).length;
 
-  if (notFound) return <Navigate to="/account" replace />;
-  if (!workspace) return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: portal.font, color: portal.textSubtle, fontSize: 14 }}>
-      Loading…
-    </div>
-  );
-
   return (
-    <WorkspaceShell workspace={workspace} active="agents" myRole={myRole}>
+    <>
       <div style={{ flex: 1, padding: "28px 40px 56px", minWidth: 0 }}>
         {/* Breadcrumb + title */}
         <div style={{ fontSize: 12, color: portal.textSubtle, marginBottom: 6 }}>
@@ -600,8 +703,8 @@ export function ReviewPendingAgents() {
           )}
         </div>
 
-        {/* Permission banner */}
-        {!canAssign && !canInvite && (
+        {/* Permission banner — only shown to tier officers, never aspirant or CM */}
+        {!canAssign && !canInvite && !['aspirant', 'campaign_manager'].includes(myRole) && (
           <div style={{ padding: "12px 16px", borderRadius: 8, background: portal.warnBg, color: portal.warnText, fontSize: 13, marginBottom: 20 }}>
             You can view the pending queue but cannot approve or reject applications. Ask the campaign manager to grant assign permission in Settings → Delegation.
           </div>
@@ -611,21 +714,6 @@ export function ReviewPendingAgents() {
             You can send invites and review applications here. Final approval and station assignment is handled by the campaign manager.
           </div>
         )}
-
-        {/* Metrics */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 16, marginBottom: 24 }}>
-          {[
-            { label: "Awaiting your review",  value: metrics.pending,        color: "#974F0C" },
-            { label: "Waiting over 5 days",   value: metrics.over_5_days,    color: portal.dangerText },
-            { label: "Duplicates flagged",     value: metrics.duplicates,     color: portal.dangerText },
-            { label: "Approved today",         value: metrics.approved_today, color: "#216E4E" },
-          ].map((m) => (
-            <div key={m.label} style={{ border: `1px solid ${portal.border}`, borderRadius: 8, padding: "14px 16px", background: portal.canvas }}>
-              <div style={{ fontSize: 12, color: portal.textSubtle, marginBottom: 6 }}>{m.label}</div>
-              <div style={{ fontSize: 22, lineHeight: "26px", fontWeight: 700, color: m.color }}>{m.value}</div>
-            </div>
-          ))}
-        </div>
 
         {/* Filters toolbar */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
@@ -660,7 +748,7 @@ export function ReviewPendingAgents() {
           <div style={{ flex: 1 }} />
           {canAssign && checked.size > 0 && (
             <button
-              onClick={handleBulkApprove}
+              onClick={() => setBulkConfirmOpen(true)}
               style={{ display: "flex", alignItems: "center", height: 32, padding: "0 14px", borderRadius: 8, background: portal.brand, color: portal.inverse, fontSize: 13, fontWeight: 600, border: "none", cursor: "pointer", fontFamily: "inherit" }}
             >
               Approve {checkedEligible.length} selected{checkedBlocked > 0 ? ` (${checkedBlocked} blocked)` : ""}
@@ -768,16 +856,23 @@ export function ReviewPendingAgents() {
           wardName={modal.agent.ward_name ?? "this ward"}
           loading={stationsLoading}
           onBack={() => setModal({ ...modal, stage: "detail" })}
-          onConfirm={(stationId) => handleApprove(modal.agent, stationId)}
+          onConfirm={(stationId, occupantId) => handleApprove(modal.agent, stationId, occupantId)}
         />
       )}
       {modal?.stage === "reject" && (
         <RejectModal
           agent={modal.agent}
           onBack={() => setModal({ ...modal, stage: "detail" })}
-          onConfirm={(reason) => handleReject(modal.agent, reason)}
+          onConfirm={() => handleReject(modal.agent)}
         />
       )}
-    </WorkspaceShell>
+      {bulkConfirmOpen && (
+        <BulkConfirmModal
+          agents={checkedEligible}
+          onCancel={() => setBulkConfirmOpen(false)}
+          onConfirm={() => { setBulkConfirmOpen(false); handleBulkApprove(); }}
+        />
+      )}
+    </>
   );
 }

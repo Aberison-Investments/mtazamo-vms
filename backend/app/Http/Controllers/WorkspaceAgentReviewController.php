@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Workspace;
 use App\Models\WorkspaceAgent;
 use App\Models\WorkspaceAgentPermission;
+use App\Services\AuditService;
 use App\Support\SeatRoles;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -110,6 +111,7 @@ class WorkspaceAgentReviewController extends Controller
             ->leftJoin('constituencies as co',  'co.id', '=', 'wa.constituency_id')
             ->leftJoin('counties as cu',        'cu.id', '=', 'wa.county_id')
             ->leftJoin('polling_stations as ps', 'ps.id', '=', 'wa.station_id')
+            ->leftJoin('polling_centres as psc', 'psc.id', '=', 'ps.polling_centre_id')
             ->where('wa.workspace_id', $id)
             ->where('wa.status', 'pending')
             ->select([
@@ -119,7 +121,7 @@ class WorkspaceAgentReviewController extends Controller
                 'wa.ward_id',           'w.name  as ward_name',
                 'wa.constituency_id',   'co.name as constituency_name',
                 'wa.county_id',         'cu.name as county_name',
-                'wa.station_id',        'ps.name as station_name',
+                'wa.station_id',        'psc.name as station_name',
             ]);
 
         // Geo-scope for tier officers
@@ -129,12 +131,7 @@ class WorkspaceAgentReviewController extends Controller
             if ($workspace->scope === 'ward' && $workspace->ward_id) {
                 $query->where('wa.ward_id', $workspace->ward_id);
             } else {
-                match ($tier->role) {
-                    'constituency' => $tier->constituency_id && $query->where('wa.constituency_id', $tier->constituency_id),
-                    'ward'         => $tier->ward_id && $query->where('wa.ward_id', $tier->ward_id),
-                    'county'       => $tier->county_id && $query->where('wa.county_id', $tier->county_id),
-                    default        => null,
-                };
+                $this->applyAgentGeoScope($query, $tier, 'wa');
             }
         }
 
@@ -161,6 +158,15 @@ class WorkspaceAgentReviewController extends Controller
         // Duplicate detection against all non-rejected agents in workspace
         $dups = $this->detectDuplicates($id, $rows);
 
+        // Map of station_id → occupant name (approved agents already placed)
+        $stationOccupants = DB::table('workspace_agents')
+            ->where('workspace_id', $id)
+            ->where('status', 'approved')
+            ->whereNotNull('station_id')
+            ->select('station_id', DB::raw("TRIM(first_name || ' ' || last_name) AS occupant_name"))
+            ->get()
+            ->pluck('occupant_name', 'station_id');
+
         // Ward list for filter dropdown (wards that have pending agents)
         $wards = DB::table('workspace_agents as wa')
             ->join('wards as w', 'w.id', '=', 'wa.ward_id')
@@ -172,7 +178,7 @@ class WorkspaceAgentReviewController extends Controller
             ->get()
             ->map(fn ($r) => ['id' => $r->ward_id, 'name' => $r->ward_name]);
 
-        $agents = $rows->map(fn ($r) => $this->presentAgent($r, $dups[$r->id] ?? null));
+        $agents = $rows->map(fn ($r) => $this->presentAgent($r, $dups[$r->id] ?? null, $stationOccupants));
 
         // can_invite: tier officers with the invite permission granted
         $canInvite = false;
@@ -201,7 +207,7 @@ class WorkspaceAgentReviewController extends Controller
             'can_assign' => $canAssign,
             'can_invite' => $canInvite,
             'my_role'    => $myRole,
-            'metrics'    => $this->buildMetrics($id),
+            'metrics'    => $this->buildMetrics($id, $workspace, $tier),
         ]);
     }
 
@@ -231,10 +237,11 @@ class WorkspaceAgentReviewController extends Controller
 
         $stationId = null;
         if (! empty($data['station_id']) && $data['station_id'] !== 'bench') {
-            // Validate the station belongs to the agent's ward
-            $valid = DB::table('polling_stations')
-                ->where('id', $data['station_id'])
-                ->where('ward_id', $agent->ward_id)
+            // Validate the station (stream) belongs to the agent's ward via its centre
+            $valid = DB::table('polling_stations as ps')
+                ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
+                ->where('ps.id', $data['station_id'])
+                ->where('pc.ward_id', $agent->ward_id)
                 ->exists();
             if (! $valid) {
                 return response()->json(['error' => 'Station not found in this ward.'], 422);
@@ -248,6 +255,13 @@ class WorkspaceAgentReviewController extends Controller
             'approved_by_user_id' => $request->user()->id,
             'approved_at'         => now(),
         ]);
+
+        AuditService::log($request, 'agent.approved', $id,
+            'WorkspaceAgent', $agent->id,
+            trim($agent->first_name . ' ' . $agent->last_name),
+            ['role' => $agent->role, 'station_id' => $stationId],
+            $agent->ward_id, $agent->constituency_id, $agent->county_id,
+        );
 
         return response()->json(['agent' => $this->presentApprovedAgent($agent)]);
     }
@@ -274,6 +288,13 @@ class WorkspaceAgentReviewController extends Controller
             'rejected_by_user_id' => $request->user()->id,
             'rejected_at'         => now(),
         ]);
+
+        AuditService::log($request, 'agent.rejected', $id,
+            'WorkspaceAgent', $agent->id,
+            trim($agent->first_name . ' ' . $agent->last_name),
+            ['reason' => $data['reason'], 'role' => $agent->role],
+            $agent->ward_id, $agent->constituency_id, $agent->county_id,
+        );
 
         return response()->json(['agent' => $this->presentApprovedAgent($agent)]);
     }
@@ -305,15 +326,18 @@ class WorkspaceAgentReviewController extends Controller
                 $skipped++;
                 continue;
             }
-            // Bulk approve places agents on bench (no station assignment)
             $agent->update([
                 'status'              => 'approved',
-                'station_id'          => null,
                 'approved_by_user_id' => $userId,
                 'approved_at'         => $now,
             ]);
             $approved++;
         }
+
+        AuditService::log($request, 'agent.bulk_approved', $id,
+            null, null, null,
+            ['count' => $approved, 'skipped' => $skipped],
+        );
 
         return response()->json(['approved' => $approved, 'skipped' => $skipped]);
     }
@@ -336,29 +360,34 @@ class WorkspaceAgentReviewController extends Controller
 
         $ward = DB::table('wards')->where('id', $agent->ward_id)->select('id', 'name')->first();
 
-        // Count of approved agents per station in this ward
-        $approvedCounts = DB::table('workspace_agents')
+        // Approved agents keyed by station_id (first one per station)
+        $occupants = DB::table('workspace_agents')
             ->where('workspace_id', $id)
             ->where('status', 'approved')
             ->whereNotNull('station_id')
-            ->selectRaw('station_id, COUNT(*) as cnt')
-            ->groupBy('station_id')
-            ->pluck('cnt', 'station_id');
-
-        $stations = DB::table('polling_stations')
-            ->where('ward_id', $agent->ward_id)
-            ->select('id', 'name', 'code', 'registered_voters')
-            ->orderBy('name')
+            ->select('id', 'station_id', 'first_name', 'last_name')
             ->get()
-            ->map(function ($s) use ($approvedCounts) {
-                $approved = (int) ($approvedCounts[$s->id] ?? 0);
+            ->groupBy('station_id')
+            ->map(fn ($group) => $group->first());
+
+        $stations = DB::table('polling_stations as ps')
+            ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
+            ->where('pc.ward_id', $agent->ward_id)
+            ->select('ps.id', 'pc.name', 'ps.iebc_code as code', 'ps.registered_voters',
+                     'ps.stream_number', 'pc.code as centre_code')
+            ->orderBy('pc.code')
+            ->orderBy('ps.stream_number')
+            ->get()
+            ->map(function ($s) use ($occupants) {
+                $occ = $occupants[$s->id] ?? null;
                 return [
                     'id'                => $s->id,
                     'name'              => $s->name,
                     'code'              => $s->code,
                     'registered_voters' => $s->registered_voters,
-                    'coverage'          => $approved >= 1 ? 'full' : 'gap',
-                    'approved_count'    => $approved,
+                    'coverage'          => $occ ? 'full' : 'gap',
+                    'approved_count'    => $occ ? 1 : 0,
+                    'occupant'          => $occ ? ['id' => $occ->id, 'name' => trim($occ->first_name . ' ' . $occ->last_name)] : null,
                 ];
             });
 
@@ -408,14 +437,22 @@ class WorkspaceAgentReviewController extends Controller
             ->selectRaw('ward_id, COUNT(*) as cnt')->groupBy('ward_id')
             ->pluck('cnt', 'ward_id');
 
-        $stationCounts = DB::table('polling_stations')
-            ->whereIn('ward_id', $wardIds)
-            ->selectRaw('ward_id, COUNT(*) as cnt')->groupBy('ward_id')
+        $stationCounts = DB::table('polling_stations as ps')
+            ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
+            ->whereIn('pc.ward_id', $wardIds)
+            ->selectRaw('pc.ward_id, COUNT(ps.id) as cnt')->groupBy('pc.ward_id')
             ->pluck('cnt', 'ward_id');
 
-        $pendingCount = DB::table('workspace_agents')
-            ->where('workspace_id', $id)->where('status', 'pending')
-            ->count();
+        $pendingQuery = DB::table('workspace_agents as wa')
+            ->where('wa.workspace_id', $id)->where('wa.status', 'pending');
+        if ($tier) {
+            if ($workspace->scope === 'ward' && $workspace->ward_id) {
+                $pendingQuery->where('wa.ward_id', $workspace->ward_id);
+            } else {
+                $this->applyAgentGeoScope($pendingQuery, $tier, 'wa');
+            }
+        }
+        $pendingCount = $pendingQuery->count();
 
         $result = $wards->map(fn ($w) => [
             'id'             => $w->id,
@@ -462,9 +499,12 @@ class WorkspaceAgentReviewController extends Controller
         }
 
         $stations = DB::table('polling_stations as ps')
-            ->where('ps.ward_id', $wardId)
-            ->orderBy('ps.name')
-            ->get(['ps.id', 'ps.code', 'ps.name', 'ps.registered_voters']);
+            ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
+            ->where('pc.ward_id', $wardId)
+            ->orderBy('pc.code')
+            ->orderBy('ps.stream_number')
+            ->get(['ps.id', 'ps.iebc_code as code', 'pc.name', 'ps.stream_number',
+                   'ps.registered_voters', 'pc.code as centre_code']);
 
         $approvedAgents = DB::table('workspace_agents')
             ->where('workspace_id', $id)->where('ward_id', $wardId)
@@ -533,15 +573,87 @@ class WorkspaceAgentReviewController extends Controller
             ->where('status', 'approved')->where('role', 'agent')
             ->whereNull('station_id')->findOrFail($agentId);
 
-        $valid = DB::table('polling_stations')
-            ->where('id', $data['station_id'])
-            ->where('ward_id', $agent->ward_id)
+        $valid = DB::table('polling_stations as ps')
+            ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
+            ->where('ps.id', $data['station_id'])
+            ->where('pc.ward_id', $agent->ward_id)
             ->exists();
         if (! $valid) return response()->json(['error' => 'Station not in this agent\'s ward.'], 422);
 
         $agent->update(['station_id' => $data['station_id']]);
 
+        AuditService::log($request, 'agent.deployed', $id,
+            'WorkspaceAgent', $agent->id,
+            trim($agent->first_name . ' ' . $agent->last_name),
+            ['station_id' => $data['station_id']],
+            $agent->ward_id, $agent->constituency_id, $agent->county_id,
+        );
+
         return response()->json(['ok' => true, 'agent_id' => $agent->id, 'station_id' => $agent->station_id]);
+    }
+
+    public function reassignAgent(Request $request, string $id, string $agentId): JsonResponse
+    {
+        $workspace = $this->resolveWorkspace($request, $id);
+        [$canAssign] = $this->assignContext($request->user(), $workspace);
+        if (! $canAssign) abort(403);
+
+        $data = $request->validate([
+            'station_id' => ['nullable', 'string'], // null = move to bench
+        ]);
+
+        $agent = WorkspaceAgent::where('workspace_id', $id)
+            ->where('status', 'approved')->where('role', 'agent')
+            ->findOrFail($agentId);
+
+        $stationId = null;
+        if (! empty($data['station_id']) && $data['station_id'] !== 'bench') {
+            $valid = DB::table('polling_stations as ps')
+                ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
+                ->where('ps.id', $data['station_id'])
+                ->where('pc.ward_id', $agent->ward_id)
+                ->exists();
+            if (! $valid) return response()->json(['error' => 'Station not in this agent\'s ward.'], 422);
+            $stationId = $data['station_id'];
+        }
+
+        $agent->update(['station_id' => $stationId]);
+
+        AuditService::log($request, 'agent.reassigned', $id,
+            'WorkspaceAgent', $agent->id,
+            trim($agent->first_name . ' ' . $agent->last_name),
+            ['station_id' => $stationId],
+            $agent->ward_id, $agent->constituency_id, $agent->county_id,
+        );
+
+        return response()->json(['ok' => true, 'agent_id' => $agent->id, 'station_id' => $stationId]);
+    }
+
+    /**
+     * Scope an agent query to the tier officer's geographic area,
+     * filtering via ward_id (joined through ward → constituency) so it works
+     * even when the denormalised county_id / constituency_id columns are null.
+     */
+    private function applyAgentGeoScope($query, WorkspaceAgent $tier, string $alias = 'wa'): void
+    {
+        match ($tier->role) {
+            'ward' => $tier->ward_id
+                ? $query->where("{$alias}.ward_id", $tier->ward_id)
+                : null,
+            'constituency' => $tier->constituency_id
+                ? $query->whereIn("{$alias}.ward_id", function ($q) use ($tier) {
+                    $q->select('id')->from('wards')->where('constituency_id', $tier->constituency_id);
+                })
+                : null,
+            'county' => $tier->county_id
+                ? $query->whereIn("{$alias}.ward_id", function ($q) use ($tier) {
+                    $q->select('w.id')->from('wards as w')
+                      ->join('constituencies as co', 'co.id', '=', 'w.constituency_id')
+                      ->where('co.county_id', $tier->county_id);
+                })
+                : null,
+            default => null,
+        };
     }
 
     private function applyWardScope($query, Workspace $workspace, ?WorkspaceAgent $tier): void
@@ -583,7 +695,7 @@ class WorkspaceAgentReviewController extends Controller
     // Helpers
     // -------------------------------------------------------------------------
 
-    private function presentAgent(object $r, ?array $dup): array
+    private function presentAgent(object $r, ?array $dup, $stationOccupants = null): array
     {
         $waitDays = (int) now()->diffInDays($r->created_at);
         return [
@@ -601,6 +713,9 @@ class WorkspaceAgentReviewController extends Controller
             'county_name'         => $r->county_name,
             'station_id'          => $r->station_id,
             'station_name'        => $r->station_name,
+            'station_occupied_by' => ($r->station_id && $stationOccupants)
+                                     ? ($stationOccupants[$r->station_id] ?? null)
+                                     : null,
             'source'              => $r->source === 'targeted_invite' ? 'Targeted invite' : 'Public link',
             'phone_verified'      => (bool) $r->phone_verified,
             'duplicate'           => $dup,
@@ -674,39 +789,44 @@ class WorkspaceAgentReviewController extends Controller
             || ($agent->national_id && $q->clone()->where('national_id', $agent->national_id)->exists());
     }
 
-    private function buildMetrics(string $workspaceId): array
+    private function buildMetrics(string $workspaceId, ?Workspace $workspace = null, ?WorkspaceAgent $tier = null): array
     {
-        $pending = DB::table('workspace_agents')
-            ->where('workspace_id', $workspaceId)
-            ->where('status', 'pending')
+        $base = DB::table('workspace_agents as wa')
+            ->where('wa.workspace_id', $workspaceId);
+
+        // Apply the same geo-scope used by the list query so metrics match what the user sees
+        if ($tier && $workspace) {
+            if ($workspace->scope === 'ward' && $workspace->ward_id) {
+                $base->where('wa.ward_id', $workspace->ward_id);
+            } else {
+                $this->applyAgentGeoScope($base, $tier, 'wa');
+            }
+        }
+
+        $pending = (clone $base)->where('wa.status', 'pending')->count();
+
+        $over5 = (clone $base)
+            ->where('wa.status', 'pending')
+            ->where('wa.created_at', '<=', now()->subDays(5))
             ->count();
 
-        $over5 = DB::table('workspace_agents')
-            ->where('workspace_id', $workspaceId)
-            ->where('status', 'pending')
-            ->where('created_at', '<=', now()->subDays(5))
+        $approvedToday = (clone $base)
+            ->where('wa.status', 'approved')
+            ->whereDate('wa.approved_at', today())
             ->count();
 
-        $approvedToday = DB::table('workspace_agents')
-            ->where('workspace_id', $workspaceId)
-            ->where('status', 'approved')
-            ->whereDate('approved_at', today())
-            ->count();
-
-        // Duplicates: pending agents whose national_id or phone collides with another record
-        $allPending = DB::table('workspace_agents')
-            ->where('workspace_id', $workspaceId)
-            ->where('status', 'pending')
-            ->select('id', 'national_id', 'phone')
+        $allPending = (clone $base)
+            ->where('wa.status', 'pending')
+            ->select('wa.id', 'wa.national_id', 'wa.phone')
             ->get();
 
         $dups = $this->detectDuplicates($workspaceId, $allPending);
         $dupCount = count(array_filter($dups));
 
         return [
-            'pending'       => $pending,
-            'over_5_days'   => $over5,
-            'duplicates'    => $dupCount,
+            'pending'        => $pending,
+            'over_5_days'    => $over5,
+            'duplicates'     => $dupCount,
             'approved_today' => $approvedToday,
         ];
     }

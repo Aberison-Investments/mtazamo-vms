@@ -121,20 +121,22 @@ class TierOfficerController extends Controller
 
     private function buildMetrics(Workspace $workspace, WorkspaceAgent $record): array
     {
-        // Polling stations in scope
+        // Polling stations in scope (via polling_centres → polling_stations)
         $stQ = DB::table('polling_stations as ps')
-            ->join('wards as w', 'w.id', '=', 'ps.ward_id');
-        $this->applyGeoFilter($stQ, $workspace, $record, 'ps', 'w');
+            ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
+            ->join('wards as w', 'w.id', '=', 'pc.ward_id');
+        $this->applyGeoFilter($stQ, $workspace, $record, 'pc', 'w');
         $totalStations = $stQ->count();
 
         // Covered stations (≥1 approved agent assigned)
         $covQ = DB::table('workspace_agents as wa')
             ->join('polling_stations as ps', 'ps.id', '=', 'wa.station_id')
-            ->join('wards as w', 'w.id', '=', 'ps.ward_id')
+            ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
+            ->join('wards as w', 'w.id', '=', 'pc.ward_id')
             ->where('wa.workspace_id', $workspace->id)
             ->where('wa.status', 'approved')
             ->whereNotNull('wa.station_id');
-        $this->applyGeoFilter($covQ, $workspace, $record, 'ps', 'w');
+        $this->applyGeoFilter($covQ, $workspace, $record, 'pc', 'w');
         $coveredStations = $covQ->distinct('wa.station_id')->count('wa.station_id');
 
         // Pending applications in scope
@@ -145,7 +147,7 @@ class TierOfficerController extends Controller
         $this->applyGeoFilter($pendQ, $workspace, $record, 'wa', 'w');
         $pendingApplications = $pendQ->count();
 
-        // Ward officers — not meaningful for ward-scoped workspaces (MCA)
+        // Ward officers — for constituency agents
         $wardOfficersFilled = 0;
         $wardOfficersTotal  = 0;
         if ($record->role === 'constituency' && $record->constituency_id && $workspace->scope !== 'ward') {
@@ -154,6 +156,37 @@ class TierOfficerController extends Controller
                 ->pluck('id');
             $wardOfficersTotal  = $wardIds->count();
             $wardOfficersFilled = WorkspaceAgent::where('workspace_id', $workspace->id)
+                ->where('role', 'ward')
+                ->where('status', 'approved')
+                ->whereIn('ward_id', $wardIds)
+                ->distinct('ward_id')
+                ->count('ward_id');
+        }
+
+        // Constituency agents + ward admins — for county agents
+        $constituencyAgentsFilled = 0;
+        $constituencyAgentsTotal  = 0;
+        $wardAdminsFilled         = 0;
+        $wardAdminsTotal          = 0;
+        if ($record->role === 'county' && $record->county_id) {
+            $constituencyIds = DB::table('constituencies')
+                ->where('county_id', $record->county_id)
+                ->pluck('id');
+
+            $constituencyAgentsTotal  = $constituencyIds->count();
+            $constituencyAgentsFilled = WorkspaceAgent::where('workspace_id', $workspace->id)
+                ->where('role', 'constituency')
+                ->where('status', 'approved')
+                ->whereIn('constituency_id', $constituencyIds)
+                ->distinct('constituency_id')
+                ->count('constituency_id');
+
+            $wardIds = DB::table('wards')
+                ->whereIn('constituency_id', $constituencyIds)
+                ->pluck('id');
+
+            $wardAdminsTotal  = $wardIds->count();
+            $wardAdminsFilled = WorkspaceAgent::where('workspace_id', $workspace->id)
                 ->where('role', 'ward')
                 ->where('status', 'approved')
                 ->whereIn('ward_id', $wardIds)
@@ -171,26 +204,30 @@ class TierOfficerController extends Controller
         $volunteers = $volQ->count();
 
         return [
-            'total_stations'       => $totalStations,
-            'covered_stations'     => $coveredStations,
-            'pending_applications' => $pendingApplications,
-            'ward_officers_filled' => $wardOfficersFilled,
-            'ward_officers_total'  => $wardOfficersTotal,
-            'volunteers'           => $volunteers,
+            'total_stations'             => $totalStations,
+            'covered_stations'           => $coveredStations,
+            'pending_applications'       => $pendingApplications,
+            'ward_officers_filled'       => $wardOfficersFilled,
+            'ward_officers_total'        => $wardOfficersTotal,
+            'constituency_agents_filled' => $constituencyAgentsFilled,
+            'constituency_agents_total'  => $constituencyAgentsTotal,
+            'ward_admins_filled'         => $wardAdminsFilled,
+            'ward_admins_total'          => $wardAdminsTotal,
+            'volunteers'                 => $volunteers,
         ];
     }
 
-    private function applyGeoFilter(\Illuminate\Database\Query\Builder $q, Workspace $workspace, WorkspaceAgent $record, string $psAlias, string $wAlias): void
+    // $pcAlias = the polling_centres table alias (carries ward_id); $wAlias = wards alias
+    private function applyGeoFilter(\Illuminate\Database\Query\Builder $q, Workspace $workspace, WorkspaceAgent $record, string $pcAlias, string $wAlias): void
     {
-        // Ward-scoped workspace (MCA): all tier officers are limited to that one ward.
         if ($workspace->scope === 'ward' && $workspace->ward_id) {
-            $q->where("{$psAlias}.ward_id", $workspace->ward_id);
+            $q->where("{$pcAlias}.ward_id", $workspace->ward_id);
             return;
         }
 
         match ($record->role) {
             'constituency' => $record->constituency_id && $q->where("{$wAlias}.constituency_id", $record->constituency_id),
-            'ward'         => $record->ward_id && $q->where("{$psAlias}.ward_id", $record->ward_id),
+            'ward'         => $record->ward_id && $q->where("{$pcAlias}.ward_id", $record->ward_id),
             'county'       => $record->county_id && $q->where("{$wAlias}.county_id", $record->county_id),
             default        => null,
         };

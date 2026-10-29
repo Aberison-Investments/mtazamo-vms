@@ -127,13 +127,12 @@ class WorkspaceController extends Controller
             return response()->json(['workspace' => $this->present($workspace), 'my_role' => 'campaign_manager']);
         }
 
-        $tierRecord = WorkspaceAgent::where('workspace_id', $id)
+        $agentRecord = WorkspaceAgent::where('workspace_id', $id)
             ->where('user_id', $user->id)
             ->where('status', 'approved')
-            ->whereNotIn('role', ['agent', 'volunteer'])
             ->first();
-        if ($tierRecord) {
-            return response()->json(['workspace' => $this->present($workspace), 'my_role' => $tierRecord->role]);
+        if ($agentRecord) {
+            return response()->json(['workspace' => $this->present($workspace), 'my_role' => $agentRecord->role]);
         }
 
         abort(403);
@@ -162,12 +161,15 @@ class WorkspaceController extends Controller
         }
 
         if ($workspace->scope === 'ward') {
-            $total = DB::table('polling_stations as ps')->where('ps.ward_id', $geoId)->count();
+            $total = DB::table('polling_stations as ps')
+                ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
+                ->where('pc.ward_id', $geoId)->count();
             $covered = DB::table('workspace_agents as wa')
                 ->join('polling_stations as ps', 'ps.id', '=', 'wa.station_id')
+                ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
                 ->where('wa.workspace_id', $id)
                 ->where('wa.status', 'approved')
-                ->where('ps.ward_id', $geoId)
+                ->where('pc.ward_id', $geoId)
                 ->distinct('wa.station_id')->count('wa.station_id');
             $ward = DB::table('wards')->select('id', 'name')->where('id', $geoId)->first();
             return response()->json([
@@ -179,13 +181,15 @@ class WorkspaceController extends Controller
         }
 
         $total = DB::table('polling_stations as ps')
-            ->join('wards as w', 'w.id', '=', 'ps.ward_id')
+            ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
+            ->join('wards as w', 'w.id', '=', 'pc.ward_id')
             ->where($geoField, $geoId)
             ->count();
 
         $covered = DB::table('workspace_agents as wa')
             ->join('polling_stations as ps', 'ps.id', '=', 'wa.station_id')
-            ->join('wards as w', 'w.id', '=', 'ps.ward_id')
+            ->join('polling_centres as pc', 'pc.id', '=', 'ps.polling_centre_id')
+            ->join('wards as w', 'w.id', '=', 'pc.ward_id')
             ->where('wa.workspace_id', $id)
             ->where('wa.status', 'approved')
             ->where($geoField, $geoId)
@@ -193,7 +197,8 @@ class WorkspaceController extends Controller
 
         $topWards = DB::table('wards as w')
             ->select('w.id', 'w.name', DB::raw('COUNT(ps.id) as total_stations'))
-            ->leftJoin('polling_stations as ps', 'ps.ward_id', '=', 'w.id')
+            ->leftJoin('polling_centres as pc', 'pc.ward_id', '=', 'w.id')
+            ->leftJoin('polling_stations as ps', 'ps.polling_centre_id', '=', 'pc.id')
             ->where($geoField, $geoId)
             ->groupBy('w.id', 'w.name')
             ->orderByDesc(DB::raw('COUNT(ps.id)'))

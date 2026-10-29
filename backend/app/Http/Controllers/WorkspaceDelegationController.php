@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Workspace;
 use App\Models\WorkspaceAgentPermission;
+use App\Services\AuditService;
 use App\Support\SeatRoles;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -109,6 +110,10 @@ class WorkspaceDelegationController extends Controller
                 }
             }
         });
+
+        AuditService::log($request, 'delegation.updated', $id, null, null, null,
+            ['rules' => $incoming],
+        );
 
         return $this->index($request, $id);
     }

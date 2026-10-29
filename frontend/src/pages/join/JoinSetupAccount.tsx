@@ -71,7 +71,7 @@ export function JoinSetupAccount() {
         password,
         password_confirmation: confirmPassword,
       });
-      signIn(res.token, res.user);
+      signIn(res.token, res.user, res.refresh_token);
       navigate(`/workspaces/${res.workspace_id}`, { replace: true });
     } catch (err) {
       const e = err as ApiError;
@@ -93,7 +93,6 @@ export function JoinSetupAccount() {
     }
   }
 
-  const inviterFirst = state.inviter_name?.split(" ")[0] ?? "the aspirant";
 
   return (
     <CenteredCard
@@ -206,34 +205,6 @@ export function JoinSetupAccount() {
 
         <CreateButton disabled={disabled} submitting={submitting} />
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 10,
-            padding: "10px 12px",
-            borderRadius: 8,
-            background: portal.brandSubtlest,
-            color: portal.brandText,
-            fontSize: 12,
-            marginTop: 16,
-          }}
-        >
-          <span
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              background: portal.brand,
-              marginTop: 5,
-              flexShrink: 0,
-            }}
-          />
-          <span>
-            Your phone is your second factor at every log-in. {inviterFirst} can see your name and
-            phone on the workspace — your password is never shared.
-          </span>
-        </div>
       </form>
     </CenteredCard>
   );

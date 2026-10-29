@@ -18,9 +18,10 @@ export function CreateAccount() {
     last_name: "",
     age: "",
     gender: "",
-    phone: "",
+    phone: "+254",
     email: "",
     password: "",
+    confirm_password: "",
   });
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -33,6 +34,10 @@ export function CreateAccount() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (form.password !== form.confirm_password) {
+      setErrors({ confirm_password: ["Passwords do not match."] });
+      return;
+    }
     setSubmitting(true);
     setErrors({});
     setFormError(null);
@@ -138,14 +143,24 @@ export function CreateAccount() {
           hint="You'll verify this from the setup guide after your first log-in."
         />
 
+        <Field
+          label="Password"
+          required
+          type="password"
+          placeholder="At least 10 characters"
+          value={form.password}
+          onChange={set("password")}
+          error={fieldError("password")}
+        />
+
         <div style={{ marginBottom: 20 }}>
-          <Label required>Password</Label>
+          <Label required>Confirm password</Label>
           <Field
             type="password"
-            placeholder="At least 10 characters"
-            value={form.password}
-            onChange={set("password")}
-            error={fieldError("password")}
+            placeholder="Repeat your password"
+            value={form.confirm_password}
+            onChange={set("confirm_password")}
+            error={fieldError("confirm_password")}
             style={{ marginBottom: 0 }}
           />
         </div>

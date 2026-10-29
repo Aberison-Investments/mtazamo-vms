@@ -2,9 +2,12 @@ import { useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { portal } from "../../portalTheme";
 import { useAuth } from "../../auth";
+import { useNotifications } from "../../notifications";
+import { NotificationsPanel } from "./NotificationsPanel";
+import { ToastStack } from "./ToastStack";
 import { Wordmark } from "./ui";
 
-type NavKey = "overview" | "workspaces" | "geography" | "settings";
+type NavKey = "overview" | "workspaces" | "settings";
 
 interface NavItem {
   key: NavKey;
@@ -22,6 +25,8 @@ interface PortalShellProps {
 export function PortalShell({ active, children, workspaceCount }: PortalShellProps) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { notifications, togglePanel } = useNotifications();
+  const unreadCount = notifications.length;
 
   const items: NavItem[] = [
     { key: "overview", label: "Overview", to: "/account" },
@@ -31,11 +36,11 @@ export function PortalShell({ active, children, workspaceCount }: PortalShellPro
       to: "/workspaces",
       badge: workspaceCount ?? undefined,
     },
-    { key: "geography", label: "Geography", to: "/geography" },
     { key: "settings", label: "Settings", to: "/account/settings" },
   ];
 
   async function handleSignOut() {
+    if (!window.confirm("Are you sure you want to log out?")) return;
     await signOut();
     navigate("/login", { replace: true });
   }
@@ -84,22 +89,18 @@ export function PortalShell({ active, children, workspaceCount }: PortalShellPro
           }}
         />
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              background: portal.neutral,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 13,
-              color: portal.label,
-            }}
+          {/* Bell icon */}
+          <button
+            onClick={togglePanel}
+            style={{ position: "relative", width: 32, height: 32, borderRadius: "50%", background: portal.neutral, border: 0, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+            aria-label="Notifications"
           >
-            ?
-          </span>
-          <Avatar initials={user?.initials ?? "··"} onSignOut={handleSignOut} />
+            <BellIcon />
+            {unreadCount > 0 && (
+              <span style={{ position: "absolute", top: 4, right: 4, width: 8, height: 8, borderRadius: "50%", background: portal.brand, border: `2px solid ${portal.canvas}` }} />
+            )}
+          </button>
+          <Avatar initials={user?.initials ?? "··"} name={user?.name ?? ""} email={user?.email ?? ""} onSignOut={handleSignOut} />
         </div>
       </div>
 
@@ -145,6 +146,9 @@ export function PortalShell({ active, children, workspaceCount }: PortalShellPro
 
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>{children}</div>
       </div>
+
+      <NotificationsPanel />
+      <ToastStack />
     </div>
   );
 }
@@ -178,63 +182,47 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
   );
 }
 
-function Avatar({ initials, onSignOut }: { initials: string; onSignOut: () => void }) {
+function Avatar({ initials, name, email, onSignOut }: { initials: string; name: string; email: string; onSignOut: () => void }) {
   const [open, setOpen] = useState(false);
   return (
     <div style={{ position: "relative" }}>
       <button
         onClick={() => setOpen((o) => !o)}
-        style={{
-          width: 32,
-          height: 32,
-          borderRadius: "50%",
-          background: portal.brand,
-          color: portal.inverse,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 13,
-          fontWeight: 600,
-          border: 0,
-          cursor: "pointer",
-          fontFamily: "inherit",
-        }}
+        style={{ width: 32, height: 32, borderRadius: "50%", background: portal.brand, color: portal.inverse, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, border: 0, cursor: "pointer", fontFamily: "inherit" }}
       >
         {initials}
       </button>
       {open && (
-        <div
-          style={{
-            position: "absolute",
-            top: 40,
-            right: 0,
-            background: portal.canvas,
-            border: `1px solid ${portal.border}`,
-            borderRadius: 8,
-            boxShadow: portal.cardShadow,
-            minWidth: 140,
-            zIndex: 50,
-          }}
-        >
-          <button
-            onClick={onSignOut}
-            style={{
-              display: "block",
-              width: "100%",
-              textAlign: "left",
-              padding: "10px 14px",
-              background: "transparent",
-              border: 0,
-              fontSize: 14,
-              color: portal.ink,
-              cursor: "pointer",
-              fontFamily: "inherit",
-            }}
-          >
-            Log out
-          </button>
-        </div>
+        <>
+          <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 49 }} />
+          <div style={{ position: "absolute", top: 40, right: 0, background: portal.canvas, border: `1px solid ${portal.border}`, borderRadius: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.12)", width: 300, zIndex: 50, overflow: "hidden" }}>
+            {/* Sign out row */}
+            <div style={{ display: "flex", justifyContent: "flex-end", padding: "12px 16px 0" }}>
+              <button onClick={onSignOut} style={{ background: "none", border: 0, fontSize: 13, color: portal.brandText, cursor: "pointer", fontFamily: "inherit", fontWeight: 500, padding: 0 }}>
+                Sign out
+              </button>
+            </div>
+            {/* User card */}
+            <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 20px 20px" }}>
+              <div style={{ width: 64, height: 64, borderRadius: "50%", background: portal.brand, color: portal.inverse, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 700, flexShrink: 0 }}>
+                {initials}
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: 15, color: portal.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name}</div>
+                <div style={{ fontSize: 13, color: portal.textSubtle, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{email}</div>
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </div>
+  );
+}
+
+function BellIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+      <path d="M12 22a2 2 0 0 0 2-2H10a2 2 0 0 0 2 2zm6-6V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2z" fill={portal.label} />
+    </svg>
   );
 }

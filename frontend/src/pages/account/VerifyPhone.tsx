@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { api, ApiError } from "../../api";
 import { portal } from "../../portalTheme";
@@ -17,14 +17,23 @@ export function VerifyPhone() {
   const { signIn } = useAuth();
   const state = (location.state ?? {}) as VerifyState;
 
+  const COOLDOWN_BASE = 30;
+
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [devOtp, setDevOtp] = useState<string | null>(state.dev_otp ?? null);
-  const [resendCount, setResendCount] = useState(0);
+  const [resendAttempts, setResendAttempts] = useState(0);
+  const [cooldown, setCooldown] = useState(COOLDOWN_BASE);
   const refs = useRef<(HTMLInputElement | null)[]>([]);
 
   const code = useMemo(() => digits.join(""), [digits]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
 
   // Reached directly without a login challenge — send them back.
   if (!state.identifier) return <Navigate to="/login" replace />;
@@ -50,9 +59,9 @@ export function VerifyPhone() {
     setSubmitting(true);
     setError(null);
     try {
-      const { token, user } = await api.verifyOtp(state.identifier!, code);
-      signIn(token, user);
-      navigate("/account", { replace: true });
+      const res = await api.verifyOtp(state.identifier!, code);
+      signIn(res.token, res.user, res.refresh_token);
+      navigate("/", { replace: true });
     } catch (err) {
       if (err instanceof ApiError && err.status === 422) {
         setError(err.fields.code?.[0] ?? err.message);
@@ -67,7 +76,9 @@ export function VerifyPhone() {
   async function resend() {
     try {
       const res = await api.resendOtp(state.identifier!);
-      setResendCount((c) => c + 1);
+      const nextAttempt = resendAttempts + 1;
+      setResendAttempts(nextAttempt);
+      setCooldown(COOLDOWN_BASE * Math.pow(2, nextAttempt));
       setDevOtp(res.dev_otp ?? null);
       setError(null);
     } catch {
@@ -112,17 +123,19 @@ export function VerifyPhone() {
 
         <div style={{ fontSize: 12, color: portal.textSubtle, marginBottom: 20 }}>
           Didn't get it?{" "}
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              resend();
-            }}
-            style={{ fontWeight: 500, textDecoration: "none", color: portal.brandText }}
-          >
-            Resend code{resendCount > 0 ? ` · sent ${resendCount + 1}×` : ""}
-          </a>{" "}
-          · <a href="#" style={{ fontWeight: 500, textDecoration: "none", color: portal.brandText }}>Call me instead</a>
+          {cooldown > 0 ? (
+            <span style={{ color: portal.textSubtle }}>
+              Resend in {cooldown}s
+            </span>
+          ) : (
+            <a
+              href="#"
+              onClick={(e) => { e.preventDefault(); resend(); }}
+              style={{ fontWeight: 500, textDecoration: "none", color: portal.brandText }}
+            >
+              Resend code
+            </a>
+          )}
         </div>
 
         {error && <div style={{ fontSize: 12, color: portal.dangerText, marginBottom: 12 }}>{error}</div>}
@@ -131,10 +144,6 @@ export function VerifyPhone() {
           {submitting ? "Verifying…" : "Verify and continue"}
         </PrimaryButton>
 
-        <Banner tone="info">
-          Phone is your second factor at every log-in. Email verification is handled once, from the
-          setup guide.
-        </Banner>
       </form>
     </AuthLayout>
   );

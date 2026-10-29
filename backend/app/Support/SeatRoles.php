@@ -40,7 +40,7 @@ class SeatRoles
             'ward'         => "Sees every station in the ward. Verifies or queries Form {$l}A submissions.",
             'constituency' => "Reconciles the constituency tallying centre. Form {$l}B reconciliation.",
             'county'       => "Top of the {$seatName} chain. Form {$l}C reconciliation across all constituencies.",
-            'national'     => "Sits at the national tallying centre. Form 34C/34D reconciliation. Presidential chain only.",
+            'national'     => "Sits at the national tallying centre. Form 34D reconciliation. Presidential chain only.",
             'volunteer'    => "Mobilisation support. No station assignment, no verification rights.",
             default        => '',
         };

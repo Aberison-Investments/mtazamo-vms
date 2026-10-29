@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'phone_verified',
     'approved_by_user_id', 'approved_at',
     'rejection_reason', 'rejected_by_user_id', 'rejected_at',
+    'result_otp_hash', 'result_otp_expires_at', 'result_otp_attempts',
 ])]
 class WorkspaceAgent extends Model
 {
@@ -23,10 +24,12 @@ class WorkspaceAgent extends Model
     protected function casts(): array
     {
         return [
-            'age' => 'integer',
-            'phone_verified' => 'boolean',
-            'approved_at' => 'datetime',
-            'rejected_at' => 'datetime',
+            'age'                    => 'integer',
+            'phone_verified'         => 'boolean',
+            'approved_at'            => 'datetime',
+            'rejected_at'            => 'datetime',
+            'result_otp_expires_at'  => 'datetime',
+            'result_otp_attempts'    => 'integer',
         ];
     }
 

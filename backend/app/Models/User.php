@@ -12,7 +12,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 #[Fillable([
-    'name', 'first_name', 'last_name', 'age', 'gender', 'phone', 'email', 'password',
+    'name', 'first_name', 'last_name', 'age', 'gender', 'is_aspirant', 'phone', 'email', 'password',
 ])]
 #[Hidden([
     'password', 'remember_token',
@@ -35,6 +35,7 @@ class User extends Authenticatable
             'phone_verified_at' => 'datetime',
             'otp_expires_at' => 'datetime',
             'age' => 'integer',
+            'is_aspirant' => 'boolean',
             'password' => 'hashed',
         ];
     }

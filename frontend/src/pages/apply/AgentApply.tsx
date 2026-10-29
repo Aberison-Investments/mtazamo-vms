@@ -1,16 +1,92 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { api, type ApiError, type PublicLinkInfo } from "../../api";
 import { portal } from "../../portalTheme";
+import { useAuth } from "../../auth";
 
-type Step = "landing" | "details" | "otp" | "done";
+type Step = "landing" | "details" | "otp" | "setup" | "done";
 
 function normalizePhone(raw: string): string {
   const digits = raw.replace(/\D/g, "");
+  if (digits.startsWith("254") && digits.length >= 12) return "+" + digits;
   if (digits.length === 10 && digits.startsWith("0")) return "+254" + digits.slice(1);
   if (digits.length === 9) return "+254" + digits;
-  if (digits.startsWith("254") && digits.length >= 12) return "+" + digits;
-  return "+" + digits;
+  return "+254" + digits.replace(/^0+/, "");
+}
+
+function StationSearchSelect({
+  stations,
+  value,
+  onChange,
+}: {
+  stations: Array<{ id: string; code: string | null; name: string; registered_voters: number | null; coverage: string }>;
+  value: string;
+  onChange: (id: string) => void;
+}) {
+  const [search, setSearch] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const filtered = stations.filter((s) =>
+    !search.trim() ||
+    s.name.toLowerCase().includes(search.toLowerCase()) ||
+    (s.code && s.code.includes(search.trim()))
+  );
+
+  const selected = stations.find((s) => s.id === value) ?? null;
+
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <div style={{ position: "relative", marginBottom: 8 }}>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
+          style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 14, height: 14, color: portal.textSubtle, pointerEvents: "none" }}>
+          <circle cx="6.5" cy="6.5" r="4" /><path d="M11 11l2.5 2.5" />
+        </svg>
+        <input
+          ref={inputRef}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by name or station code…"
+          style={{ width: "100%", height: 38, boxSizing: "border-box" as const, paddingLeft: 32, paddingRight: 10, border: `1px solid ${portal.border}`, borderRadius: 8, fontSize: 14, color: portal.ink, background: portal.canvas, fontFamily: "inherit", outline: "none" }}
+        />
+      </div>
+
+      {selected && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 8, background: portal.brandSubtlest, border: `1px solid ${portal.brand}`, marginBottom: 8 }}>
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: portal.brand, flexShrink: 0 }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: portal.brandText }}>{selected.name}</span>
+            {selected.code && <span style={{ fontSize: 12, color: portal.brandText, marginLeft: 6 }}>· {selected.code}</span>}
+          </div>
+          <button onClick={() => onChange("")} style={{ border: "none", background: "none", cursor: "pointer", color: portal.brandText, fontSize: 16, lineHeight: 1, padding: "0 2px", fontFamily: "inherit" }}>×</button>
+        </div>
+      )}
+
+      <div style={{ border: `1px solid ${portal.border}`, borderRadius: 8, overflow: "hidden", maxHeight: 240, overflowY: "auto" }}>
+        {filtered.length === 0 ? (
+          <div style={{ padding: "12px 14px", fontSize: 13, color: portal.textSubtle }}>No stations match "{search}".</div>
+        ) : (
+          filtered.map((st, i) => {
+            const sel = value === st.id;
+            return (
+              <div
+                key={st.id}
+                onClick={() => { onChange(st.id); setSearch(""); }}
+                style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderBottom: i < filtered.length - 1 ? `1px solid ${portal.borderSubtle}` : "none", cursor: "pointer", background: sel ? portal.brandSubtlest : portal.canvas }}
+              >
+                <span style={{ width: 16, height: 16, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, color: portal.inverse, background: sel ? portal.brand : portal.canvas, border: `1px solid ${sel ? portal.brand : portal.textSubtlest}` }}>
+                  {sel ? "●" : ""}
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: sel ? portal.brandText : portal.ink }}>{st.name}</div>
+                  {st.code && <div style={{ fontSize: 11, color: portal.textSubtle }}>{st.code}</div>}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
 }
 
 function Wordmark() {
@@ -25,6 +101,8 @@ function Wordmark() {
 
 export function AgentApply() {
   const { token } = useParams<{ token: string }>();
+  const { signIn } = useAuth();
+  const navigate = useNavigate();
   const [info, setInfo] = useState<PublicLinkInfo | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [step, setStep] = useState<Step>("landing");
@@ -39,6 +117,10 @@ export function AgentApply() {
   const [devOtp, setDevOtp] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [agentId, setAgentId] = useState<string | null>(null);
+  const [setupToken, setSetupToken] = useState<string | null>(null);
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
 
   useEffect(() => {
     if (!token) return;
@@ -52,7 +134,7 @@ export function AgentApply() {
     setSubmitting(true);
     setErrors({});
     try {
-      const res = await api.applyRequestOtp(token, normalizePhone(phone));
+      const res = await api.applyRequestOtp(token, normalizePhone(phone), email.trim() || undefined);
       if (res.dev_otp) setDevOtp(res.dev_otp);
       setStep("otp");
     } catch (err) {
@@ -71,7 +153,7 @@ export function AgentApply() {
     setSubmitting(true);
     setErrors({});
     try {
-      await api.applySubmit(token, {
+      const res = await api.applySubmit(token, {
         code: otp,
         first_name: firstName.trim(),
         last_name: lastName.trim(),
@@ -81,7 +163,9 @@ export function AgentApply() {
         email: email.trim() || undefined,
         station_id: stationId || undefined,
       });
-      setStep("done");
+      setAgentId(res.id);
+      setSetupToken(res.setup_token);
+      setStep("setup");
     } catch (err) {
       const e = err as ApiError;
       const errs: Record<string, string> = {};
@@ -100,6 +184,29 @@ export function AgentApply() {
       const res = await api.applyRequestOtp(token, normalizePhone(phone));
       if (res.dev_otp) setDevOtp(res.dev_otp);
     } catch {
+    }
+  }
+
+  async function handleSetup() {
+    if (!agentId || !setupToken) return;
+    setSubmitting(true);
+    setErrors({});
+    try {
+      const res = await api.applyAgentSetup(agentId, {
+        setup_token: setupToken,
+        password,
+        password_confirmation: passwordConfirm,
+      });
+      signIn(res.token, res.user, res.refresh_token);
+      navigate(`/workspaces/${res.workspace_id}`);
+    } catch (err) {
+      const e = err as ApiError;
+      const errs: Record<string, string> = {};
+      for (const [k, msgs] of Object.entries(e.fields ?? {})) errs[k] = msgs[0];
+      if (!Object.keys(errs).length) errs._general = e.message;
+      setErrors(errs);
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -186,26 +293,11 @@ export function AgentApply() {
                     <div style={{ fontSize: 12, fontWeight: 600, color: portal.label, marginBottom: 6 }}>
                       Polling station you'd like to apply for <span style={{ color: portal.dangerText }}>*</span>
                     </div>
-                    <div style={{ border: `1px solid ${portal.border}`, borderRadius: 8, overflow: "hidden", marginBottom: 8 }}>
-                      {stations.map((st, i) => {
-                        const sel = stationId === st.id;
-                        return (
-                          <div
-                            key={st.id}
-                            onClick={() => setStationId(st.id)}
-                            style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderBottom: i < stations.length - 1 ? `1px solid ${portal.borderSubtle}` : "none", cursor: "pointer", background: sel ? portal.brandSubtlest : portal.canvas }}
-                          >
-                            <span style={{ width: 16, height: 16, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, color: portal.inverse, background: sel ? portal.brand : portal.canvas, border: `1px solid ${sel ? portal.brand : portal.textSubtlest}` }}>
-                              {sel ? "●" : ""}
-                            </span>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontSize: 13, fontWeight: 500 }}>{st.name}</div>
-                              <div style={{ fontSize: 11, color: portal.textSubtle }}>{st.code && `Station ${st.code} · `}{st.registered_voters?.toLocaleString()} voters</div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                    <StationSearchSelect
+                      stations={stations}
+                      value={stationId}
+                      onChange={setStationId}
+                    />
                     <div style={{ fontSize: 12, color: portal.textSubtle, marginBottom: 20 }}>Your preference — the campaign confirms your station after vetting.</div>
                   </>
                 )}
@@ -253,8 +345,8 @@ export function AgentApply() {
               </div>
               <div>
                 <div style={{ fontSize: 12, fontWeight: 600, color: portal.label, marginBottom: 4 }}>Email</div>
-                <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="grace@example.com" style={{ width: "100%", height: 36, boxSizing: "border-box" as const, border: `1px solid ${portal.border}`, borderRadius: 8, padding: "0 10px", fontSize: 14, color: portal.ink, background: portal.canvas, fontFamily: "inherit", outline: "none" }} />
-                <div style={{ fontSize: 11, color: portal.textSubtlest, marginTop: 3 }}>Optional — used only for status updates.</div>
+                <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="grace@example.com" style={{ width: "100%", height: 36, boxSizing: "border-box" as const, border: `1px solid ${errors.email ? portal.dangerText : portal.border}`, borderRadius: 8, padding: "0 10px", fontSize: 14, color: portal.ink, background: portal.canvas, fontFamily: "inherit", outline: "none" }} />
+                {errors.email && <div style={{ fontSize: 11, color: portal.dangerText, marginTop: 3 }}>{errors.email}</div>}
               </div>
             </div>
 
@@ -316,6 +408,51 @@ export function AgentApply() {
                 {submitting ? "Submitting…" : "Verify and submit"}
               </button>
             </div>
+          </div>
+        )}
+
+        {step === "setup" && (
+          <div style={{ padding: "24px 24px 28px" }}>
+            <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>Create your account</div>
+            <div style={{ fontSize: 13, color: portal.textSubtle, marginBottom: 20, lineHeight: "18px" }}>
+              Your application is in. Set a password to access your portal and track your assignment.
+            </div>
+
+            {errors._general && (
+              <div style={{ padding: "10px 12px", borderRadius: 8, background: portal.dangerBg, color: portal.dangerText, fontSize: 13, marginBottom: 16 }}>{errors._general}</div>
+            )}
+
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: portal.label, marginBottom: 4 }}>Password <span style={{ color: portal.dangerText }}>*</span></div>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="At least 8 characters"
+                style={{ width: "100%", height: 40, boxSizing: "border-box" as const, border: `1px solid ${errors.password ? portal.dangerText : portal.border}`, borderRadius: 8, padding: "0 12px", fontSize: 14, color: portal.ink, background: portal.canvas, fontFamily: "inherit", outline: "none" }}
+              />
+              {errors.password && <div style={{ fontSize: 12, color: portal.dangerText, marginTop: 4 }}>{errors.password}</div>}
+            </div>
+
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: portal.label, marginBottom: 4 }}>Confirm password <span style={{ color: portal.dangerText }}>*</span></div>
+              <input
+                type="password"
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                placeholder="Repeat your password"
+                style={{ width: "100%", height: 40, boxSizing: "border-box" as const, border: `1px solid ${errors.password_confirmation ? portal.dangerText : portal.border}`, borderRadius: 8, padding: "0 12px", fontSize: 14, color: portal.ink, background: portal.canvas, fontFamily: "inherit", outline: "none" }}
+              />
+              {errors.password_confirmation && <div style={{ fontSize: 12, color: portal.dangerText, marginTop: 4 }}>{errors.password_confirmation}</div>}
+            </div>
+
+            <button
+              onClick={handleSetup}
+              disabled={submitting || password.length < 8 || password !== passwordConfirm}
+              style={{ width: "100%", height: 44, border: "none", borderRadius: 8, fontSize: 15, fontWeight: 600, cursor: submitting || password.length < 8 || password !== passwordConfirm ? "default" : "pointer", background: submitting || password.length < 8 || password !== passwordConfirm ? portal.neutralHover : portal.brand, color: portal.inverse, fontFamily: "inherit" }}
+            >
+              {submitting ? "Creating account…" : "Create account & sign in"}
+            </button>
           </div>
         )}
 

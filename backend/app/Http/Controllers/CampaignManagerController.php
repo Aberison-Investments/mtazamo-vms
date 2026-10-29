@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Workspace;
 use App\Models\WorkspaceManager;
+use App\Services\AuditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -20,7 +21,21 @@ class CampaignManagerController extends Controller
             ->get()
             ->map(fn (WorkspaceManager $m) => $this->present($m));
 
-        return response()->json(['managers' => $managers]);
+        $owner = $workspace->user;
+        $ownerName = trim(($owner->first_name ?? '') . ' ' . ($owner->last_name ?? '')) ?: ($owner->name ?? '');
+        $initials = collect(explode(' ', $ownerName))
+            ->filter()
+            ->take(2)
+            ->map(fn ($p) => strtoupper(substr($p, 0, 1)))
+            ->join('');
+
+        $aspirant = [
+            'name'     => $ownerName,
+            'email'    => $owner->email,
+            'initials' => $initials ?: '?',
+        ];
+
+        return response()->json(['managers' => $managers, 'aspirant' => $aspirant]);
     }
 
     private function withDevToken(array $presented, WorkspaceManager $m): array
@@ -45,39 +60,65 @@ class CampaignManagerController extends Controller
 
         $phone = $this->normalizePhone($data['phone']);
 
-        if (\App\Models\User::where('phone', $phone)->exists()) {
-            return response()->json([
-                'error'  => 'That phone number is already registered to an existing account.',
-                'errors' => ['phone' => ['That phone number is already registered to an existing account.']],
-            ], 422);
-        }
-
-        $exists = WorkspaceManager::where('workspace_id', $workspace->id)
+        // Reject if already active or pending on this workspace.
+        $active = WorkspaceManager::where('workspace_id', $workspace->id)
             ->where('phone', $phone)
-            ->where('status', '!=', 'removed')
-            ->exists();
+            ->whereIn('status', ['pending', 'active'])
+            ->first();
 
-        if ($exists) {
-            return response()->json([
-                'error'  => 'That phone number already has access to this workspace.',
-                'errors' => ['phone' => ['That phone number already has access to this workspace.']],
-            ], 422);
+        if ($active) {
+            $msg = $active->status === 'active'
+                ? 'That number already has active access to this workspace.'
+                : 'An invite for that number is already pending.';
+            return response()->json(['error' => $msg, 'errors' => ['phone' => [$msg]]], 422);
         }
 
         $expiryHours = (int) $data['expiry_hours'];
+        $inviteFields = [
+            'invited_by'                => $request->user()->id,
+            'name'                      => $data['name'],
+            'email'                     => $data['email'] ?? null,
+            'note'                      => $data['note'] ?? null,
+            'expiry_hours'              => $expiryHours,
+            'status'                    => 'pending',
+            'invite_token'              => $this->generateToken(),
+            'expires_at'                => now()->addHours($expiryHours),
+            'accepted_at'               => null,
+            'otp_code_hash'             => null,
+            'otp_expires_at'            => null,
+            'otp_attempts'              => 0,
+            'verified_token_hash'       => null,
+            'verified_token_expires_at' => null,
+        ];
 
-        $manager = WorkspaceManager::create([
-            'workspace_id' => $workspace->id,
-            'invited_by'   => $request->user()->id,
-            'name'         => $data['name'],
-            'phone'        => $phone,
-            'email'        => $data['email'] ?? null,
-            'note'         => $data['note'] ?? null,
-            'expiry_hours' => $expiryHours,
-            'status'       => 'pending',
-            'invite_token' => $this->generateToken(),
-            'expires_at'   => now()->addHours($expiryHours),
-        ]);
+        // Resurrect a previously-removed record to avoid the unique-phone constraint.
+        $removed = WorkspaceManager::where('workspace_id', $workspace->id)
+            ->where('phone', $phone)
+            ->where('status', 'removed')
+            ->first();
+
+        if ($removed) {
+            $removed->update($inviteFields);
+            $manager = $removed->fresh();
+        } else {
+            // Only block a brand-new invite for a phone that already has a user account.
+            if (\App\Models\User::where('phone', $phone)->exists()) {
+                return response()->json([
+                    'error'  => 'That phone number is already registered to an existing account.',
+                    'errors' => ['phone' => ['That phone number is already registered to an existing account.']],
+                ], 422);
+            }
+
+            $manager = WorkspaceManager::create(array_merge(
+                ['workspace_id' => $workspace->id, 'phone' => $phone],
+                $inviteFields,
+            ));
+        }
+
+        AuditService::log($request, 'manager.invited', $workspaceId,
+            'WorkspaceManager', (string) $manager->id, $data['name'],
+            ['phone' => $phone, 'email' => $data['email'] ?? null],
+        );
 
         return response()->json(['manager' => $this->withDevToken($this->present($manager), $manager)], 201);
     }
@@ -109,7 +150,12 @@ class CampaignManagerController extends Controller
             ->where('status', '!=', 'removed')
             ->firstOrFail();
 
+        $name = $manager->name;
         $manager->update(['status' => 'removed']);
+
+        AuditService::log($request, 'manager.removed', $workspaceId,
+            'WorkspaceManager', (string) $managerId, $name,
+        );
 
         return response()->json(['ok' => true]);
     }
@@ -118,7 +164,7 @@ class CampaignManagerController extends Controller
     private function resolveReadable(Request $request, string $id): Workspace
     {
         $user      = $request->user();
-        $workspace = Workspace::find($id);
+        $workspace = Workspace::with('user')->find($id);
         if (! $workspace) abort(404);
 
         if ($workspace->user_id === $user->id) return $workspace;
@@ -153,16 +199,19 @@ class CampaignManagerController extends Controller
     private function normalizePhone(string $phone): string
     {
         $digits = preg_replace('/\D/', '', $phone);
+        // +2547XXXXXXXX — already fully qualified
+        if (str_starts_with($digits, '254') && strlen($digits) === 12) {
+            return '+' . $digits;
+        }
+        // 07XXXXXXXX — local format with leading zero
         if (strlen($digits) === 10 && str_starts_with($digits, '0')) {
             return '+254' . substr($digits, 1);
         }
+        // 7XXXXXXXX — 9-digit without leading zero
         if (strlen($digits) === 9) {
             return '+254' . $digits;
         }
-        if (str_starts_with($digits, '254') && strlen($digits) >= 12) {
-            return '+' . $digits;
-        }
-        return '+' . $digits;
+        return '+254' . ltrim($digits, '0');
     }
 
     private function maskPhone(string $phone): string

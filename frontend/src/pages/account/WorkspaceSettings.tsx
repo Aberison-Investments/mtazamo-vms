@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams, Navigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { api, type DelegationRules, type DelegationSettings, type Workspace } from "../../api";
 import { portal } from "../../portalTheme";
-import { WorkspaceShell } from "../../components/portal/WorkspaceShell";
+import { useWorkspaceContext } from "../../contexts/WorkspaceContext";
 
 // ---- seat chain helpers -----------------------------------------------------
 
@@ -445,40 +445,22 @@ const TIER_ROLES = new Set(["national", "county", "constituency", "ward"]);
 
 export function WorkspaceSettings() {
   const { id } = useParams<{ id: string }>();
-  const [workspace,       setWorkspace]       = useState<Workspace | null>(null);
-  const [myRole,          setMyRole]          = useState<string>('campaign_manager');
+  const { workspace, myRole } = useWorkspaceContext();
   const [delegation,      setDelegation]      = useState<DelegationSettings | null>(null);
   const [delegationError, setDelegationError] = useState<string | null>(null);
-  const [notFound,        setNotFound]        = useState(false);
   const [tab,             setTab]             = useState<SettingsTab>("delegation");
 
   useEffect(() => {
     if (!id) return;
-    api.getWorkspace(id)
-      .then(({ workspace: w, my_role }) => { setWorkspace(w); setMyRole(my_role); })
-      .catch(() => setNotFound(true));
-  }, [id]);
-
-  useEffect(() => {
-    if (!id || !workspace) return;
     api.getDelegation(id)
       .then(({ delegation: d }) => setDelegation(d))
       .catch((e: unknown) => setDelegationError(e instanceof Error ? e.message : "Failed to load delegation settings."));
-  }, [id, workspace]);
-
-  if (notFound) return <Navigate to="/workspaces" replace />;
-  if (!workspace) {
-    return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: portal.font, color: portal.textSubtle, fontSize: 14 }}>
-        Loading…
-      </div>
-    );
-  }
+  }, [id]);
 
   const isTier = TIER_ROLES.has(myRole);
 
   return (
-    <WorkspaceShell workspace={workspace} active="settings" myRole={myRole}>
+    <>
       <div style={{ flex: 1, padding: "28px 40px 56px", maxWidth: 900 }}>
         <div style={{ fontSize: 12, color: portal.textSubtle, marginBottom: 6 }}>
           Workspace / Settings
@@ -535,7 +517,7 @@ export function WorkspaceSettings() {
           </>
         )}
       </div>
-    </WorkspaceShell>
+    </>
   );
 }
 

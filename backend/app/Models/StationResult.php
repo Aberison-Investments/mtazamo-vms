@@ -11,16 +11,18 @@ class StationResult extends Model
     use HasUuids;
 
     protected $fillable = [
-        'workspace_id', 'station_id', 'submitted_by_user_id',
+        'workspace_id', 'run_id', 'station_id', 'submitted_by_user_id',
         'registered_voters', 'votes', 'rejected_ballots', 'disputed_votes',
         'photo_path', 'reference_code', 'submitted_at', 'version',
+        'status', 'verified_by_user_id', 'query_note', 'otp_verified',
     ];
 
     protected function casts(): array
     {
         return [
-            'votes'        => 'array',
-            'submitted_at' => 'datetime',
+            'votes'         => 'array',
+            'submitted_at'  => 'datetime',
+            'otp_verified'  => 'boolean',
         ];
     }
 

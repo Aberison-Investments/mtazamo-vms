@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Navigate, useParams } from "react-router-dom";
-import { api, type ApiError, type StationContext, type StationResultData } from "../../api";
+import { api, type ApiError, type ActiveRunInfo, type StationContext, type StationResultData } from "../../api";
 
 // ---- constants ---------------------------------------------------------------
 
@@ -205,6 +205,7 @@ export function StationResults() {
   const { id } = useParams<{ id: string }>();
 
   const [context, setContext] = useState<StationContext | null>(null);
+  const [activeRun, setActiveRun] = useState<ActiveRunInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
   const [step, setStep] = useState(1);
@@ -212,6 +213,14 @@ export function StationResults() {
   const [submittedResult, setSubmittedResult] = useState<StationResultData | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Confirmation modal state
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpSending, setOtpSending] = useState(false);
+  const [phoneHint, setPhoneHint] = useState<string | null>(null);
+  const [devOtp, setDevOtp] = useState<string | null>(null);
+  const [otp, setOtp] = useState("");
 
   // Form state
   const [registered, setRegistered] = useState("");
@@ -229,6 +238,8 @@ export function StationResults() {
     api.getStationContext(id)
       .then((res) => {
         setContext(res);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setActiveRun((res as any).active_run ?? null);
         // Pre-populate from existing result
         const ex = res.existing_result;
         if (ex) {
@@ -266,6 +277,7 @@ export function StationResults() {
   }
 
   const { workspace, station, candidates, manager } = context;
+  const noRun = !activeRun;
   const formName = workspace.form_name; // e.g. "Form 37A"
   const seatLabel = SEAT_LABELS[workspace.seat] ?? workspace.seat;
   const stationLabel = [station.code && `Station ${station.code}`, station.name].filter(Boolean).join(", ");
@@ -293,20 +305,44 @@ export function StationResults() {
     setPhotoPreview(url);
   }
 
+  function openConfirmModal() {
+    if (!canSubmit) return;
+    setShowConfirm(true);
+    setOtpSent(false);
+    setOtp("");
+    setSubmitError(null);
+    setDevOtp(null);
+  }
+
+  async function handleRequestOtp() {
+    if (!id || otpSending) return;
+    setOtpSending(true);
+    setSubmitError(null);
+    try {
+      const res = await api.requestResultOtp(id);
+      setPhoneHint(res.phone_hint);
+      setDevOtp(res.dev_otp);
+      setOtpSent(true);
+    } catch (err) {
+      setSubmitError((err as ApiError).message ?? "Could not send code. Try again.");
+    } finally {
+      setOtpSending(false);
+    }
+  }
+
   async function handleSubmit() {
-    if (!canSubmit || submitting || !id) return;
+    if (!canSubmit || submitting || !id || !otp.trim()) return;
     setSubmitting(true);
     setSubmitError(null);
     try {
       let photoBase64: string | null = null;
-      if (photo) {
-        photoBase64 = await readFileAsBase64(photo);
-      }
+      if (photo) photoBase64 = await readFileAsBase64(photo);
       const votePayload = candidates.map((c) => ({
         candidate_id: c.id,
         votes: n(votes[c.id] ?? ""),
       }));
       const res = await api.submitStationResult(id, {
+        otp: otp.trim(),
         registered_voters: REG,
         votes: votePayload,
         rejected_ballots: n(rejected),
@@ -315,16 +351,12 @@ export function StationResults() {
       });
       setSubmittedResult(res.result);
       setSubmitted(true);
+      setShowConfirm(false);
     } catch (err) {
       setSubmitError((err as ApiError).message ?? "Submission failed. Try again.");
     } finally {
       setSubmitting(false);
     }
-  }
-
-  function handleCorrection() {
-    setSubmitted(false);
-    setStep(1);
   }
 
   // ---- Review rows for step 3 ------------------------------------------------
@@ -376,21 +408,18 @@ export function StationResults() {
           <div style={{ background: "#FFFFFF", borderRadius: 14, boxShadow: "0 1px 1px rgba(9,30,66,0.25),0 0 1px rgba(9,30,66,0.31)", padding: "26px 24px 24px" }}>
             <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#E3FCEF", color: "#164B35", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 700, marginBottom: 14 }}>✓</div>
             <div style={{ fontSize: 20, lineHeight: "26px", fontWeight: 700, letterSpacing: "-0.2px", marginBottom: 8 }}>
-              {submittedResult.version > 1 ? "Correction sent" : "Results sent"}
+              Results submitted
             </div>
             <div style={{ fontSize: 13, lineHeight: "19px", color: "#44546F", marginBottom: 18 }}>
               {manager
-                ? `${manager.name} and the tally team received ${stationLabel}. They'll compare your photo with the numbers and call if anything doesn't match.`
+                ? `${manager.name} and the tally team received ${stationLabel}. They'll compare your photo with the numbers.`
                 : `Your results for ${stationLabel} have been recorded.`}
             </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: 10, marginBottom: 18 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: 10 }}>
               {candidates.filter((c) => c.is_ours).map((c) => (
                 <div key={c.id} style={{ background: "#F7F8F9", borderRadius: 8, padding: "11px 13px" }}>
                   <div style={{ fontSize: 11, color: "#626F86", marginBottom: 2 }}>{c.name}</div>
-                  <div style={{ fontSize: 16, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
-                    {fmt(n(votes[c.id] ?? ""))}
-                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{fmt(n(votes[c.id] ?? ""))}</div>
                 </div>
               ))}
               <div style={{ background: "#F7F8F9", borderRadius: 8, padding: "11px 13px" }}>
@@ -402,29 +431,100 @@ export function StationResults() {
                 <div style={{ fontSize: 16, fontWeight: 700 }}>{submittedResult.reference_code}</div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
 
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+      {/* Confirmation modal */}
+      {showConfirm && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(9,30,66,0.54)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 20 }}>
+          <div style={{ background: "#FFFFFF", borderRadius: 14, boxShadow: "0 8px 32px rgba(9,30,66,0.3)", padding: "28px 24px", width: "100%", maxWidth: 440 }}>
+            <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 6 }}>Confirm and submit results</div>
+            <div style={{ fontSize: 13, color: "#626F86", marginBottom: 20, lineHeight: "19px" }}>
+              Once submitted these numbers are final. Make sure they match the signed {formName}.
+            </div>
+
+            {/* Summary */}
+            <div style={{ border: "1px solid #DCDFE4", borderRadius: 8, overflow: "hidden", marginBottom: 20 }}>
+              {reviewRows.map((r, i) => (
+                <div key={r.label} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "9px 14px", fontSize: 13, borderTop: i ? "1px solid #F1F2F4" : "none", background: r.total ? "#F7F8F9" : r.ours ? "#F5FAFB" : "#FFFFFF", fontWeight: r.total || r.ours ? 600 : 400 }}>
+                  <span>{r.label}</span>
+                  <span style={{ fontVariantNumeric: "tabular-nums" }}>{r.value}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* OTP section */}
+            {!otpSent ? (
               <button
-                onClick={handleCorrection}
-                style={{ height: 44, padding: "0 18px", border: "none", borderRadius: 8, background: "#F1F2F4", color: "#172B4D", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}
+                onClick={handleRequestOtp}
+                disabled={otpSending}
+                style={{ width: "100%", height: 44, border: "none", borderRadius: 8, background: otpSending ? "#DCDFE4" : "#599BAE", color: "#FFFFFF", fontSize: 14, fontWeight: 600, cursor: otpSending ? "default" : "pointer", fontFamily: "inherit", marginBottom: 12 }}
               >
-                Send a correction
+                {otpSending ? "Sending code…" : "Send verification code to my phone"}
               </button>
-              {manager?.phone && (
-                <a
-                  href={`tel:${manager.phone}`}
-                  style={{ display: "flex", alignItems: "center", height: 44, padding: "0 18px", borderRadius: 8, background: "#599BAE", color: "#FFFFFF", fontSize: 14, fontWeight: 600, textDecoration: "none" }}
+            ) : (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 13, color: "#44546F", marginBottom: 10 }}>
+                  A 6-digit code was sent to <strong>{phoneHint}</strong>. Enter it below to submit.
+                </div>
+                {devOtp && (
+                  <div style={{ padding: "8px 12px", borderRadius: 8, background: "#FFF7D6", color: "#7F5F01", fontSize: 13, marginBottom: 10 }}>
+                    Dev mode — code: <strong style={{ fontFamily: "monospace" }}>{devOtp}</strong>
+                  </div>
+                )}
+                <input
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="000000"
+                  inputMode="numeric"
+                  autoFocus
+                  style={{ width: "100%", height: 48, boxSizing: "border-box", border: "1px solid #DCDFE4", borderRadius: 8, padding: "0 16px", fontSize: 22, fontWeight: 700, textAlign: "center", fontFamily: "monospace", letterSpacing: 8, color: "#172B4D", outline: "none" }}
+                />
+              </div>
+            )}
+
+            {submitError && (
+              <div style={{ padding: "10px 12px", borderRadius: 8, background: "#FFEBE6", color: "#BF2600", fontSize: 13, marginBottom: 12 }}>
+                {submitError}
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={() => { setShowConfirm(false); setOtp(""); setSubmitError(null); }}
+                style={{ flex: 1, height: 44, border: "none", borderRadius: 8, background: "#F1F2F4", color: "#172B4D", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}
+              >
+                Cancel
+              </button>
+              {otpSent && (
+                <button
+                  onClick={handleSubmit}
+                  disabled={otp.length !== 6 || submitting}
+                  style={{ flex: 2, height: 44, border: "none", borderRadius: 8, background: otp.length === 6 && !submitting ? "#599BAE" : "#DCDFE4", color: otp.length === 6 && !submitting ? "#FFFFFF" : "#626F86", fontSize: 14, fontWeight: 600, cursor: otp.length === 6 && !submitting ? "pointer" : "default", fontFamily: "inherit" }}
                 >
-                  Call {manager.name.split(" ")[0]}
-                </a>
+                  {submitting ? "Submitting…" : "Submit results"}
+                </button>
               )}
             </div>
           </div>
         </div>
       )}
 
+      {/* No active run banner */}
+      {noRun && !submitted && (
+        <div style={{ width: "100%", maxWidth: 560, margin: "0 auto", boxSizing: "border-box", padding: "28px 20px" }}>
+          <div style={{ background: "#FFF7D6", borderRadius: 14, border: "1px solid #FFAB00", padding: "24px 24px 22px" }}>
+            <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: "#172B4D" }}>Results not open yet</div>
+            <div style={{ fontSize: 14, lineHeight: "21px", color: "#44546F" }}>
+              No counting run is active in this workspace. Your campaign manager needs to open a run before you can submit results. Check back later.
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Entry form */}
-      {!submitted && (
+      {!submitted && !noRun && (
         <div style={{ width: "100%", maxWidth: 1120, margin: "0 auto", boxSizing: "border-box", padding: "20px 20px 40px", display: "flex", flexWrap: "wrap", gap: 16, alignItems: "flex-start" }}>
 
           {/* Left: form steps */}
@@ -621,10 +721,10 @@ export function StationResults() {
                 <div style={{ display: "flex", gap: 10 }}>
                   <BackBtn onClick={() => setStep(2)} />
                   <NextBtn
-                    ok={canSubmit && !submitting}
+                    ok={canSubmit}
                     grow
-                    onClick={handleSubmit}
-                    label={submitting ? "Sending…" : "Send results"}
+                    onClick={openConfirmModal}
+                    label="Send results"
                   />
                 </div>
               </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ApiToken;
 use App\Models\User;
+use App\Services\AuditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -40,6 +41,7 @@ class AuthController extends Controller
             'last_name' => $data['last_name'],
             'age' => $data['age'],
             'gender' => $data['gender'],
+            'is_aspirant' => true,
             'phone' => $data['phone'],
             'email' => $data['email'],
             'password' => $data['password'], // hashed via cast
@@ -64,6 +66,18 @@ class AuthController extends Controller
             throw ValidationException::withMessages([
                 'identifier' => 'Those credentials do not match our records.',
             ]);
+        }
+
+        // Block agents whose application has not yet been approved
+        if (! $user->is_aspirant) {
+            $isActiveCM      = \App\Models\WorkspaceManager::where('user_id', $user->id)->where('status', 'active')->exists();
+            $isApprovedAgent = \App\Models\WorkspaceAgent::where('user_id', $user->id)->where('status', 'approved')->exists();
+
+            if (! $isActiveCM && ! $isApprovedAgent) {
+                throw ValidationException::withMessages([
+                    'identifier' => 'Your application is still pending review. You will be notified once it has been approved.',
+                ]);
+            }
         }
 
         $otp = $this->issueOtp($user, 'login');
@@ -112,11 +126,20 @@ class AuthController extends Controller
             'phone_verified_at' => $user->phone_verified_at ?? now(),
         ])->save();
 
-        $token = ApiToken::issueFor($user);
+        if ($request->ip()) {
+            ApiToken::revokeSessionsFromIp($user, $request->ip());
+        }
+
+        $tokens = ApiToken::issueFor($user, $request->ip(), $request->userAgent());
+
+        AuditService::logAuth($request, $user->id, 'auth.login', [
+            'identifier' => $data['identifier'],
+        ]);
 
         return response()->json([
-            'token' => $token,
-            'user' => $this->publicUser($user->fresh()),
+            'token'         => $tokens['access_token'],
+            'refresh_token' => $tokens['refresh_token'],
+            'user'          => $this->publicUser($user->fresh()),
         ]);
     }
 
@@ -225,10 +248,89 @@ class AuthController extends Controller
     {
         $plain = $request->bearerToken();
         if ($plain) {
-            ApiToken::where('token_hash', ApiToken::hashFor($plain))->delete();
+            ApiToken::where('token_hash', ApiToken::hashFor($plain))
+                ->update(['revoked_at' => now()]);
         }
 
+        AuditService::logAuth($request, $request->user()->id, 'auth.logout');
+
         return response()->json(['ok' => true]);
+    }
+
+    // ---- token refresh & session management --------------------------------
+
+    public function refresh(Request $request): JsonResponse
+    {
+        $data = $request->validate(['refresh_token' => 'required|string']);
+
+        $result = ApiToken::rotateRefresh(
+            $data['refresh_token'],
+            $request->ip(),
+            $request->userAgent(),
+        );
+
+        if (! $result) {
+            return response()->json(['error' => 'Refresh token invalid or expired.'], 401);
+        }
+
+        AuditService::logAuth($request, $result['user']->id, 'auth.token_refreshed');
+
+        return response()->json([
+            'token'         => $result['access_token'],
+            'refresh_token' => $result['refresh_token'],
+            'user'          => $this->publicUser($result['user']->fresh()),
+        ]);
+    }
+
+    /** List active sessions for the current user. */
+    public function sessions(Request $request): JsonResponse
+    {
+        $currentHash = ApiToken::hashFor((string) $request->bearerToken());
+
+        $sessions = ApiToken::where('user_id', $request->user()->id)
+            ->whereNull('revoked_at')
+            ->where('refresh_expires_at', '>', now())
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn ($t) => [
+                'id'           => $t->id,
+                'device_label' => $t->device_label ?? 'Unknown device',
+                'ip_address'   => $t->ip_address,
+                'last_used_at' => $t->last_used_at?->toIso8601String(),
+                'created_at'   => $t->created_at?->toIso8601String(),
+                'is_current'   => $t->token_hash === $currentHash,
+                'access_valid' => $t->access_expires_at?->isFuture() ?? false,
+            ]);
+
+        return response()->json(['sessions' => $sessions]);
+    }
+
+    /** Revoke a specific session by token ID. */
+    public function revokeSession(Request $request, int $tokenId): JsonResponse
+    {
+        $token = ApiToken::where('user_id', $request->user()->id)
+            ->findOrFail($tokenId);
+
+        $token->update(['revoked_at' => now()]);
+
+        AuditService::logAuth($request, $request->user()->id, 'auth.session_revoked', [
+            'session_id' => $tokenId,
+            'device'     => $token->device_label,
+        ]);
+
+        return response()->json(['ok' => true]);
+    }
+
+    /** Revoke ALL sessions for the current user (emergency wipe). */
+    public function revokeAll(Request $request): JsonResponse
+    {
+        ApiToken::where('user_id', $request->user()->id)
+            ->whereNull('revoked_at')
+            ->update(['revoked_at' => now()]);
+
+        AuditService::logAuth($request, $request->user()->id, 'auth.all_sessions_revoked');
+
+        return response()->json(['ok' => true, 'message' => 'All sessions have been revoked.']);
     }
 
     // ---- helpers -----------------------------------------------------------
@@ -280,6 +382,20 @@ class AuthController extends Controller
             ->first();
     }
 
+    private function resolvePrimaryRole(User $user): ?string
+    {
+        if ($user->is_aspirant) return 'aspirant';
+
+        $managed = \App\Models\WorkspaceManager::where('user_id', $user->id)->where('status', 'active')->exists();
+        if ($managed) return 'campaign_manager';
+
+        $agent = \App\Models\WorkspaceAgent::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->orderBy('created_at')
+            ->value('role');
+        return $agent;
+    }
+
     private function resolvePrimaryWorkspaceId(User $user): ?string
     {
         $own = $user->workspaces()->orderBy('created_at')->value('id');
@@ -291,9 +407,18 @@ class AuthController extends Controller
             ->value('workspace_id');
         if ($managed) return $managed;
 
-        return \App\Models\WorkspaceAgent::where('user_id', $user->id)
+        // Tier officers
+        $tier = \App\Models\WorkspaceAgent::where('user_id', $user->id)
             ->where('status', 'approved')
             ->whereNotIn('role', ['agent', 'volunteer'])
+            ->orderBy('created_at')
+            ->value('workspace_id');
+        if ($tier) return $tier;
+
+        // Polling agents and volunteers
+        return \App\Models\WorkspaceAgent::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->whereIn('role', ['agent', 'volunteer'])
             ->orderBy('created_at')
             ->value('workspace_id');
     }
@@ -324,8 +449,9 @@ class AuthController extends Controller
             'phone_verified' => (bool) $user->phone_verified_at,
             'email' => $user->email,
             'email_verified' => (bool) $user->email_verified_at,
-            'is_aspirant' => $user->workspaces()->exists(),
+            'is_aspirant' => (bool) $user->is_aspirant,
             'primary_workspace_id' => $this->resolvePrimaryWorkspaceId($user),
+            'primary_role'         => $this->resolvePrimaryRole($user),
             'initials' => Str::of($user->first_name.' '.$user->last_name)
                 ->explode(' ')
                 ->filter()

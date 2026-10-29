@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Workspace;
 use App\Models\WorkspaceCandidate;
+use App\Services\AuditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -99,6 +100,10 @@ class WorkspaceCandidatesController extends Controller
             $workspace->update(['candidates_updated_at' => now()]);
         });
 
+        AuditService::log($request, 'candidates.saved', $id, null, null, null,
+            ['count' => count($data['candidates'])],
+        );
+
         return response()->json($this->formatResponse($workspace->fresh('user')));
     }
 
@@ -106,6 +111,9 @@ class WorkspaceCandidatesController extends Controller
     {
         $workspace = $this->resolveWorkspace($request, $id);
         $workspace->update(['candidates_published_at' => now()]);
+
+        AuditService::log($request, 'candidates.published', $id);
+
         return response()->json($this->formatResponse($workspace->fresh('user')));
     }
 }
