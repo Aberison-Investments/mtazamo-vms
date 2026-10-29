@@ -413,7 +413,7 @@ export const api = {
   acceptInvite: (token: string, code: string) =>
     request<
       | { ok: true; verified_token: string; name: string; email: string | null; skip_setup?: never }
-      | { ok: true; skip_setup: true; token: string; user: { id: string; name: string; email: string | null }; refresh_token: string; workspace_id: string }
+      | { ok: true; skip_setup: true; token: string; user: AuthUser; refresh_token: string; workspace_id: string }
     >(
       `/api/join/${token}/accept`,
       { method: "POST", body: JSON.stringify({ code }) },
