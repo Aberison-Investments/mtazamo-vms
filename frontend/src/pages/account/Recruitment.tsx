@@ -353,13 +353,18 @@ function SendInviteDrawer({
     return () => clearTimeout(t);
   }, []);
 
-  // Seed locked geo IDs into the form state on mount
+  // Seed locked geo IDs whenever they become available (tierCtx may load after drawer opens)
   useEffect(() => {
-    if (lockedCountyId)       setInviteCountyId(lockedCountyId);
+    if (lockedCountyId) setInviteCountyId(lockedCountyId);
+  }, [lockedCountyId]);
+
+  useEffect(() => {
     if (lockedConstituencyId) setInviteConstituencyId(lockedConstituencyId);
-    if (lockedWardId)         setInviteWardId(lockedWardId);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [lockedConstituencyId]);
+
+  useEffect(() => {
+    if (lockedWardId) setInviteWardId(lockedWardId);
+  }, [lockedWardId]);
 
   useEffect(() => {
     if (!workspace.county_id) return;
@@ -598,7 +603,7 @@ function SendInviteDrawer({
                         value={inviteWardId}
                         onChange={setInviteWardId}
                         placeholder="Select ward…"
-                        disabled={!inviteConstituencyId && workspace.scope !== "constituency"}
+                        disabled={!inviteConstituencyId && !lockedConstituencyId && workspace.scope !== "constituency"}
                         filledIds={filledWardIds}
                       />
                     )}
