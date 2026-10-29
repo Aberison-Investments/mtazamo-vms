@@ -10,7 +10,6 @@ import { AccountSettings } from "./pages/account/AccountSettings";
 import { VerifyEmail } from "./pages/account/VerifyEmail";
 import { VerifyEmailLink } from "./pages/account/VerifyEmailLink";
 import { Workspaces } from "./pages/account/Workspaces";
-import { CreateWorkspace } from "./pages/account/CreateWorkspace";
 import { WorkspaceOverview } from "./pages/account/WorkspaceOverview";
 import { CampaignManagers } from "./pages/account/CampaignManagers";
 import { JoinInvite } from "./pages/join/JoinInvite";
@@ -55,7 +54,6 @@ export function App() {
           <Route path="/account/settings" element={<RequireAspirant><AccountSettings /></RequireAspirant>} />
           <Route path="/account/verify-email" element={<RequireAuth><VerifyEmail /></RequireAuth>} />
           <Route path="/workspaces" element={<RequireAspirant><Workspaces /></RequireAspirant>} />
-          <Route path="/workspaces/new" element={<RequireAspirant><CreateWorkspace /></RequireAspirant>} />
           <Route path="/workspaces/:id" element={<RequireAuth><WorkspaceLayout /></RequireAuth>}>
             <Route index element={<WorkspaceOverview />} />
             <Route path="candidates" element={<Candidates />} />

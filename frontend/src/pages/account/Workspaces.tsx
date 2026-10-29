@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { api, type Workspace } from "../../api";
 import { portal, geoScopeLabel, seatLabel, segmentLabel } from "../../portalTheme";
 import { PortalShell } from "../../components/portal/PortalShell";
@@ -7,9 +7,10 @@ import { WorkspaceFormBody } from "../../components/portal/WorkspaceFormBody";
 import { useNotifications } from "../../notifications";
 
 export function Workspaces() {
+  const location = useLocation();
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(!!(location.state as { openDrawer?: boolean } | null)?.openDrawer);
   const { add, update } = useNotifications();
 
   function loadWorkspaces() {

@@ -37,7 +37,8 @@ export function AccountHome() {
       desc: "One workspace per election you contest.",
       done: hasWorkspace,
       action: hasWorkspace ? undefined : "Create",
-      to: "/workspaces/new",
+      to: "/workspaces",
+      state: { openDrawer: true },
     },
     {
       title: "Add a recovery contact",
@@ -134,7 +135,7 @@ export function AccountHome() {
               {workspaces.length === 0 ? (
                 <div style={{ padding: "18px 20px", fontSize: 14, color: portal.textSubtle }}>
                   No workspaces yet.{" "}
-                  <Link to="/workspaces/new" style={{ color: portal.brandText, fontWeight: 500, textDecoration: "none" }}>
+                  <Link to="/workspaces" state={{ openDrawer: true }} style={{ color: portal.brandText, fontWeight: 500, textDecoration: "none" }}>
                     Create your first
                   </Link>
                   .
@@ -245,6 +246,7 @@ interface Step {
   done: boolean;
   action?: string;
   to?: string;
+  state?: Record<string, unknown>;
 }
 
 function StepRow({ step, last }: { step: Step; last: boolean }) {
@@ -303,6 +305,7 @@ function StepRow({ step, last }: { step: Step; last: boolean }) {
         step.to ? (
           <Link
             to={step.to}
+            state={step.state}
             style={{
               display: "flex",
               alignItems: "center",
