@@ -338,12 +338,34 @@ class RecruitmentController extends Controller
 
     public function listInvites(Request $request, string $workspaceId): JsonResponse
     {
-        [$workspace] = $this->resolveWorkspaceForInvite($request, $workspaceId);
+        [$workspace, $tierRecord] = $this->resolveWorkspaceForInvite($request, $workspaceId);
 
-        $invites = AgentInvite::where('workspace_id', $workspace->id)
-            ->where('status', '!=', 'declined')
-            ->orderByDesc('created_at')
-            ->limit(20)
+        $query = AgentInvite::where('workspace_id', $workspace->id)
+            ->where('status', '!=', 'declined');
+
+        if ($tierRecord) {
+            // Only show invites for roles strictly below this officer in the chain
+            $chain = SeatRoles::rolesForSeat($workspace->seat);
+            $myPos = array_search($tierRecord->role, $chain, true);
+            $rolesBelow = $myPos !== false
+                ? array_values(array_slice($chain, $myPos + 1))
+                : [];
+            $query->whereIn('role', $rolesBelow);
+
+            // Scope to the officer's assigned geography
+            if ($tierRecord->county_id) {
+                $query->where('county_id', $tierRecord->county_id);
+            }
+            if ($tierRecord->constituency_id) {
+                $query->where('constituency_id', $tierRecord->constituency_id);
+            }
+            if ($tierRecord->ward_id) {
+                $query->where('ward_id', $tierRecord->ward_id);
+            }
+        }
+
+        $invites = $query->orderByDesc('created_at')
+            ->limit(100)
             ->get()
             ->map(fn ($inv) => $this->presentInvite($inv));
 
