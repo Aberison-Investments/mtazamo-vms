@@ -375,12 +375,15 @@ function SendInviteDrawer({
 
   useEffect(() => {
     if (!inviteCountyId || workspace.scope !== "national") return;
-    api.countyTree(inviteCountyId).then((res) => { setConstituencies(res.constituencies); setInviteConstituencyId(""); }).catch(() => {});
+    api.countyTree(inviteCountyId).then((res) => {
+      setConstituencies(res.constituencies);
+      if (!lockedConstituencyId) setInviteConstituencyId("");
+    }).catch(() => {});
   }, [inviteCountyId, workspace.scope]);
 
   useEffect(() => {
-    if (!inviteConstituencyId) { setCascadeWards([]); setInviteWardId(""); return; }
-    api.constituencyWards(inviteConstituencyId).then((res) => { setCascadeWards(res.wards); setInviteWardId(""); }).catch(() => {});
+    if (!inviteConstituencyId) { setCascadeWards([]); if (!lockedWardId) setInviteWardId(""); return; }
+    api.constituencyWards(inviteConstituencyId).then((res) => { setCascadeWards(res.wards); if (!lockedWardId) setInviteWardId(""); }).catch(() => {});
   }, [inviteConstituencyId]);
 
   useEffect(() => {
