@@ -21,7 +21,7 @@ const ROLE_SCOPE: Record<string, string> = {
   ward:          "All stations within the ward",
 };
 
-// All tier-officer roles (can receive delegation), derived from CLAUDE.md chains.
+// All tier-officer roles (can receive delegation), derived from the spec's seat chains.
 const SEAT_OFFICER_ROLES: Record<string, string[]> = {
   president: ["national", "county", "constituency", "ward"],
   governor:  ["county", "constituency", "ward"],
